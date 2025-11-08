@@ -117,6 +117,7 @@ export type Database = {
           invoice_number: string
           issue_date: string
           notes: string | null
+          pdf_url: string | null
           status: string
           subtotal: number
           tax_amount: number | null
@@ -134,6 +135,7 @@ export type Database = {
           invoice_number: string
           issue_date?: string
           notes?: string | null
+          pdf_url?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number | null
@@ -151,6 +153,7 @@ export type Database = {
           invoice_number?: string
           issue_date?: string
           notes?: string | null
+          pdf_url?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number | null
