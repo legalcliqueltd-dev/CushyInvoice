@@ -32,6 +32,7 @@ import { Plus, Trash2, CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { currencies, getCurrencySymbol } from "@/lib/currencies";
 
 interface Client {
   id: string;
@@ -80,6 +81,7 @@ export default function InvoiceNew() {
     },
   ]);
   const [taxRate, setTaxRate] = useState(0);
+  const [currency, setCurrency] = useState("USD");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [newClientDialog, setNewClientDialog] = useState(false);
@@ -109,6 +111,7 @@ export default function InvoiceNew() {
 
       if (data) {
         setTaxRate(Number(data.default_tax_rate) || 0);
+        setCurrency(data.default_currency || "USD");
       }
     } catch (error: any) {
       console.error("Error fetching profile defaults:", error);
@@ -312,6 +315,7 @@ export default function InvoiceNew() {
           issue_date: format(issueDate, "yyyy-MM-dd"),
           due_date: format(dueDate, "yyyy-MM-dd"),
           status,
+          currency,
           subtotal,
           tax_rate: taxRate,
           tax_amount: tax,
@@ -444,6 +448,30 @@ export default function InvoiceNew() {
                   </DialogContent>
                 </Dialog>
               </div>
+            </div>
+
+            {/* Currency Selection */}
+            <div className="space-y-2">
+              <Label>Currency *</Label>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Global</div>
+                  {currencies.filter(c => c.region === 'global').map((curr) => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.code} - {curr.name} ({curr.symbol})
+                    </SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground mt-2">African</div>
+                  {currencies.filter(c => c.region === 'africa').map((curr) => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.code} - {curr.name} ({curr.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Dates */}
@@ -586,7 +614,7 @@ export default function InvoiceNew() {
                   <div className="space-y-2">
                     <Label>Amount</Label>
                     <Input
-                      value={`$${item.amount.toFixed(2)}`}
+                      value={`${getCurrencySymbol(currency)}${item.amount.toFixed(2)}`}
                       disabled
                       className="bg-muted"
                     />
@@ -623,15 +651,15 @@ export default function InvoiceNew() {
             <div className="space-y-2 pt-4 border-t">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(currency)}{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax ({taxRate}%):</span>
-                <span className="font-medium">${tax.toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(currency)}{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{getCurrencySymbol(currency)}{total.toFixed(2)}</span>
               </div>
             </div>
 

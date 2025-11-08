@@ -24,6 +24,8 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { format } from "date-fns";
+import { currencies, getCurrencySymbol } from "@/lib/currencies";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface InvoiceData {
   id: string;
@@ -35,6 +37,7 @@ interface InvoiceData {
   tax_rate: number;
   tax_amount: number;
   total: number;
+  currency: string;
   notes?: string;
   clients: {
     name: string;
@@ -66,6 +69,7 @@ export default function InvoiceDetail() {
   const { toast } = useToast();
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [displayCurrency, setDisplayCurrency] = useState("USD");
 
   useEffect(() => {
     if (id) {
@@ -94,6 +98,7 @@ export default function InvoiceDetail() {
 
       if (error) throw error;
       setInvoice(data);
+      setDisplayCurrency(data?.currency || "USD");
     } catch (error: any) {
       console.error("Error fetching invoice:", error);
       toast({
@@ -207,6 +212,34 @@ export default function InvoiceDetail() {
           </div>
         </div>
 
+        {/* Currency Selector */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">Display Currency:</span>
+              <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Global</div>
+                  {currencies.filter(c => c.region === 'global').map((curr) => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.code} - {curr.symbol}
+                    </SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground mt-2">African</div>
+                  {currencies.filter(c => c.region === 'africa').map((curr) => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.code} - {curr.symbol}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Invoice Details */}
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
@@ -286,10 +319,10 @@ export default function InvoiceDetail() {
                     <TableCell>{item.description}</TableCell>
                     <TableCell className="text-right">{Number(item.quantity)}</TableCell>
                     <TableCell className="text-right">
-                      ${Number(item.unit_price).toFixed(2)}
+                      {getCurrencySymbol(displayCurrency)}{Number(item.unit_price).toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${Number(item.amount).toFixed(2)}
+                      {getCurrencySymbol(displayCurrency)}{Number(item.amount).toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -301,26 +334,26 @@ export default function InvoiceDetail() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span className="font-medium">${Number(invoice.subtotal).toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(displayCurrency)}{Number(invoice.subtotal).toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax ({Number(invoice.tax_rate)}%):</span>
-                <span className="font-medium">${Number(invoice.tax_amount).toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(displayCurrency)}{Number(invoice.tax_amount).toFixed(2)}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span>${Number(invoice.total).toFixed(2)}</span>
+                <span>{getCurrencySymbol(displayCurrency)}{Number(invoice.total).toFixed(2)}</span>
               </div>
               {totalPaid > 0 && (
                 <>
                   <div className="flex justify-between text-success">
                     <span>Total Paid:</span>
-                    <span>-${totalPaid.toFixed(2)}</span>
+                    <span>-{getCurrencySymbol(displayCurrency)}{totalPaid.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold">
                     <span>Amount Due:</span>
-                    <span>${amountDue.toFixed(2)}</span>
+                    <span>{getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}</span>
                   </div>
                 </>
               )}
@@ -365,7 +398,7 @@ export default function InvoiceDetail() {
                       </TableCell>
                       <TableCell>{payment.payment_method || "N/A"}</TableCell>
                       <TableCell className="text-right">
-                        ${Number(payment.amount).toFixed(2)}
+                        {getCurrencySymbol(displayCurrency)}{Number(payment.amount).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}
