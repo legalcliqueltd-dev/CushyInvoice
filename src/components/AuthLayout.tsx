@@ -14,22 +14,22 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
       <div className="hidden lg:flex lg:w-1/2 bg-primary p-12 flex-col justify-between text-primary-foreground">
         <div className="flex items-center gap-2">
           <Receipt className="h-8 w-8" />
-          <span className="text-2xl font-bold">InvoiceEase</span>
+          <span className="text-2xl font-bold">CushyInvoice</span>
         </div>
         
         <div className="space-y-4">
           <h1 className="text-4xl font-bold leading-tight">
-            Simple invoicing for
+            Hassle-free invoicing for
             <br />
             small businesses
           </h1>
           <p className="text-xl opacity-90">
-            Create professional invoices, track payments, and manage clients all in one place.
+            Create professional invoices in minutes. Track payments, manage clients, and grow your business effortlessly.
           </p>
         </div>
 
         <div className="text-sm opacity-75">
-          © 2025 InvoiceEase. All rights reserved.
+          © 2025 CushyInvoice. All rights reserved.
         </div>
       </div>
 
@@ -39,7 +39,7 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
           <div className="text-center lg:hidden mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Receipt className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">InvoiceEase</span>
+              <span className="text-2xl font-bold">CushyInvoice</span>
             </div>
           </div>
 

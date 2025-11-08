@@ -13,7 +13,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Receipt className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">InvoiceEase</span>
+            <span className="text-xl font-bold">CushyInvoice</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate("/auth")}>
@@ -28,12 +28,12 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20 lg:py-32">
         <div className="text-center max-w-3xl mx-auto space-y-6">
           <h1 className="text-4xl lg:text-6xl font-bold tracking-tight">
-            Simple invoicing for
+            Hassle-free invoicing for
             <span className="text-primary"> small businesses</span>
           </h1>
           <p className="text-xl text-muted-foreground">
             Create professional invoices in minutes. Track payments, manage
-            clients, and grow your business with ease.
+            clients, and grow your business effortlessly.
           </p>
           <div className="flex gap-4 justify-center pt-4">
             <Button size="lg" onClick={() => navigate("/auth")}>
@@ -98,7 +98,7 @@ const Index = () => {
             Ready to streamline your invoicing?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join thousands of small businesses using InvoiceEase
+            Join thousands of small businesses using CushyInvoice
           </p>
           <Button
             size="lg"
@@ -113,7 +113,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          © 2025 InvoiceEase. All rights reserved.
+          © 2025 CushyInvoice. All rights reserved.
         </div>
       </footer>
     </div>
