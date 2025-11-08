@@ -1,1 +1,4 @@
 project_id = "figeuiotixafbnbwgvpi"
+
+[functions.api-docs]
+verify_jwt = false
