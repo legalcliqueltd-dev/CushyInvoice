@@ -11,6 +11,8 @@ import {
   Clock,
   TrendingUp,
   Eye,
+  Plus,
+  UserPlus,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,6 +30,7 @@ interface Invoice {
 
 interface DashboardStats {
   totalOutstanding: number;
+  totalPaid: number;
   totalInvoices: number;
   draftInvoices: number;
   overdueInvoices: number;
@@ -36,6 +39,7 @@ interface DashboardStats {
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalOutstanding: 0,
+    totalPaid: 0,
     totalInvoices: 0,
     draftInvoices: 0,
     overdueInvoices: 0,
@@ -73,9 +77,13 @@ export default function Dashboard() {
       const totalOutstanding = invoices
         ?.filter((inv) => inv.status !== "paid" && inv.status !== "cancelled")
         .reduce((sum, inv) => sum + Number(inv.total), 0) || 0;
+      const totalPaid = invoices
+        ?.filter((inv) => inv.status === "paid")
+        .reduce((sum, inv) => sum + Number(inv.total), 0) || 0;
 
       setStats({
         totalOutstanding,
+        totalPaid,
         totalInvoices,
         draftInvoices,
         overdueInvoices,
@@ -122,15 +130,44 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of your invoicing activity
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Overview of your invoicing activity
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/clients")}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add Client
+            </Button>
+            <Button onClick={() => navigate("/invoices/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Invoice
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Paid
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${stats.totalPaid.toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total received
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
