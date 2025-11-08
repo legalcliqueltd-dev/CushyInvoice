@@ -236,30 +236,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           company_logo: string | null
           company_name: string | null
           created_at: string | null
+          default_currency: string | null
+          default_tax_rate: number | null
           email: string
           full_name: string | null
           id: string
+          phone: string | null
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
           company_logo?: string | null
           company_name?: string | null
           created_at?: string | null
+          default_currency?: string | null
+          default_tax_rate?: number | null
           email: string
           full_name?: string | null
           id: string
+          phone?: string | null
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
           company_logo?: string | null
           company_name?: string | null
           created_at?: string | null
+          default_currency?: string | null
+          default_tax_rate?: number | null
           email?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string | null
         }
         Relationships: []

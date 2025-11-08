@@ -91,7 +91,29 @@ export default function InvoiceNew() {
   useEffect(() => {
     fetchClients();
     fetchProducts();
+    fetchProfileDefaults();
   }, []);
+
+  const fetchProfileDefaults = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("default_tax_rate, default_currency")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setTaxRate(Number(data.default_tax_rate) || 0);
+      }
+    } catch (error: any) {
+      console.error("Error fetching profile defaults:", error);
+    }
+  };
 
   const fetchClients = async () => {
     try {
