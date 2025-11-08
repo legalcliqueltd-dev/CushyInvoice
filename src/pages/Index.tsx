@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Receipt, FileText, Users, TrendingUp } from "lucide-react";
+import { Receipt, FileText, Users, TrendingUp, Twitter, Linkedin, Facebook, Instagram } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -91,6 +91,62 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">What Our Customers Say</h2>
+          <p className="text-muted-foreground">
+            Join thousands of satisfied small business owners
+          </p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="bg-card border rounded-lg p-6 space-y-4">
+            <div className="flex gap-1 text-primary">
+              {[...Array(5)].map((_, i) => (
+                <span key={i}>★</span>
+              ))}
+            </div>
+            <p className="text-muted-foreground">
+              "CushyInvoice has completely transformed how I manage my freelance business. Creating invoices is now a breeze!"
+            </p>
+            <div>
+              <p className="font-semibold">Sarah Johnson</p>
+              <p className="text-sm text-muted-foreground">Freelance Designer</p>
+            </div>
+          </div>
+
+          <div className="bg-card border rounded-lg p-6 space-y-4">
+            <div className="flex gap-1 text-primary">
+              {[...Array(5)].map((_, i) => (
+                <span key={i}>★</span>
+              ))}
+            </div>
+            <p className="text-muted-foreground">
+              "The payment tracking feature is fantastic. I always know who owes what and when payments are due."
+            </p>
+            <div>
+              <p className="font-semibold">Michael Chen</p>
+              <p className="text-sm text-muted-foreground">Consulting Services</p>
+            </div>
+          </div>
+
+          <div className="bg-card border rounded-lg p-6 space-y-4">
+            <div className="flex gap-1 text-primary">
+              {[...Array(5)].map((_, i) => (
+                <span key={i}>★</span>
+              ))}
+            </div>
+            <p className="text-muted-foreground">
+              "Simple, professional, and exactly what my small business needed. Highly recommended!"
+            </p>
+            <div>
+              <p className="font-semibold">Emma Williams</p>
+              <p className="text-sm text-muted-foreground">Photography Studio</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="bg-primary text-primary-foreground rounded-2xl p-12 text-center">
@@ -112,8 +168,50 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t mt-16">
-        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          © 2025 CushyInvoice. All rights reserved.
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-4">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Twitter"
+              >
+                <Twitter className="h-5 w-5" />
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="h-5 w-5" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-5 w-5" />
+              </a>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              © 2025 CushyInvoice. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
