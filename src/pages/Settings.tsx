@@ -301,12 +301,101 @@ export default function Settings() {
           </p>
         </div>
 
-        <Tabs defaultValue="company" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="company">Company Info</TabsTrigger>
             <TabsTrigger value="defaults">Invoice Defaults</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="profile" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>
+                  Manage your personal profile and contact details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="profile_full_name">Full Name</Label>
+                  <Input
+                    id="profile_full_name"
+                    value={profile.full_name}
+                    onChange={(e) =>
+                      setProfile({ ...profile, full_name: e.target.value })
+                    }
+                    placeholder="John Doe"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="profile_email">Email</Label>
+                  <Input
+                    id="profile_email"
+                    type="email"
+                    value={profile.email}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Email is managed through your account authentication
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="profile_phone">Phone Number</Label>
+                  <Input
+                    id="profile_phone"
+                    value={profile.phone}
+                    onChange={(e) =>
+                      setProfile({ ...profile, phone: e.target.value })
+                    }
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="profile_address">Contact Address</Label>
+                  <Textarea
+                    id="profile_address"
+                    value={profile.address}
+                    onChange={(e) =>
+                      setProfile({ ...profile, address: e.target.value })
+                    }
+                    placeholder="123 Main Street&#10;City, State 12345"
+                    rows={3}
+                  />
+                </div>
+
+                <Button onClick={handleProfileUpdate} disabled={saving}>
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Save Profile
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Security</CardTitle>
+                <CardDescription>
+                  Manage your password and security settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  To change your password, please visit the Security tab.
+                </p>
+                <Button variant="outline" onClick={() => {
+                  const securityTab = document.querySelector('[value="security"]') as HTMLButtonElement;
+                  securityTab?.click();
+                }}>
+                  Change Password
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="company" className="space-y-4">
             <Card>
