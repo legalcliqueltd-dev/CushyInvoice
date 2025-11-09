@@ -107,7 +107,7 @@ export default function Auth() {
             full_name: validation.data.fullName || null,
           });
 
-          if (profileError) {
+          if (profileError && import.meta.env.DEV) {
             console.error("Profile creation error:", profileError);
           }
         }
@@ -118,7 +118,9 @@ export default function Auth() {
         });
       }
     } catch (error: any) {
-      console.error("Auth error:", error);
+      if (import.meta.env.DEV) {
+        console.error("Auth error:", error);
+      }
       toast({
         title: "Error",
         description: error.message || "An error occurred. Please try again.",

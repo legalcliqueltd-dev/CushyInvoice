@@ -91,7 +91,9 @@ export default function Dashboard() {
 
       setRecentInvoices(invoices?.slice(0, 5) || []);
     } catch (error: any) {
-      console.error("Error fetching dashboard data:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching dashboard data:", error);
+      }
       toast({
         title: "Error",
         description: "Failed to load dashboard data",

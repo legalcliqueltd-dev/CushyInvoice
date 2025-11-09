@@ -117,7 +117,9 @@ export default function InvoiceDetail() {
         setProfile(profileData);
       }
     } catch (error: any) {
-      console.error("Error fetching invoice:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching invoice:", error);
+      }
       toast({
         title: "Error",
         description: "Failed to load invoice",

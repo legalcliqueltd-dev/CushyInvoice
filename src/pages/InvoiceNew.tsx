@@ -114,7 +114,9 @@ export default function InvoiceNew() {
         setCurrency(data.default_currency || "USD");
       }
     } catch (error: any) {
-      console.error("Error fetching profile defaults:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching profile defaults:", error);
+      }
     }
   };
 
@@ -132,7 +134,9 @@ export default function InvoiceNew() {
       if (error) throw error;
       setClients(data || []);
     } catch (error: any) {
-      console.error("Error fetching clients:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching clients:", error);
+      }
     }
   };
 
@@ -150,7 +154,9 @@ export default function InvoiceNew() {
       if (error) throw error;
       setProducts(data || []);
     } catch (error: any) {
-      console.error("Error fetching products:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching products:", error);
+      }
     }
   };
 
@@ -350,7 +356,9 @@ export default function InvoiceNew() {
 
       navigate(`/invoices/${invoice.id}`);
     } catch (error: any) {
-      console.error("Error saving invoice:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error saving invoice:", error);
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to save invoice",

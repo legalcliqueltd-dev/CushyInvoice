@@ -70,7 +70,9 @@ export default function Settings() {
         });
       }
     } catch (error: any) {
-      console.error("Error fetching profile:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching profile:", error);
+      }
       toast({
         title: "Error",
         description: "Failed to load profile",
@@ -106,7 +108,9 @@ export default function Settings() {
         description: "Profile updated successfully",
       });
     } catch (error: any) {
-      console.error("Error updating profile:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error updating profile:", error);
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
@@ -186,7 +190,9 @@ export default function Settings() {
         description: "Logo uploaded successfully",
       });
     } catch (error: any) {
-      console.error("Error uploading logo:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error uploading logo:", error);
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to upload logo",
@@ -232,7 +238,9 @@ export default function Settings() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      console.error("Error updating password:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error updating password:", error);
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to update password",

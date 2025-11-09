@@ -71,7 +71,9 @@ export default function Reports() {
         invoices: invoices || [],
       });
     } catch (error: any) {
-      console.error("Error fetching report data:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching report data:", error);
+      }
       toast({
         title: "Error",
         description: "Failed to load report data",
