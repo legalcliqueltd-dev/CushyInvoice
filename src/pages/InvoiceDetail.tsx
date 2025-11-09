@@ -63,11 +63,17 @@ interface InvoiceData {
   }[];
 }
 
+interface ProfileData {
+  company_name?: string;
+  company_logo?: string;
+}
+
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState("USD");
 
@@ -99,6 +105,17 @@ export default function InvoiceDetail() {
       if (error) throw error;
       setInvoice(data);
       setDisplayCurrency(data?.currency || "USD");
+
+      // Fetch profile for company logo
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("company_name, company_logo")
+        .eq("id", user.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+      }
     } catch (error: any) {
       console.error("Error fetching invoice:", error);
       toast({
@@ -175,6 +192,27 @@ export default function InvoiceDetail() {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Company Logo */}
+        {profile?.company_logo && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <img
+                  src={profile.company_logo}
+                  alt={profile.company_name || "Company Logo"}
+                  className="h-16 w-auto object-contain"
+                />
+                {profile.company_name && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">From</p>
+                    <p className="font-semibold text-lg">{profile.company_name}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
