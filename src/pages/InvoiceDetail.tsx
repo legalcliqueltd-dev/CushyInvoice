@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -76,6 +77,7 @@ export default function InvoiceDetail() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState("USD");
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -147,6 +149,29 @@ export default function InvoiceDetail() {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handlePayNow = async () => {
+    setPaymentLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { invoiceId: id },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      console.error('Error creating checkout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create payment session. Please try again.",
+        variant: "destructive",
+      });
+      setPaymentLoading(false);
     }
   };
 
@@ -448,17 +473,37 @@ export default function InvoiceDetail() {
           </Card>
         )}
 
-        {/* Record Payment */}
+        {/* Pay Now / Record Payment */}
         {invoice.status !== "paid" && amountDue > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Record Payment</CardTitle>
+              <CardTitle>Payment Options</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Button>
-                <DollarSign className="h-4 w-4 mr-2" />
-                Add Payment
-              </Button>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Amount Due: {getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}
+                </p>
+                <div className="flex gap-3">
+                  <Button onClick={handlePayNow} disabled={paymentLoading}>
+                    {paymentLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Pay Now
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Record Payment Manually
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
