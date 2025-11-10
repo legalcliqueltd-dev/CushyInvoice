@@ -246,12 +246,16 @@ export type Database = {
           company_logo: string | null
           company_name: string | null
           created_at: string | null
+          current_plan: string | null
           default_currency: string | null
           default_tax_rate: number | null
           email: string
           full_name: string | null
           id: string
           phone: string | null
+          stripe_customer_id: string | null
+          subscription_expiry: string | null
+          subscription_status: string | null
           updated_at: string | null
         }
         Insert: {
@@ -259,12 +263,16 @@ export type Database = {
           company_logo?: string | null
           company_name?: string | null
           created_at?: string | null
+          current_plan?: string | null
           default_currency?: string | null
           default_tax_rate?: number | null
           email: string
           full_name?: string | null
           id: string
           phone?: string | null
+          stripe_customer_id?: string | null
+          subscription_expiry?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -272,12 +280,16 @@ export type Database = {
           company_logo?: string | null
           company_name?: string | null
           created_at?: string | null
+          current_plan?: string | null
           default_currency?: string | null
           default_tax_rate?: number | null
           email?: string
           full_name?: string | null
           id?: string
           phone?: string | null
+          stripe_customer_id?: string | null
+          subscription_expiry?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
         }
         Relationships: []

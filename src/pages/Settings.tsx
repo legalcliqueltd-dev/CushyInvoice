@@ -21,6 +21,13 @@ interface ProfileData {
   default_currency: string;
 }
 
+interface SubscriptionData {
+  subscribed: boolean;
+  status: string;
+  current_plan: string | null;
+  subscription_end: string | null;
+}
+
 export default function Settings() {
   const [profile, setProfile] = useState<ProfileData>({
     company_name: "",
@@ -38,10 +45,18 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [subscription, setSubscription] = useState<SubscriptionData>({
+    subscribed: false,
+    status: 'inactive',
+    current_plan: null,
+    subscription_end: null,
+  });
+  const [loadingPortal, setLoadingPortal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProfile();
+    fetchSubscription();
   }, []);
 
   const fetchProfile = async () => {
@@ -80,6 +95,51 @@ export default function Settings() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("check-subscription");
+      
+      if (error) throw error;
+      
+      if (data) {
+        setSubscription({
+          subscribed: data.subscribed || false,
+          status: data.status || 'inactive',
+          current_plan: data.current_plan || null,
+          subscription_end: data.subscription_end || null,
+        });
+      }
+    } catch (error: any) {
+      if (import.meta.env.DEV) {
+        console.error("Error fetching subscription:", error);
+      }
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error: any) {
+      if (import.meta.env.DEV) {
+        console.error("Error opening customer portal:", error);
+      }
+      toast({
+        title: "Error",
+        description: error.message || "Failed to open billing portal",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPortal(false);
     }
   };
 
@@ -302,9 +362,10 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="company">Company Info</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="defaults">Invoice Defaults</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
@@ -516,6 +577,80 @@ export default function Settings() {
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Changes
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="billing" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription & Billing</CardTitle>
+                <CardDescription>
+                  Manage your subscription plan and payment method
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-medium">Current Plan</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {subscription.subscribed ? (
+                          <>
+                            <span className="capitalize">{subscription.current_plan}</span> Plan
+                            {subscription.subscription_end && (
+                              <> - Renews on {new Date(subscription.subscription_end).toLocaleDateString()}</>
+                            )}
+                          </>
+                        ) : (
+                          "No active subscription"
+                        )}
+                      </p>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-sm ${
+                      subscription.subscribed 
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {subscription.subscribed ? 'Active' : 'Inactive'}
+                    </div>
+                  </div>
+
+                  {subscription.subscribed && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Included Features</h4>
+                      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                        <li>Unlimited invoices</li>
+                        <li>Client management</li>
+                        <li>Payment tracking</li>
+                        <li>PDF export</li>
+                        <li>Email delivery</li>
+                        {subscription.current_plan === 'yearly' && (
+                          <>
+                            <li>Priority support</li>
+                            <li>Advanced reporting</li>
+                          </>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t">
+                  <Button 
+                    onClick={handleManageSubscription} 
+                    disabled={loadingPortal || !subscription.subscribed}
+                    className="w-full sm:w-auto"
+                  >
+                    {loadingPortal && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Manage Subscription
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {subscription.subscribed 
+                      ? "Update payment method, change plan, or cancel subscription"
+                      : "Subscribe to access all features"}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

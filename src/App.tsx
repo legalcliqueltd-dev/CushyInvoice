@@ -12,9 +12,12 @@ import Invoices from "./pages/Invoices";
 import InvoiceNew from "./pages/InvoiceNew";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailed from "./pages/PaymentFailed";
+import Subscribe from "./pages/Subscribe";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -27,15 +30,20 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/invoices/new" element={<InvoiceNew />} />
-          <Route path="/invoices/:id" element={<InvoiceDetail />} />
+          <Route path="/subscribe" element={<Subscribe />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/payment-failed" element={<PaymentFailed />} />
+          
+          {/* Protected routes - require subscription */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+          <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
+          <Route path="/invoices/new" element={<ProtectedRoute><InvoiceNew /></ProtectedRoute>} />
+          <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

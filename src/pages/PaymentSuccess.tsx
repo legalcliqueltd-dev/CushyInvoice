@@ -11,6 +11,9 @@ export default function PaymentSuccess() {
   const invoiceId = searchParams.get("invoice_id");
   const sessionId = searchParams.get("session_id");
 
+  // Determine if this is a subscription or invoice payment
+  const isSubscription = sessionId && !invoiceId;
+
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto py-12">
@@ -20,12 +23,16 @@ export default function PaymentSuccess() {
               <div className="rounded-full bg-success/10 p-3">
                 <CheckCircle className="h-12 w-12 text-success" />
               </div>
-              <CardTitle className="text-2xl">Payment Successful!</CardTitle>
+              <CardTitle className="text-2xl">
+                {isSubscription ? "Subscription Activated!" : "Payment Successful!"}
+              </CardTitle>
             </div>
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <p className="text-muted-foreground">
-              Your payment has been processed successfully. The invoice will be updated shortly.
+              {isSubscription 
+                ? "Your subscription has been activated successfully. You now have full access to CushyInvoice features."
+                : "Your payment has been processed successfully. The invoice will be updated shortly."}
             </p>
             
             {sessionId && (
@@ -41,9 +48,16 @@ export default function PaymentSuccess() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               )}
-              <Button variant="outline" onClick={() => navigate("/invoices")}>
-                Back to Invoices
-              </Button>
+              {isSubscription ? (
+                <Button onClick={() => navigate("/dashboard")}>
+                  Go to Dashboard
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={() => navigate("/invoices")}>
+                  Back to Invoices
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
