@@ -26,6 +26,7 @@ interface SubscriptionData {
   status: string;
   current_plan: string | null;
   subscription_end: string | null;
+  trial_end: string | null;
 }
 
 export default function Settings() {
@@ -50,6 +51,7 @@ export default function Settings() {
     status: 'inactive',
     current_plan: null,
     subscription_end: null,
+    trial_end: null,
   });
   const [loadingPortal, setLoadingPortal] = useState(false);
   const { toast } = useToast();
@@ -110,6 +112,7 @@ export default function Settings() {
           status: data.status || 'inactive',
           current_plan: data.current_plan || null,
           subscription_end: data.subscription_end || null,
+          trial_end: data.trial_end || null,
         });
       }
     } catch (error: any) {
@@ -598,9 +601,11 @@ export default function Settings() {
                         {subscription.subscribed ? (
                           <>
                             <span className="capitalize">{subscription.current_plan}</span> Plan
-                            {subscription.subscription_end && (
+                            {subscription.status === 'trialing' && subscription.trial_end ? (
+                              <> - Trial ends on {new Date(subscription.trial_end).toLocaleDateString()}</>
+                            ) : subscription.subscription_end ? (
                               <> - Renews on {new Date(subscription.subscription_end).toLocaleDateString()}</>
-                            )}
+                            ) : null}
                           </>
                         ) : (
                           "No active subscription"
@@ -608,11 +613,13 @@ export default function Settings() {
                       </p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-sm ${
-                      subscription.subscribed 
+                      subscription.status === 'trialing'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                        : subscription.subscribed 
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                         : 'bg-muted text-muted-foreground'
                     }`}>
-                      {subscription.subscribed ? 'Active' : 'Inactive'}
+                      {subscription.status === 'trialing' ? 'Trial' : subscription.subscribed ? 'Active' : 'Inactive'}
                     </div>
                   </div>
 

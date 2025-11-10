@@ -78,14 +78,16 @@ Deno.serve(async (req) => {
       }
 
       const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
 
       // Update user profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          subscription_status: subscription.status === 'active' ? 'active' : 'inactive',
+          subscription_status: subscription.status === 'active' ? 'active' : subscription.status === 'trialing' ? 'trialing' : 'inactive',
           current_plan: currentPlan,
           subscription_expiry: subscriptionEnd,
+          trial_end_date: trialEnd,
           stripe_customer_id: customerId
         })
         .eq('id', user.id);

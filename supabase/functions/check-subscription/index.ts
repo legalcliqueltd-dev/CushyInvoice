@@ -66,18 +66,23 @@ serve(async (req) => {
 
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
+      status: "all",
       limit: 1,
     });
     
-    const hasActiveSub = subscriptions.data.length > 0;
+    const hasActiveSub = subscriptions.data.length > 0 && 
+      (subscriptions.data[0].status === "active" || subscriptions.data[0].status === "trialing");
     let currentPlan = null;
     let subscriptionEnd = null;
+    let trialEnd = null;
     let status = 'inactive';
 
-    if (hasActiveSub) {
+    if (subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
+      status = subscription.status;
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+      
       const priceId = subscription.items.data[0].price.id;
       
       // Map price IDs to plan names
@@ -87,8 +92,12 @@ serve(async (req) => {
         currentPlan = 'yearly';
       }
       
-      status = 'active';
-      logStep("Active subscription found", { subscriptionId: subscription.id, plan: currentPlan });
+      logStep("Subscription found", { 
+        subscriptionId: subscription.id, 
+        plan: currentPlan,
+        status: status,
+        trialEnd
+      });
 
       // Update profile in Supabase
       await supabaseClient
@@ -97,11 +106,12 @@ serve(async (req) => {
           subscription_status: status,
           current_plan: currentPlan,
           subscription_expiry: subscriptionEnd,
+          trial_end_date: trialEnd,
           stripe_customer_id: customerId
         })
         .eq('id', user.id);
     } else {
-      logStep("No active subscription found");
+      logStep("No subscription found");
       
       // Update profile to inactive
       await supabaseClient
@@ -114,7 +124,8 @@ serve(async (req) => {
       subscribed: hasActiveSub,
       status: status,
       current_plan: currentPlan,
-      subscription_end: subscriptionEnd
+      subscription_end: subscriptionEnd,
+      trial_end: trialEnd
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

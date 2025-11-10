@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { TrialBanner } from "@/components/TrialBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +133,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        <TrialBanner />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>

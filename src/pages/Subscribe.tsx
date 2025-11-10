@@ -10,11 +10,12 @@ const PLANS = [
   {
     id: "monthly",
     name: "Monthly Plan",
-    description: "Perfect for getting started",
+    description: "7-day free trial, then $2.99/month",
     price: "$2.99",
     period: "/month",
     priceId: "price_1SRxiBDjurOQIWXOB9mPYt6n",
     features: [
+      "7-day free trial",
       "Unlimited invoices",
       "Client management",
       "Payment tracking",
@@ -26,11 +27,12 @@ const PLANS = [
   {
     id: "yearly",
     name: "Yearly Plan",
-    description: "Best value - Save 33%",
+    description: "7-day free trial, then $23.88/year (Save 33%)",
     price: "$23.88",
     period: "/year",
     priceId: "price_1SRxiTDjurOQIWXOiRxfdxhj",
     features: [
+      "7-day free trial",
       "All Monthly features",
       "Priority support",
       "Advanced reporting",
@@ -76,11 +78,11 @@ const Subscribe = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <div className="max-w-5xl w-full space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold">Choose Your Plan</h1>
+          <h1 className="text-4xl font-bold">Start Your 7-Day Free Trial</h1>
           <p className="text-xl text-muted-foreground">
-            Subscribe to CushyInvoice and start managing your invoices effortlessly
+            Try CushyInvoice free for 7 days. No charge until your trial ends.
           </p>
-          <p className="text-sm text-muted-foreground">Cancel anytime. Secure payments via Stripe.</p>
+          <p className="text-sm text-muted-foreground">Cancel anytime during trial — no charge. Secure payments via Stripe.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -125,7 +127,7 @@ const Subscribe = () => {
                   onClick={() => handleSubscribe(plan.priceId, plan.id)}
                   disabled={loading !== null}
                 >
-                  {loading === plan.id ? "Loading..." : "Subscribe Now"}
+                  {loading === plan.id ? "Loading..." : "Start Free Trial"}
                 </Button>
               </CardContent>
             </Card>

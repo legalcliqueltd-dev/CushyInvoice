@@ -65,6 +65,14 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
+      subscription_data: {
+        trial_period_days: 7,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: "cancel",
+          },
+        },
+      },
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/payment-failed`,
       metadata: {

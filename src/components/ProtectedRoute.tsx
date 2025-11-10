@@ -29,13 +29,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       setIsAuthenticated(true);
 
-      // Check subscription status
+      // Check subscription status (allow both active and trialing)
       const { data, error } = await supabase.functions.invoke("check-subscription");
 
       if (error) {
         console.error("Error checking subscription:", error);
         setHasSubscription(false);
       } else {
+        // Allow access if user has active subscription or is in trial period
         setHasSubscription(data?.subscribed === true);
       }
     } catch (error) {
