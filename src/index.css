@@ -29,31 +29,31 @@
 
   @property --color-1 {
     syntax: '<color>';
-    initial-value: #000;
+    initial-value: hsl(220, 18%, 10%);
     inherits: false;
   }
 
   @property --color-2 {
     syntax: '<color>';
-    initial-value: #08012c;
+    initial-value: hsl(217, 70%, 25%);
     inherits: false;
   }
 
   @property --color-3 {
     syntax: '<color>';
-    initial-value: #4e1e40;
+    initial-value: hsl(217, 80%, 45%);
     inherits: false;
   }
 
   @property --color-4 {
     syntax: '<color>';
-    initial-value: #70464e;
+    initial-value: hsl(217, 91%, 60%);
     inherits: false;
   }
 
   @property --color-5 {
     syntax: '<color>';
-    initial-value: #88394c;
+    initial-value: hsl(210, 100%, 70%);
     inherits: false;
   }
 
@@ -65,13 +65,13 @@
 
   @property --border-color-1 {
     syntax: '<color>';
-    initial-value: hsla(340, 75%, 60%, 0.2);
+    initial-value: hsla(217, 91%, 70%, 0.2);
     inherits: true;
   }
 
   @property --border-color-2 {
     syntax: '<color>';
-    initial-value: hsla(340, 75%, 40%, 0.75);
+    initial-value: hsla(217, 91%, 60%, 0.75);
     inherits: true;
   }
 
@@ -262,14 +262,14 @@ All colors MUST be HSL.
     --pos-y: 91.51%;
     --spread-x: 120.24%;
     --spread-y: 103.18%;
-    --color-1: #c96287;
-    --color-2: #c66c64;
-    --color-3: #cc7d23;
-    --color-4: #37140a;
-    --color-5: #000;
+    --color-1: hsl(210, 100%, 75%);
+    --color-2: hsl(217, 91%, 65%);
+    --color-3: hsl(217, 80%, 50%);
+    --color-4: hsl(217, 70%, 30%);
+    --color-5: hsl(220, 18%, 15%);
     --border-angle: 190deg;
-    --border-color-1: hsla(340, 78%, 90%, 0.1);
-    --border-color-2: hsla(340, 75%, 90%, 0.6);
+    --border-color-1: hsla(217, 91%, 90%, 0.1);
+    --border-color-2: hsla(217, 91%, 90%, 0.6);
     --stop-1: 0%;
     --stop-2: 8.8%;
     --stop-3: 21.44%;
@@ -278,13 +278,13 @@ All colors MUST be HSL.
   }
 
   .gradient-button-variant {
-    --color-1: #000022;
-    --color-2: #1f3f6d;
-    --color-3: #469396;
-    --color-4: #f1ffa5;
+    --color-1: hsl(220, 18%, 12%);
+    --color-2: hsl(217, 60%, 35%);
+    --color-3: hsl(217, 75%, 55%);
+    --color-4: hsl(210, 100%, 65%);
     --border-angle: 200deg;
-    --border-color-1: hsla(320, 75%, 90%, 0.6);
-    --border-color-2: hsla(320, 50%, 90%, 0.15);
+    --border-color-1: hsla(217, 91%, 90%, 0.6);
+    --border-color-2: hsla(217, 91%, 90%, 0.15);
   }
 
   .gradient-button-variant:hover {
@@ -292,18 +292,18 @@ All colors MUST be HSL.
     --pos-y: 95.51%;
     --spread-x: 110.24%;
     --spread-y: 110.2%;
-    --color-1: #000020;
-    --color-2: #f1ffa5;
-    --color-3: #469396;
-    --color-4: #1f3f6d;
-    --color-5: #000;
+    --color-1: hsl(220, 18%, 15%);
+    --color-2: hsl(210, 100%, 70%);
+    --color-3: hsl(217, 91%, 60%);
+    --color-4: hsl(217, 70%, 35%);
+    --color-5: hsl(220, 18%, 10%);
     --stop-1: 0%;
     --stop-2: 10%;
     --stop-3: 35.44%;
     --stop-4: 71.34%;
     --stop-5: 90.76%;
     --border-angle: 210deg;
-    --border-color-1: hsla(320, 75%, 90%, 0.2);
-    --border-color-2: hsla(320, 50%, 90%, 0.75);
+    --border-color-1: hsla(217, 91%, 90%, 0.2);
+    --border-color-2: hsla(217, 91%, 90%, 0.75);
   }
 }
