@@ -1,4 +1,4 @@
-name: 🚀 Deploy to Hostinger via SFTP
+name: Deploy Website
 
 on:
   push:
@@ -6,32 +6,25 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧩 Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: ⚙️ Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+      - name: Build project
+        run: |
+          npm install
+          npm run build
+          cp .htaccess dist/.htaccess   # ensure .htaccess is deployed
 
-      - name: 📦 Install dependencies
-        run: npm ci
-
-      - name: 🏗️ Build project
-        run: npm run build
-
-      - name: 📤 Deploy via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          protocol: sftp
+          protocol: ftps
           local-dir: ./dist/
-          server-dir: ${{ secrets.FTP_PATH }}/
-          dangerous-clean-slate: false
+          server-dir: /public_html/
