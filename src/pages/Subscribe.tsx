@@ -13,7 +13,7 @@ const PLANS = [
     description: "7-day free trial, then $2.99/month",
     price: "$2.99",
     period: "/month",
-    priceId: "price_1SRxiBDjurOQIWXOB9mPYt6n",
+    priceId: "price_1SSKe7RWxKms6a9XPEoka2SG",
     features: [
       "7-day free trial",
       "Unlimited invoices",
@@ -30,7 +30,7 @@ const PLANS = [
     description: "7-day free trial, then $23.88/year (Save 33%)",
     price: "$23.88",
     period: "/year",
-    priceId: "price_1SRxiTDjurOQIWXOiRxfdxhj",
+    priceId: "price_1SSKeIRWxKms6a9XncKq0Ixm",
     features: [
       "7-day free trial",
       "All Monthly features",
