@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Receipt, FileText, Users, TrendingUp, Twitter, Linkedin, Facebook, Instagram } from "lucide-react";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { Receipt, FileText, Users, TrendingUp, Twitter, Linkedin, Facebook, Instagram, MessageCircle } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -36,12 +37,16 @@ const Index = () => {
             clients, and grow your business effortlessly.
           </p>
           <div className="flex gap-4 justify-center pt-4">
-            <Button size="lg" onClick={() => navigate("/auth")}>
+            <GradientButton onClick={() => navigate("/auth")}>
               Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline">
-              Watch Demo
-            </Button>
+            </GradientButton>
+            <GradientButton 
+              variant="variant"
+              onClick={() => window.open("https://wa.me/2348129797793", "_blank")}
+            >
+              <MessageCircle className="w-5 h-5" />
+              WhatsApp Support
+            </GradientButton>
           </div>
         </div>
       </section>
