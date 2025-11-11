@@ -3,7 +3,7 @@ name: 🚀 Deploy to Hostinger via FTP
 on:
   push:
     branches:
-      - main   # or 'production' if you prefer
+      - main   # or 'production' if you want a dedicated deploy branch
 
 jobs:
   build-and-deploy:
@@ -19,7 +19,7 @@ jobs:
           node-version: 18
 
       - name: 📦 Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: 🏗️ Build project
         run: npm run build
@@ -31,7 +31,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ secrets.FTP_PORT }}
-          local-dir: ./dist
-          server-dir: ${{ secrets.FTP_PATH }}
           protocol: ftp
+          local-dir: ./dist/        # 👈 must end with a slash
+          server-dir: ${{ secrets.FTP_PATH }}/
           dangerous-clean-slate: false
