@@ -33,6 +33,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
+import { useTranslation } from "react-i18next";
 
 interface Client {
   id: string;
@@ -74,6 +75,7 @@ const clientSchema = z.object({
 });
 
 export default function InvoiceNew() {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -412,22 +414,22 @@ export default function InvoiceNew() {
     <DashboardLayout>
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Invoice</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('create_invoice')}</h1>
           <p className="text-muted-foreground">Fill in the details below</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Invoice Details</CardTitle>
+            <CardTitle>{t('invoice_details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Client Selection */}
             <div className="space-y-2">
-              <Label>Client *</Label>
+              <Label>{t('client')} *</Label>
               <div className="flex gap-2">
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select a client" />
+                    <SelectValue placeholder={t('select_client')} />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
@@ -445,11 +447,11 @@ export default function InvoiceNew() {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Add New Client</DialogTitle>
+                      <DialogTitle>{t('add_new_client')}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Name *</Label>
+                        <Label>{t('name')} *</Label>
                         <Input
                           value={newClientData.name}
                           onChange={(e) =>
@@ -458,7 +460,7 @@ export default function InvoiceNew() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Email *</Label>
+                        <Label>{t('email')} *</Label>
                         <Input
                           type="email"
                           value={newClientData.email}
@@ -468,7 +470,7 @@ export default function InvoiceNew() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Phone</Label>
+                        <Label>{t('phone')}</Label>
                         <Input
                           value={newClientData.phone}
                           onChange={(e) =>
@@ -477,7 +479,7 @@ export default function InvoiceNew() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Address</Label>
+                        <Label>{t('address')}</Label>
                         <Input
                           value={newClientData.address}
                           onChange={(e) =>
@@ -487,9 +489,9 @@ export default function InvoiceNew() {
                       </div>
                       <div className="flex gap-2 justify-end">
                         <Button variant="outline" onClick={() => setNewClientDialog(false)}>
-                          Cancel
+                          {t('cancel')}
                         </Button>
-                        <Button onClick={handleAddClient}>Add Client</Button>
+                        <Button onClick={handleAddClient}>{t('add_client')}</Button>
                       </div>
                     </div>
                   </DialogContent>
@@ -499,10 +501,10 @@ export default function InvoiceNew() {
 
             {/* Currency Selection */}
             <div className="space-y-2">
-              <Label>Currency *</Label>
+              <Label>{t('currency')} *</Label>
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
+                  <SelectValue placeholder={t('currency')} />
                 </SelectTrigger>
                 <SelectContent>
                   <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Global</div>
@@ -523,10 +525,10 @@ export default function InvoiceNew() {
 
             {templates.length > 0 && (
               <div className="space-y-2">
-                <Label>Template (Optional)</Label>
+                <Label>{t('template')} (Optional)</Label>
                 <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a template" />
+                    <SelectValue placeholder={t('select_template')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem>
@@ -543,7 +545,7 @@ export default function InvoiceNew() {
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Issue Date *</Label>
+                <Label>{t('issue_date')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -570,7 +572,7 @@ export default function InvoiceNew() {
               </div>
 
               <div className="space-y-2">
-                <Label>Due Date *</Label>
+                <Label>{t('due_date')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -699,11 +701,11 @@ export default function InvoiceNew() {
         {/* Totals */}
         <Card>
           <CardHeader>
-            <CardTitle>Totals</CardTitle>
+            <CardTitle>{t('total')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Tax Rate (%)</Label>
+              <Label>{t('tax_rate')} (%)</Label>
               <Input
                 type="number"
                 min="0"
@@ -716,21 +718,21 @@ export default function InvoiceNew() {
 
             <div className="space-y-2 pt-4 border-t">
               <div className="flex justify-between">
-                <span>Subtotal:</span>
+                <span>{t('subtotal')}:</span>
                 <span className="font-medium">{getCurrencySymbol(currency)}{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax ({taxRate}%):</span>
+                <span>{t('tax')} ({taxRate}%):</span>
                 <span className="font-medium">{getCurrencySymbol(currency)}{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold">
-                <span>Total:</span>
+                <span>{t('total')}:</span>
                 <span>{getCurrencySymbol(currency)}{total.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="space-y-2 pt-4 border-t">
-              <Label>Notes (Optional)</Label>
+              <Label>{t('notes')} (Optional)</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -744,15 +746,15 @@ export default function InvoiceNew() {
         {/* Actions */}
         <div className="flex gap-4 justify-end">
           <Button variant="outline" onClick={() => navigate("/invoices")} disabled={loading}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button variant="outline" onClick={() => handleSave("draft")} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save as Draft
+            {t('save_as_draft')}
           </Button>
           <Button onClick={() => handleSave("sent")} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save & Send
+            {t('save_and_send')}
           </Button>
         </div>
       </div>

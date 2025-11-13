@@ -148,5 +148,11 @@
   "payment_status": "Zahlungsstatus",
   "partially_paid": "Teilweise bezahlt",
   "unpaid": "Unbezahlt",
-  "refunded": "Erstattet"
+  "refunded": "Erstattet",
+  "select_template": "Vorlage auswählen",
+  "save_as_draft": "Als Entwurf speichern",
+  "save_and_send": "Speichern und senden",
+  "add_new_client": "Neuen Kunden hinzufügen",
+  "name": "Name",
+  "template": "Vorlage"
 }

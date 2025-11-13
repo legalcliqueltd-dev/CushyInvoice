@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -169,13 +170,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             <div className="flex-1 lg:flex-none"></div>
 
-            <Button
-              onClick={() => navigate("/invoices/new")}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('create_invoice')}</span>
-            </Button>
+            <div className="flex items-center gap-3">
+              <LanguageSwitcher />
+              <Button
+                onClick={() => navigate("/invoices/new")}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('create_invoice')}</span>
+              </Button>
+            </div>
           </div>
         </header>
 

@@ -148,5 +148,11 @@
   "payment_status": "Statut de paiement",
   "partially_paid": "Partiellement payé",
   "unpaid": "Impayé",
-  "refunded": "Remboursé"
+  "refunded": "Remboursé",
+  "select_template": "Sélectionner un modèle",
+  "save_as_draft": "Enregistrer comme brouillon",
+  "save_and_send": "Enregistrer et envoyer",
+  "add_new_client": "Ajouter un nouveau client",
+  "name": "Nom",
+  "template": "Modèle"
 }
