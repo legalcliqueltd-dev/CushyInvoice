@@ -15,6 +15,7 @@ import {
   Plus,
   BarChart3,
   Settings,
+  Mail,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
@@ -70,6 +71,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { to: "/recurring", icon: FileText, label: "Recurring", premium: true },
     { to: "/expenses", icon: BarChart3, label: "Expenses", premium: true },
     { to: "/templates", icon: Package, label: "Templates", premium: true },
+    { to: "/email-notifications", icon: Mail, label: "Emails" },
     { to: "/reports", icon: BarChart3, label: "Reports" },
     { to: "/settings", icon: Settings, label: "Settings" },
   ];

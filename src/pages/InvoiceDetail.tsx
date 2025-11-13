@@ -185,26 +185,26 @@ export default function InvoiceDetail() {
     try {
       const { data, error } = await supabase.functions.invoke("send-invoice-email", {
         body: {
-          invoice_id: invoice.id,
-          client_email: invoice.clients.email,
-          client_name: invoice.clients.name,
-          invoice_number: invoice.invoice_number,
-          total: invoice.total,
-          currency: invoice.currency,
+          invoiceId: invoice.id,
         },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Email Sent",
-        description: "Invoice notification has been sent to the client.",
+        title: "Email Created",
+        description: "Invoice notification generated. Check Emails page to send it.",
       });
+      
+      // Navigate to emails page after a short delay
+      setTimeout(() => {
+        navigate("/email-notifications");
+      }, 1500);
     } catch (error: any) {
       console.error("Error sending email:", error);
       toast({
         title: "Error",
-        description: "Failed to send email notification.",
+        description: "Failed to generate email notification.",
         variant: "destructive",
       });
     }

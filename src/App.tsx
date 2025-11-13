@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import RecurringInvoices from "./pages/RecurringInvoices";
 import Expenses from "./pages/Expenses";
 import Templates from "./pages/Templates";
+import EmailNotifications from "./pages/EmailNotifications";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/recurring" element={<ProtectedRoute><RecurringInvoices /></ProtectedRoute>} />
           <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
           <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+          <Route path="/email-notifications" element={<ProtectedRoute><EmailNotifications /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           
