@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2, Crown } from "lucide-react";
+import { Upload, Loader2, Crown, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface ProfileData {
   company_name: string;
@@ -46,19 +47,16 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [subscription, setSubscription] = useState<SubscriptionData>({
-    subscribed: false,
-    status: 'inactive',
-    current_plan: null,
-    subscription_end: null,
-    trial_end: null,
-  });
-  const [loadingPortal, setLoadingPortal] = useState(false);
+  const { 
+    subscription, 
+    loading: subscriptionLoading, 
+    checkSubscription, 
+    openCustomerPortal 
+  } = useSubscription();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProfile();
-    fetchSubscription();
   }, []);
 
   const fetchProfile = async () => {
@@ -100,51 +98,6 @@ export default function Settings() {
     }
   };
 
-  const fetchSubscription = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke("check-subscription");
-      
-      if (error) throw error;
-      
-      if (data) {
-        setSubscription({
-          subscribed: data.subscribed || false,
-          status: data.status || 'inactive',
-          current_plan: data.current_plan || null,
-          subscription_end: data.subscription_end || null,
-          trial_end: data.trial_end || null,
-        });
-      }
-    } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error("Error fetching subscription:", error);
-      }
-    }
-  };
-
-  const handleManageSubscription = async () => {
-    setLoadingPortal(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      }
-    } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error("Error opening customer portal:", error);
-      }
-      toast({
-        title: "Error",
-        description: error.message || "Failed to open billing portal",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingPortal(false);
-    }
-  };
 
   const handleProfileUpdate = async () => {
     setSaving(true);
@@ -678,29 +631,38 @@ export default function Settings() {
 
                 <div className="pt-4 border-t">
                   {subscription.subscribed ? (
-                    <>
-                      <Button 
-                        onClick={handleManageSubscription} 
-                        disabled={loadingPortal}
-                        className="w-full sm:w-auto"
-                      >
-                        {loadingPortal && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        Manage Subscription
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-2">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        <Button 
+                          onClick={openCustomerPortal} 
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Crown className="h-4 w-4 mr-2" />
+                          Manage Subscription
+                        </Button>
+                        <Button 
+                          onClick={checkSubscription} 
+                          variant="outline"
+                          size="sm"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
                         Update payment method, change plan, or cancel subscription
                       </p>
-                    </>
+                    </div>
                   ) : (
                     <>
                       <Button 
                         onClick={() => window.location.href = '/subscribe'}
-                        className="w-full sm:w-auto"
+                        className="w-full bg-gradient-to-r from-primary to-primary/90"
                       >
-                        View Plans
+                        <Crown className="h-4 w-4 mr-2" />
+                        Start Free Trial
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Choose a plan that fits your business needs
+                        7 days free, then $2.99/month • Cancel anytime
                       </p>
                     </>
                   )}
