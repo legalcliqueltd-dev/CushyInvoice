@@ -18,19 +18,41 @@ serve(async (req) => {
   );
 
   try {
-    const { invoice_id, client_email, client_name, invoice_number, total, currency } = await req.json();
+    const { invoiceId, isReminder = false } = await req.json();
+    
+    if (!invoiceId) {
+      throw new Error("Invoice ID is required");
+    }
 
-    console.log("Sending invoice email:", { invoice_id, client_email, invoice_number });
+    console.log("Sending invoice email:", { invoiceId, isReminder });
 
-    // Get user/company info
-    const { data: invoice } = await supabaseClient
+    // Get invoice with client details
+    const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
-      .select("user_id")
-      .eq("id", invoice_id)
+      .select(`
+        id,
+        invoice_number,
+        total,
+        currency,
+        due_date,
+        status,
+        user_id,
+        client_id,
+        clients (
+          name,
+          email
+        )
+      `)
+      .eq("id", invoiceId)
       .single();
 
-    if (!invoice) {
+    if (invoiceError || !invoice) {
       throw new Error("Invoice not found");
+    }
+
+    const client = invoice.clients as any;
+    if (!client?.email) {
+      throw new Error("Client email not found");
     }
 
     const { data: profile } = await supabaseClient
@@ -43,20 +65,24 @@ serve(async (req) => {
     const fromEmail = profile?.email || "noreply@example.com";
 
     // Use Lovable AI to generate a professional email
-    const emailPrompt = `Generate a professional invoice notification email with the following details:
+    const emailPrompt = isReminder 
+      ? `Generate a professional payment reminder email with the following details:
 - Company: ${companyName}
-- Client: ${client_name}
-- Invoice Number: ${invoice_number}
-- Amount: ${currency} ${total}
+- Client: ${client.name}
+- Invoice Number: ${invoice.invoice_number}
+- Amount: ${invoice.currency} ${invoice.total}
+- Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
+- Status: ${invoice.status}
 
-The email should be polite, professional, and include:
-1. A greeting
-2. Notification that the invoice is ready
-3. The invoice details
-4. A call to action to review/pay
-5. A professional closing
+The email should be polite but clear that payment is due. Include a gentle reminder about the due date and consequences of late payment. Format as plain text.`
+      : `Generate a professional invoice notification email with the following details:
+- Company: ${companyName}
+- Client: ${client.name}
+- Invoice Number: ${invoice.invoice_number}
+- Amount: ${invoice.currency} ${invoice.total}
+- Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
 
-Format it as plain text for an email body.`;
+The email should be polite, professional, and include a call to action to review and pay the invoice. Format as plain text.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -83,12 +109,16 @@ Format it as plain text for an email body.`;
 
     // In a real implementation, you would send the email here using a service like Resend or SendGrid
     // For now, we'll just log it and store a record
+    const subject = isReminder 
+      ? `Payment Reminder: Invoice ${invoice.invoice_number} from ${companyName}`
+      : `Invoice ${invoice.invoice_number} from ${companyName}`;
+    
     const emailData = {
-      to: client_email,
+      to: client.email,
       from: fromEmail,
-      subject: `Invoice ${invoice_number} from ${companyName}`,
+      subject,
       body: emailBody,
-      invoice_id,
+      invoice_id: invoiceId,
       sent: true,
       sent_at: new Date().toISOString(),
     };
