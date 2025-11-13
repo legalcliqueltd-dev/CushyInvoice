@@ -23,6 +23,7 @@ import {
   Trash2,
   DollarSign,
   ArrowLeft,
+  Share2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
@@ -302,6 +303,18 @@ export default function InvoiceDetail() {
             <Button variant="outline" size="sm" onClick={handleSendEmail}>
               <Mail className="h-4 w-4 mr-2" />
               Send Email
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                const text = `Invoice ${invoice.invoice_number} from ${profile?.company_name || 'Company'}\n\nAmount Due: ${getCurrencySymbol(invoice.currency)}${invoice.total.toFixed(2)}\nDue Date: ${format(new Date(invoice.due_date), 'PPP')}\n\nView details: ${window.location.href}`;
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                window.open(whatsappUrl, '_blank');
+              }}
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share via WhatsApp
             </Button>
             <AddPaymentReminderDialog invoiceId={id!} onReminderAdded={fetchInvoice} />
             <Button variant="ghost" size="sm" onClick={handleDelete}>
