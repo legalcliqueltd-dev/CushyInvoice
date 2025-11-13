@@ -59,6 +59,48 @@ export type Database = {
         }
         Relationships: []
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          currency: string
+          description: string | null
+          expense_date: string
+          id: string
+          notes: string | null
+          receipt_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoice_items: {
         Row: {
           amount: number
@@ -107,6 +149,48 @@ export type Database = {
           },
         ]
       }
+      invoice_templates: {
+        Row: {
+          created_at: string | null
+          font_family: string | null
+          id: string
+          is_default: boolean | null
+          layout_style: string | null
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          template_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          font_family?: string | null
+          id?: string
+          is_default?: boolean | null
+          layout_style?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          template_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          font_family?: string | null
+          id?: string
+          is_default?: boolean | null
+          layout_style?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          template_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           client_id: string
@@ -122,6 +206,7 @@ export type Database = {
           subtotal: number
           tax_amount: number | null
           tax_rate: number | null
+          template_id: string | null
           total: number
           updated_at: string | null
           user_id: string
@@ -140,6 +225,7 @@ export type Database = {
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          template_id?: string | null
           total?: number
           updated_at?: string | null
           user_id: string
@@ -158,6 +244,7 @@ export type Database = {
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          template_id?: string | null
           total?: number
           updated_at?: string | null
           user_id?: string
@@ -168,6 +255,54 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_reminders: {
+        Row: {
+          created_at: string | null
+          days_before_due: number
+          id: string
+          invoice_id: string
+          reminder_type: string
+          sent_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          days_before_due: number
+          id?: string
+          invoice_id: string
+          reminder_type: string
+          sent_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          days_before_due?: number
+          id?: string
+          invoice_id?: string
+          reminder_type?: string
+          sent_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -311,6 +446,69 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      recurring_invoices: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          end_date: string | null
+          frequency: string
+          id: string
+          is_active: boolean | null
+          last_generated_date: string | null
+          next_invoice_date: string
+          notes: string | null
+          start_date: string
+          template_invoice_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          end_date?: string | null
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          last_generated_date?: string | null
+          next_invoice_date: string
+          notes?: string | null
+          start_date: string
+          template_invoice_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_generated_date?: string | null
+          next_invoice_date?: string
+          notes?: string | null
+          start_date?: string
+          template_invoice_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_invoices_template_invoice_id_fkey"
+            columns: ["template_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

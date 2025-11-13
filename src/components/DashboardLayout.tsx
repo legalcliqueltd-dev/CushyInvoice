@@ -67,6 +67,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { to: "/clients", icon: Users, label: "Clients" },
     { to: "/products", icon: Package, label: "Products" },
     { to: "/invoices", icon: FileText, label: "Invoices" },
+    { to: "/recurring", icon: FileText, label: "Recurring", premium: true },
+    { to: "/expenses", icon: BarChart3, label: "Expenses", premium: true },
+    { to: "/templates", icon: Package, label: "Templates", premium: true },
     { to: "/reports", icon: BarChart3, label: "Reports" },
     { to: "/settings", icon: Settings, label: "Settings" },
   ];
@@ -120,6 +123,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               >
                 <item.icon className="h-5 w-5" />
                 <span>{item.label}</span>
+                {item.premium && (
+                  <span className="ml-auto text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                    Premium
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>
