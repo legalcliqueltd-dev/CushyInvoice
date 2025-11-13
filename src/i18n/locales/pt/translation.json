@@ -168,5 +168,6 @@
   "fill_required_fields": "Por favor preencha todos os campos obrigatórios dos itens",
   "invoice_saved_draft": "Fatura salva como rascunho",
   "invoice_created_success": "Fatura criada com sucesso",
-  "failed_save_invoice": "Falha ao salvar fatura"
+  "failed_save_invoice": "Falha ao salvar fatura",
+  "pick_date": "Escolher data"
 }

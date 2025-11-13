@@ -556,7 +556,7 @@ export default function InvoiceNew() {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {issueDate ? format(issueDate, "PPP") : <span>Pick a date</span>}
+                      {issueDate ? format(issueDate, "PPP") : <span>{t('pick_date')}</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -583,7 +583,7 @@ export default function InvoiceNew() {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+                      {dueDate ? format(dueDate, "PPP") : <span>{t('pick_date')}</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">

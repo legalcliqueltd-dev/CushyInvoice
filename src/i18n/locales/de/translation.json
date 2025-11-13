@@ -168,5 +168,6 @@
   "fill_required_fields": "Bitte füllen Sie alle erforderlichen Felder für Positionen aus",
   "invoice_saved_draft": "Rechnung als Entwurf gespeichert",
   "invoice_created_success": "Rechnung erfolgreich erstellt",
-  "failed_save_invoice": "Rechnung konnte nicht gespeichert werden"
+  "failed_save_invoice": "Rechnung konnte nicht gespeichert werden",
+  "pick_date": "Datum wählen"
 }
