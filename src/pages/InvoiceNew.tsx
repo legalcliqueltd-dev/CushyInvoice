@@ -604,13 +604,13 @@ export default function InvoiceNew() {
         {/* Line Items */}
         <Card>
           <CardHeader>
-            <CardTitle>Line Items</CardTitle>
+            <CardTitle>{t('invoice_items')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {lineItems.map((item, index) => (
               <div key={item.id} className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">Item {index + 1}</span>
+                  <span className="font-medium">{t('item')} {index + 1}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -622,13 +622,13 @@ export default function InvoiceNew() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Product (Optional)</Label>
+                    <Label>{t('select_product')} (Optional)</Label>
                     <Select
                       value={item.product_id || ""}
                       onValueChange={(value) => selectProduct(item.id, value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a product" />
+                        <SelectValue placeholder={t('select_product')} />
                       </SelectTrigger>
                       <SelectContent>
                         {products.map((product) => (
@@ -641,20 +641,20 @@ export default function InvoiceNew() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Description *</Label>
+                    <Label>{t('description')} *</Label>
                     <Input
                       value={item.description}
                       onChange={(e) =>
                         updateLineItem(item.id, "description", e.target.value)
                       }
-                      placeholder="Description of item"
+                      placeholder={t('description')}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>Quantity *</Label>
+                    <Label>{t('quantity')} *</Label>
                     <Input
                       type="number"
                       min="0.01"
@@ -667,7 +667,7 @@ export default function InvoiceNew() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Unit Price *</Label>
+                    <Label>{t('unit_price')} *</Label>
                     <Input
                       type="number"
                       min="0"
@@ -680,7 +680,7 @@ export default function InvoiceNew() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Amount</Label>
+                    <Label>{t('amount')}</Label>
                     <Input
                       value={`${getCurrencySymbol(currency)}${item.amount.toFixed(2)}`}
                       disabled
@@ -693,7 +693,7 @@ export default function InvoiceNew() {
 
             <Button variant="outline" onClick={addLineItem} className="w-full">
               <Plus className="mr-2 h-4 w-4" />
-              Add Line Item
+              {t('add_item')}
             </Button>
           </CardContent>
         </Card>
