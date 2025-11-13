@@ -19,12 +19,14 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
+import { useTranslation } from "react-i18next";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const { t } = useTranslation();
   const [session, setSession] = useState<Session | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -64,16 +66,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   const navItems = [
-    { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/clients", icon: Users, label: "Clients" },
-    { to: "/products", icon: Package, label: "Products" },
-    { to: "/invoices", icon: FileText, label: "Invoices" },
-    { to: "/recurring", icon: FileText, label: "Recurring", premium: true },
-    { to: "/expenses", icon: BarChart3, label: "Expenses", premium: true },
-    { to: "/templates", icon: Package, label: "Templates", premium: true },
-    { to: "/email-notifications", icon: Mail, label: "Emails" },
-    { to: "/reports", icon: BarChart3, label: "Reports" },
-    { to: "/settings", icon: Settings, label: "Settings" },
+    { to: "/dashboard", icon: LayoutDashboard, label: t('dashboard') },
+    { to: "/clients", icon: Users, label: t('clients') },
+    { to: "/products", icon: Package, label: t('products') },
+    { to: "/invoices", icon: FileText, label: t('invoices') },
+    { to: "/recurring", icon: FileText, label: t('recurring'), premium: true },
+    { to: "/expenses", icon: BarChart3, label: t('expenses'), premium: true },
+    { to: "/templates", icon: Package, label: t('templates'), premium: true },
+    { to: "/email-notifications", icon: Mail, label: t('emails') },
+    { to: "/reports", icon: BarChart3, label: t('reports') },
+    { to: "/settings", icon: Settings, label: t('settings') },
   ];
 
   if (loading) {
