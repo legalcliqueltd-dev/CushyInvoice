@@ -24,6 +24,7 @@ import {
   DollarSign,
   ArrowLeft,
   Share2,
+  CreditCard,
 } from "lucide-react";
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
@@ -78,6 +79,7 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generatingPayment, setGeneratingPayment] = useState(false);
   const [displayCurrency, setDisplayCurrency] = useState("USD");
   const [paymentLoading, setPaymentLoading] = useState(false);
 
@@ -208,6 +210,34 @@ export default function InvoiceDetail() {
     }
   };
 
+  const handleGeneratePaymentLink = async () => {
+    setGeneratingPayment(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-invoice-payment", {
+        body: { invoiceId: id },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        toast({
+          title: "Payment Link Generated",
+          description: "Opening Stripe checkout in a new tab...",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error generating payment link:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate payment link",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingPayment(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":
@@ -296,6 +326,21 @@ export default function InvoiceDetail() {
           </div>
 
           <div className="flex gap-2">
+            {invoice.status !== "paid" && (
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleGeneratePaymentLink}
+                disabled={generatingPayment}
+              >
+                {generatingPayment ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4 mr-2" />
+                )}
+                Generate Payment Link
+              </Button>
+            )}
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
