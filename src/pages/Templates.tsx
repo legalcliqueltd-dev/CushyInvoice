@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { AddTemplateDialog } from "@/components/AddTemplateDialog";
-import { Loader2, Lock, Palette, FileText, Trash2 } from "lucide-react";
+import { Loader2, Palette, FileText, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -31,17 +31,12 @@ export default function Templates() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const { limits } = usePlanLimits();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (limits.isPremium) {
-      fetchTemplates();
-    } else {
-      setLoading(false);
-    }
-  }, [limits.isPremium]);
+    fetchTemplates();
+  }, []);
 
   const fetchTemplates = async () => {
     try {
@@ -91,29 +86,6 @@ export default function Templates() {
     }
   };
 
-  if (!limits.isPremium) {
-    return (
-      <div className="min-h-screen p-8">
-        <div className="max-w-4xl mx-auto">
-          <Card className="p-12 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-primary/10">
-                <Lock className="h-12 w-12 text-primary" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Premium Feature</h1>
-            <p className="text-muted-foreground mb-8 text-lg">
-              Custom invoice templates are available on the Premium plan. Create branded invoices that stand out.
-            </p>
-            <Button size="lg" onClick={() => navigate("/subscribe")}>
-              Upgrade to Premium
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -130,7 +102,8 @@ export default function Templates() {
   ];
 
   return (
-    <div className="min-h-screen p-8">
+    <SubscriptionGuard message="Custom invoice templates are available on the Premium plan. Create branded invoices that stand out.">
+      <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -225,5 +198,6 @@ export default function Templates() {
         </AlertDialog>
       </div>
     </div>
+    </SubscriptionGuard>
   );
 }
