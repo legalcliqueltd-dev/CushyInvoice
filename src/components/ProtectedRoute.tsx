@@ -10,42 +10,20 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [hasSubscription, setHasSubscription] = useState(false);
 
   useEffect(() => {
-    checkAuthAndSubscription();
+    checkAuth();
   }, []);
 
-  const checkAuthAndSubscription = async () => {
+  const checkAuth = async () => {
     try {
-      // Check authentication
+      // Check authentication only
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session) {
-        setIsAuthenticated(false);
-        setLoading(false);
-        return;
-      }
-
-      setIsAuthenticated(true);
-
-      // Check plan status (allow trial and premium)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('plan_type, is_premium, trial_end_date')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!profile) {
-        setHasSubscription(false);
-      } else {
-        // Allow access if user is premium or in trial period
-        const isPremium = profile.is_premium || profile.plan_type === 'premium' || profile.plan_type === 'trial';
-        setHasSubscription(isPremium);
-      }
+      setIsAuthenticated(!!session);
     } catch (error) {
       console.error("Error in protected route:", error);
-      setHasSubscription(false);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
@@ -61,10 +39,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
-  }
-
-  if (!hasSubscription) {
-    return <Navigate to="/subscribe" replace />;
   }
 
   return <>{children}</>;
