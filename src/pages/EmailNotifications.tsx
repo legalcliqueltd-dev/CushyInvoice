@@ -34,7 +34,7 @@ const EmailNotifications = () => {
   const fetchEmails = async () => {
     try {
       const { data, error } = await supabase
-        .from("email_logs")
+        .from("email_logs" as any)
         .select(`
           *,
           invoices (
@@ -44,7 +44,7 @@ const EmailNotifications = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setEmails(data || []);
+      setEmails((data as any) || []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -59,8 +59,8 @@ const EmailNotifications = () => {
   const handleMarkAsSent = async (emailId: string) => {
     try {
       const { error } = await supabase
-        .from("email_logs")
-        .update({ sent_manually: true })
+        .from("email_logs" as any)
+        .update({ sent_manually: true } as any)
         .eq("id", emailId);
 
       if (error) throw error;
