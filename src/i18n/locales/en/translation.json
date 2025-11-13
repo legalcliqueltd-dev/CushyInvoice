@@ -148,5 +148,11 @@
   "payment_status": "Payment Status",
   "partially_paid": "Partially Paid",
   "unpaid": "Unpaid",
-  "refunded": "Refunded"
+  "refunded": "Refunded",
+  "select_template": "Select Template",
+  "save_as_draft": "Save as Draft",
+  "save_and_send": "Save & Send",
+  "add_new_client": "Add New Client",
+  "name": "Name",
+  "template": "Template"
 }

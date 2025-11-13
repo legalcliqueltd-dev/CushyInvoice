@@ -148,5 +148,11 @@
   "payment_status": "Estado de pago",
   "partially_paid": "Parcialmente pagado",
   "unpaid": "Sin pagar",
-  "refunded": "Reembolsado"
+  "refunded": "Reembolsado",
+  "select_template": "Seleccionar plantilla",
+  "save_as_draft": "Guardar como borrador",
+  "save_and_send": "Guardar y enviar",
+  "add_new_client": "Agregar nuevo cliente",
+  "name": "Nombre",
+  "template": "Plantilla"
 }

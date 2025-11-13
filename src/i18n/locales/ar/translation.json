@@ -148,5 +148,11 @@
   "payment_status": "حالة الدفع",
   "partially_paid": "مدفوع جزئياً",
   "unpaid": "غير مدفوع",
-  "refunded": "مسترد"
+  "refunded": "مسترد",
+  "select_template": "اختر قالب",
+  "save_as_draft": "حفظ كمسودة",
+  "save_and_send": "حفظ وإرسال",
+  "add_new_client": "إضافة عميل جديد",
+  "name": "الاسم",
+  "template": "قالب"
 }

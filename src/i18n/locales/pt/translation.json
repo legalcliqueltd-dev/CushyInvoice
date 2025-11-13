@@ -148,5 +148,11 @@
   "payment_status": "Status de pagamento",
   "partially_paid": "Parcialmente pago",
   "unpaid": "Não pago",
-  "refunded": "Reembolsado"
+  "refunded": "Reembolsado",
+  "select_template": "Selecionar modelo",
+  "save_as_draft": "Salvar como rascunho",
+  "save_and_send": "Salvar e enviar",
+  "add_new_client": "Adicionar novo cliente",
+  "name": "Nome",
+  "template": "Modelo"
 }

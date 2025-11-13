@@ -81,7 +81,7 @@ export const useSubscription = () => {
 
   const startCheckout = useCallback(async (priceId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke("create-subscription-session", {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceId },
       });
 
