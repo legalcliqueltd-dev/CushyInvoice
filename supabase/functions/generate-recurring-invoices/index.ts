@@ -140,6 +140,23 @@ serve(async (req) => {
 
         if (updateError) throw updateError;
 
+        // Send email notification asynchronously (don't await)
+        fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-invoice-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          },
+          body: JSON.stringify({
+            invoice_id: newInvoice.id,
+            client_email: recurring.clients.email,
+            client_name: recurring.clients.name,
+            invoice_number: invoiceNumber,
+            total: newInvoice.total,
+            currency: newInvoice.currency,
+          }),
+        }).catch((err) => console.error("Failed to send email notification:", err));
+
         results.push({
           recurring_id: recurring.id,
           invoice_id: newInvoice.id,

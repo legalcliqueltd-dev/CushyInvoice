@@ -40,6 +40,7 @@ export default function Expenses() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [categoryTotals, setCategoryTotals] = useState<{ [key: string]: number }>({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { limits } = usePlanLimits();
   const { toast } = useToast();
@@ -66,6 +67,14 @@ export default function Expenses() {
       
       const total = data?.reduce((sum, expense) => sum + Number(expense.amount), 0) || 0;
       setTotalExpenses(total);
+
+      // Calculate category totals
+      const categoryMap: { [key: string]: number } = {};
+      data?.forEach((expense) => {
+        const category = expense.category;
+        categoryMap[category] = (categoryMap[category] || 0) + Number(expense.amount);
+      });
+      setCategoryTotals(categoryMap);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -173,6 +182,22 @@ export default function Expenses() {
             </div>
           </Card>
         </div>
+
+        {Object.keys(categoryTotals).length > 0 && (
+          <Card className="p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">Expenses by Category</h2>
+            <div className="grid gap-3">
+              {Object.entries(categoryTotals)
+                .sort(([, a], [, b]) => b - a)
+                .map(([category, total]) => (
+                  <div key={category} className="flex items-center justify-between p-3 border rounded-lg">
+                    <span className="font-medium">{category}</span>
+                    <span className="text-destructive font-semibold">${total.toFixed(2)}</span>
+                  </div>
+                ))}
+            </div>
+          </Card>
+        )}
 
         {expenses.length === 0 ? (
           <Card className="p-12 text-center">
