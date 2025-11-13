@@ -29,15 +29,16 @@ export const LanguageSwitcher = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
-          .from("profiles")
+          .from("profiles" as any)
           .select("preferred_language")
           .eq("id", user.id)
           .single();
 
-        if (profile?.preferred_language) {
-          i18n.changeLanguage(profile.preferred_language);
-          setCurrentLanguage(profile.preferred_language);
-          updateDirection(profile.preferred_language);
+        if (profile && (profile as any).preferred_language) {
+          const lang = (profile as any).preferred_language;
+          i18n.changeLanguage(lang);
+          setCurrentLanguage(lang);
+          updateDirection(lang);
         }
       }
     };
@@ -63,8 +64,8 @@ export const LanguageSwitcher = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase
-        .from("profiles")
-        .update({ preferred_language: languageCode })
+        .from("profiles" as any)
+        .update({ preferred_language: languageCode } as any)
         .eq("id", user.id);
     }
   };

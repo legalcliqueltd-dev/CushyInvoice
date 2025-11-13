@@ -20,6 +20,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/hooks/useLocale";
 
 interface Invoice {
   id: string;
@@ -42,6 +44,8 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+  const { formatCurrency } = useLocale();
   const [stats, setStats] = useState<DashboardStats>({
     totalOutstanding: 0,
     totalPaid: 0,
@@ -150,19 +154,19 @@ export default function Dashboard() {
         
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('dashboard')}</h1>
             <p className="text-muted-foreground">
-              Overview of your invoicing activity
+              {t('welcome')}
             </p>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => navigate("/clients")}>
               <UserPlus className="h-4 w-4 mr-2" />
-              Add Client
+              {t('add_client')}
             </Button>
             <Button onClick={() => navigate("/invoices/new")}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Invoice
+              {t('create_invoice')}
             </Button>
           </div>
         </div>
@@ -172,16 +176,16 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Paid
+                {t('total_amount')} {t('paid')}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${stats.totalPaid.toFixed(2)}
+                {formatCurrency(stats.totalPaid)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Total received
+                {t('total_revenue')}
               </p>
             </CardContent>
           </Card>
@@ -189,16 +193,16 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                Outstanding Balance
+                {t('outstanding_invoices')}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${stats.totalOutstanding.toFixed(2)}
+                {formatCurrency(stats.totalOutstanding)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Total unpaid invoices
+                {t('unpaid')}
               </p>
             </CardContent>
           </Card>
@@ -206,14 +210,14 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Invoices
+                {t('total')} {t('invoices')}
               </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalInvoices}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                All time invoices
+                {t('all_time')}
               </p>
             </CardContent>
           </Card>
@@ -221,14 +225,14 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                Draft Invoices
+                {t('draft')} {t('invoices')}
               </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.draftInvoices}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Pending completion
+                {t('draft')}
               </p>
             </CardContent>
           </Card>
@@ -236,14 +240,14 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
-                Overdue
+                {t('overdue')}
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.overdueInvoices}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Require attention
+                {t('overdue_amount')}
               </p>
             </CardContent>
           </Card>
@@ -252,15 +256,15 @@ export default function Dashboard() {
         {/* Recent Invoices */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Invoices</CardTitle>
+            <CardTitle>{t('recent_invoices')}</CardTitle>
           </CardHeader>
           <CardContent>
             {recentInvoices.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">No invoices yet</p>
+                <p className="text-muted-foreground mb-4">{t('no_invoices')}</p>
                 <Button onClick={() => navigate("/invoices/new")}>
-                  Create Your First Invoice
+                  {t('create_first_invoice')}
                 </Button>
               </div>
             ) : (
