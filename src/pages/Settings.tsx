@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Crown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ProfileData {
@@ -594,7 +594,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
                     <div>
                       <h3 className="font-medium">Current Plan</h3>
                       <p className="text-sm text-muted-foreground">
@@ -608,30 +608,63 @@ export default function Settings() {
                             ) : null}
                           </>
                         ) : (
-                          "No active subscription"
+                          "Free Plan"
                         )}
                       </p>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-sm ${
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       subscription.status === 'trialing'
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                         : subscription.subscribed 
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                         : 'bg-muted text-muted-foreground'
                     }`}>
-                      {subscription.status === 'trialing' ? 'Trial' : subscription.subscribed ? 'Active' : 'Inactive'}
+                      {subscription.status === 'trialing' ? 'Trial' : subscription.subscribed ? 'Active' : 'Free'}
                     </div>
                   </div>
 
+                  {!subscription.subscribed && (
+                    <div className="p-4 border-2 border-primary/20 rounded-lg bg-primary/5">
+                      <h4 className="font-semibold text-lg mb-2">Upgrade to Premium</h4>
+                      <ul className="text-sm space-y-2 mb-4">
+                        <li className="flex items-center gap-2">
+                          <Crown className="h-4 w-4 text-primary" />
+                          <span>Unlimited invoices & clients</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Crown className="h-4 w-4 text-primary" />
+                          <span>No advertisements</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Crown className="h-4 w-4 text-primary" />
+                          <span>Priority support</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Crown className="h-4 w-4 text-primary" />
+                          <span>Advanced features</span>
+                        </li>
+                      </ul>
+                      <Button 
+                        onClick={() => window.location.href = '/subscribe'}
+                        className="w-full"
+                      >
+                        <Crown className="h-4 w-4 mr-2" />
+                        Upgrade Now
+                      </Button>
+                    </div>
+                  )}
+
                   {subscription.subscribed && (
                     <div className="space-y-2">
-                      <h4 className="font-medium">Included Features</h4>
+                      <h4 className="font-medium">Premium Features</h4>
                       <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                         <li>Unlimited invoices</li>
-                        <li>Client management</li>
+                        <li>Unlimited clients</li>
+                        <li>No advertisements</li>
                         <li>Payment tracking</li>
                         <li>PDF export</li>
                         <li>Email delivery</li>
+                        <li>Payment reminders</li>
                         {subscription.current_plan === 'yearly' && (
                           <>
                             <li>Priority support</li>
@@ -644,19 +677,33 @@ export default function Settings() {
                 </div>
 
                 <div className="pt-4 border-t">
-                  <Button 
-                    onClick={handleManageSubscription} 
-                    disabled={loadingPortal || !subscription.subscribed}
-                    className="w-full sm:w-auto"
-                  >
-                    {loadingPortal && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Manage Subscription
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {subscription.subscribed 
-                      ? "Update payment method, change plan, or cancel subscription"
-                      : "Subscribe to access all features"}
-                  </p>
+                  {subscription.subscribed ? (
+                    <>
+                      <Button 
+                        onClick={handleManageSubscription} 
+                        disabled={loadingPortal}
+                        className="w-full sm:w-auto"
+                      >
+                        {loadingPortal && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        Manage Subscription
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Update payment method, change plan, or cancel subscription
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        onClick={() => window.location.href = '/subscribe'}
+                        className="w-full sm:w-auto"
+                      >
+                        View Plans
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Choose a plan that fits your business needs
+                      </p>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
