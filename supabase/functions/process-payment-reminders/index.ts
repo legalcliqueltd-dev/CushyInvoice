@@ -78,20 +78,18 @@ serve(async (req) => {
       if (shouldSend) {
         logStep("Sending reminder", { reminderId: reminder.id, invoiceNumber: invoice.invoice_number });
 
-        // Call send-invoice-email function
-        const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-invoice-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseKey}`,
-          },
-          body: JSON.stringify({
-            invoiceId: invoice.id,
-            isReminder: true,
-          }),
-        });
+        // Call send-invoice-email function using Supabase client
+        const { data: emailData, error: emailError } = await supabase.functions.invoke(
+          'send-invoice-email',
+          {
+            body: {
+              invoiceId: invoice.id,
+              isReminder: true,
+            },
+          }
+        );
 
-        if (emailResponse.ok) {
+        if (!emailError) {
           await supabase
             .from("payment_reminders")
             .update({ status: "sent", sent_at: new Date().toISOString() })
@@ -100,8 +98,7 @@ serve(async (req) => {
           processedCount++;
           logStep("Reminder sent successfully", { reminderId: reminder.id });
         } else {
-          const error = await emailResponse.text();
-          logStep("Failed to send reminder", { reminderId: reminder.id, error });
+          logStep("Failed to send reminder", { reminderId: reminder.id, error: emailError.message });
         }
       }
     }
