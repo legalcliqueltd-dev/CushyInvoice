@@ -154,5 +154,19 @@
   "save_and_send": "Guardar y enviar",
   "add_new_client": "Agregar nuevo cliente",
   "name": "Nombre",
-  "template": "Plantilla"
+  "template": "Plantilla",
+  "select_product": "Seleccionar producto",
+  "select_client": "Seleccionar cliente",
+  "fill_details_below": "Complete los detalles a continuación",
+  "none": "Ninguno",
+  "default": "Predeterminado",
+  "validation_error": "Error de validación",
+  "client_added_successfully": "Cliente agregado exitosamente",
+  "invoice_min_one_item": "La factura debe tener al menos un artículo",
+  "not_authenticated": "No autenticado",
+  "please_select_client": "Por favor seleccione un cliente",
+  "fill_required_fields": "Por favor complete todos los campos requeridos para los artículos",
+  "invoice_saved_draft": "Factura guardada como borrador",
+  "invoice_created_success": "Factura creada exitosamente",
+  "failed_save_invoice": "Error al guardar la factura"
 }

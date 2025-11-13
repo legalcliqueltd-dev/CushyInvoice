@@ -154,5 +154,19 @@
   "save_and_send": "Save & Send",
   "add_new_client": "Add New Client",
   "name": "Name",
-  "template": "Template"
+  "template": "Template",
+  "select_product": "Select Product",
+  "select_client": "Select Client",
+  "fill_details_below": "Fill in the details below",
+  "none": "None",
+  "default": "Default",
+  "validation_error": "Validation Error",
+  "client_added_successfully": "Client added successfully",
+  "invoice_min_one_item": "Invoice must have at least one line item",
+  "not_authenticated": "Not authenticated",
+  "please_select_client": "Please select a client",
+  "fill_required_fields": "Please fill in all required fields for line items",
+  "invoice_saved_draft": "Invoice saved as draft",
+  "invoice_created_success": "Invoice created successfully",
+  "failed_save_invoice": "Failed to save invoice"
 }

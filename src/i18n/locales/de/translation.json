@@ -154,5 +154,19 @@
   "save_and_send": "Speichern und senden",
   "add_new_client": "Neuen Kunden hinzufügen",
   "name": "Name",
-  "template": "Vorlage"
+  "template": "Vorlage",
+  "select_product": "Produkt auswählen",
+  "select_client": "Kunde auswählen",
+  "fill_details_below": "Füllen Sie die Details unten aus",
+  "none": "Keine",
+  "default": "Standard",
+  "validation_error": "Validierungsfehler",
+  "client_added_successfully": "Kunde erfolgreich hinzugefügt",
+  "invoice_min_one_item": "Rechnung muss mindestens einen Posten haben",
+  "not_authenticated": "Nicht authentifiziert",
+  "please_select_client": "Bitte wählen Sie einen Kunden aus",
+  "fill_required_fields": "Bitte füllen Sie alle erforderlichen Felder für Positionen aus",
+  "invoice_saved_draft": "Rechnung als Entwurf gespeichert",
+  "invoice_created_success": "Rechnung erfolgreich erstellt",
+  "failed_save_invoice": "Rechnung konnte nicht gespeichert werden"
 }
