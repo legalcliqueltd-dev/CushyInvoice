@@ -107,29 +107,35 @@ The email should be polite, professional, and include a call to action to review
 
     console.log("Email generated successfully");
 
-    // In a real implementation, you would send the email here using a service like Resend or SendGrid
-    // For now, we'll just log it and store a record
     const subject = isReminder 
       ? `Payment Reminder: Invoice ${invoice.invoice_number} from ${companyName}`
       : `Invoice ${invoice.invoice_number} from ${companyName}`;
     
-    const emailData = {
-      to: client.email,
-      from: fromEmail,
-      subject,
-      body: emailBody,
-      invoice_id: invoiceId,
-      sent: true,
-      sent_at: new Date().toISOString(),
-    };
+    // Store email in database for user to send manually
+    const { error: emailLogError } = await supabaseClient
+      .from("email_logs")
+      .insert({
+        invoice_id: invoiceId,
+        user_id: invoice.user_id,
+        recipient_email: client.email,
+        subject,
+        body: emailBody,
+        email_type: isReminder ? 'reminder' : 'invoice',
+      });
 
-    console.log("Email would be sent:", emailData);
+    if (emailLogError) {
+      console.error("Error storing email log:", emailLogError);
+      throw new Error("Failed to store email notification");
+    }
+
+    console.log("Email notification stored successfully");
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Email notification prepared",
-        email_preview: emailBody,
+        message: "Email notification created and ready to send",
+        subject,
+        recipient: client.email,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
