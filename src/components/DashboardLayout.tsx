@@ -106,7 +106,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <div className="p-6 border-b border-sidebar-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Receipt className="h-6 w-6 text-sidebar-primary" />
-              <span className="text-xl font-bold">InvoiceEase</span>
+              <span className="text-xl font-bold">{t('app_name')}</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -129,7 +129,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <span>{item.label}</span>
                 {item.premium && (
                   <span className="ml-auto text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    Premium
+                    {t('premium')}
                   </span>
                 )}
               </NavLink>
@@ -138,7 +138,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
           <div className="p-4 border-t border-sidebar-border">
             <div className="mb-3 px-4 py-2 bg-sidebar-accent rounded-lg">
-              <p className="text-xs text-muted-foreground">Logged in as</p>
+              <p className="text-xs text-muted-foreground">{t('profile')}</p>
               <p className="text-sm font-medium truncate">
                 {session?.user?.email}
               </p>
@@ -149,7 +149,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              {t('logout')}
             </Button>
           </div>
         </div>
@@ -174,7 +174,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               className="gap-2"
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Create Invoice</span>
+              <span className="hidden sm:inline">{t('create_invoice')}</span>
             </Button>
           </div>
         </header>
