@@ -27,6 +27,7 @@ import {
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AddPaymentReminderDialog } from "@/components/AddPaymentReminderDialog";
 
 interface InvoiceData {
   id: string;
@@ -175,6 +176,37 @@ export default function InvoiceDetail() {
     }
   };
 
+  const handleSendEmail = async () => {
+    if (!invoice) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-invoice-email", {
+        body: {
+          invoice_id: invoice.id,
+          client_email: invoice.clients.email,
+          client_name: invoice.clients.name,
+          invoice_number: invoice.invoice_number,
+          total: invoice.total,
+          currency: invoice.currency,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email Sent",
+        description: "Invoice notification has been sent to the client.",
+      });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send email notification.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":
@@ -267,10 +299,11 @@ export default function InvoiceDetail() {
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleSendEmail}>
               <Mail className="h-4 w-4 mr-2" />
               Send Email
             </Button>
+            <AddPaymentReminderDialog invoiceId={id!} onReminderAdded={fetchInvoice} />
             <Button variant="ghost" size="sm" onClick={handleDelete}>
               <Trash2 className="h-4 w-4" />
             </Button>
