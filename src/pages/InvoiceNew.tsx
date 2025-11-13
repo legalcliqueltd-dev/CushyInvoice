@@ -47,6 +47,16 @@ interface Product {
   price: number;
 }
 
+interface Template {
+  id: string;
+  template_name: string;
+  primary_color: string;
+  secondary_color: string;
+  font_family: string;
+  layout_style: string;
+  is_default: boolean;
+}
+
 interface LineItem {
   id: string;
   product_id?: string;
@@ -66,6 +76,8 @@ const clientSchema = z.object({
 export default function InvoiceNew() {
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [selectedClientId, setSelectedClientId] = useState("");
   const [issueDate, setIssueDate] = useState<Date>(new Date());
   const [dueDate, setDueDate] = useState<Date>(
@@ -94,6 +106,7 @@ export default function InvoiceNew() {
     fetchClients();
     fetchProducts();
     fetchProfileDefaults();
+    fetchTemplates();
   }, []);
 
   const fetchProfileDefaults = async () => {
@@ -156,6 +169,31 @@ export default function InvoiceNew() {
     } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error("Error fetching products:", error);
+      }
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("invoice_templates")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false });
+
+      if (error) throw error;
+      setTemplates(data || []);
+      
+      const defaultTemplate = data?.find(t => t.is_default);
+      if (defaultTemplate) {
+        setSelectedTemplateId(defaultTemplate.id);
+      }
+    } catch (error: any) {
+      if (import.meta.env.DEV) {
+        console.error("Error fetching templates:", error);
       }
     }
   };
@@ -317,6 +355,7 @@ export default function InvoiceNew() {
         .insert({
           user_id: user.id,
           client_id: selectedClientId,
+          template_id: selectedTemplateId || null,
           invoice_number: invoiceNumber,
           issue_date: format(issueDate, "yyyy-MM-dd"),
           due_date: format(dueDate, "yyyy-MM-dd"),
@@ -481,6 +520,25 @@ export default function InvoiceNew() {
                 </SelectContent>
               </Select>
             </div>
+
+            {templates.length > 0 && (
+              <div className="space-y-2">
+                <Label>Template (Optional)</Label>
+                <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.template_name} {template.is_default && "(Default)"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
