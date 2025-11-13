@@ -168,5 +168,6 @@
   "fill_required_fields": "Veuillez remplir tous les champs obligatoires pour les éléments",
   "invoice_saved_draft": "Facture enregistrée comme brouillon",
   "invoice_created_success": "Facture créée avec succès",
-  "failed_save_invoice": "Échec de l'enregistrement de la facture"
+  "failed_save_invoice": "Échec de l'enregistrement de la facture",
+  "pick_date": "Choisir une date"
 }

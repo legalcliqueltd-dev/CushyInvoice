@@ -168,5 +168,6 @@
   "fill_required_fields": "Por favor complete todos los campos requeridos para los artículos",
   "invoice_saved_draft": "Factura guardada como borrador",
   "invoice_created_success": "Factura creada exitosamente",
-  "failed_save_invoice": "Error al guardar la factura"
+  "failed_save_invoice": "Error al guardar la factura",
+  "pick_date": "Elegir fecha"
 }

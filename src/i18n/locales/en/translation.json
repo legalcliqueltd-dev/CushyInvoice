@@ -168,5 +168,6 @@
   "fill_required_fields": "Please fill in all required fields for line items",
   "invoice_saved_draft": "Invoice saved as draft",
   "invoice_created_success": "Invoice created successfully",
-  "failed_save_invoice": "Failed to save invoice"
+  "failed_save_invoice": "Failed to save invoice",
+  "pick_date": "Pick a date"
 }

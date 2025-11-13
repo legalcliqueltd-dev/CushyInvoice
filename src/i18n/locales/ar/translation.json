@@ -168,5 +168,6 @@
   "fill_required_fields": "الرجاء ملء جميع الحقول المطلوبة للعناصر",
   "invoice_saved_draft": "تم حفظ الفاتورة كمسودة",
   "invoice_created_success": "تم إنشاء الفاتورة بنجاح",
-  "failed_save_invoice": "فشل حفظ الفاتورة"
+  "failed_save_invoice": "فشل حفظ الفاتورة",
+  "pick_date": "اختر تاريخ"
 }
