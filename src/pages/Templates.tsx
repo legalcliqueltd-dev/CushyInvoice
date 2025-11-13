@@ -5,8 +5,19 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { Loader2, Plus, Lock, Palette, FileText } from "lucide-react";
+import { AddTemplateDialog } from "@/components/AddTemplateDialog";
+import { Loader2, Lock, Palette, FileText, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Template {
   id: string;
@@ -19,6 +30,7 @@ interface Template {
 export default function Templates() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { limits } = usePlanLimits();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -48,6 +60,34 @@ export default function Templates() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      const { error } = await supabase
+        .from("invoice_templates")
+        .delete()
+        .eq("id", deleteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Template Deleted",
+        description: "The template has been deleted successfully.",
+      });
+
+      fetchTemplates();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -99,10 +139,7 @@ export default function Templates() {
               Customize your invoice appearance with branded templates
             </p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Template
-          </Button>
+          <AddTemplateDialog onTemplateAdded={fetchTemplates} />
         </div>
 
         <div className="mb-8">
@@ -131,7 +168,7 @@ export default function Templates() {
             <h2 className="text-xl font-semibold mb-4">Your Custom Templates</h2>
             <div className="grid md:grid-cols-3 gap-4">
               {templates.map((template) => (
-                <Card key={template.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                <Card key={template.id} className="p-6 hover:shadow-lg transition-shadow relative group">
                   <div
                     className="w-full h-32 rounded-lg mb-4"
                     style={{ backgroundColor: template.primary_color }}
@@ -141,7 +178,17 @@ export default function Templates() {
                       <h3 className="font-semibold">{template.template_name}</h3>
                       <p className="text-sm text-muted-foreground capitalize">{template.layout_style}</p>
                     </div>
-                    {template.is_default && <Badge>Default</Badge>}
+                    <div className="flex items-center gap-2">
+                      {template.is_default && <Badge>Default</Badge>}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(template.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -156,12 +203,26 @@ export default function Templates() {
             <p className="text-muted-foreground mb-6">
               Create custom templates to match your brand identity
             </p>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Your First Template
-            </Button>
+            <AddTemplateDialog onTemplateAdded={fetchTemplates} />
           </Card>
         )}
+
+        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Template</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this template? Invoices using this template will not be affected.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

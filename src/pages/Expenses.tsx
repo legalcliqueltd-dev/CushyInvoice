@@ -4,8 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { Loader2, Plus, Lock, Receipt, DollarSign } from "lucide-react";
+import { AddExpenseDialog } from "@/components/AddExpenseDialog";
+import { Loader2, Lock, Receipt, DollarSign, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface Expense {
+  id: string;
+  category: string;
+  amount: number;
+  currency: string;
+  expense_date: string;
+  description: string;
+}
 
 interface Expense {
   id: string;
@@ -20,6 +40,7 @@ export default function Expenses() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { limits } = usePlanLimits();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -53,6 +74,34 @@ export default function Expenses() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .delete()
+        .eq("id", deleteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Expense Deleted",
+        description: "The expense has been deleted successfully.",
+      });
+
+      fetchExpenses();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -97,10 +146,7 @@ export default function Expenses() {
               Track and manage your business expenses
             </p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Expense
-          </Button>
+          <AddExpenseDialog onExpenseAdded={fetchExpenses} />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -135,10 +181,7 @@ export default function Expenses() {
             <p className="text-muted-foreground mb-6">
               Start tracking your business expenses to better manage your finances
             </p>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Your First Expense
-            </Button>
+            <AddExpenseDialog onExpenseAdded={fetchExpenses} />
           </Card>
         ) : (
           <Card>
@@ -159,15 +202,41 @@ export default function Expenses() {
                         </p>
                       </div>
                     </div>
-                    <p className="font-semibold text-destructive">
-                      -{expense.currency} {Number(expense.amount).toFixed(2)}
-                    </p>
+                    <div className="flex items-center gap-4">
+                      <p className="font-semibold text-destructive">
+                        -{expense.currency} {Number(expense.amount).toFixed(2)}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(expense.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           </Card>
         )}
+
+        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this expense? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

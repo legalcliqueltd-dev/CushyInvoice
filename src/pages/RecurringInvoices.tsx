@@ -5,8 +5,19 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { Loader2, Plus, Lock, Calendar, RefreshCw } from "lucide-react";
+import { AddRecurringInvoiceDialog } from "@/components/AddRecurringInvoiceDialog";
+import { Loader2, Lock, Calendar, RefreshCw, Trash2, Pause, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface RecurringInvoice {
   id: string;
@@ -23,6 +34,7 @@ interface RecurringInvoice {
 export default function RecurringInvoices() {
   const [invoices, setInvoices] = useState<RecurringInvoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { limits } = usePlanLimits();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -55,6 +67,58 @@ export default function RecurringInvoices() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("recurring_invoices")
+        .update({ is_active: !currentStatus })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: currentStatus ? "Recurring Invoice Paused" : "Recurring Invoice Activated",
+        description: `The recurring invoice has been ${currentStatus ? "paused" : "activated"}.`,
+      });
+
+      fetchRecurringInvoices();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      const { error } = await supabase
+        .from("recurring_invoices")
+        .delete()
+        .eq("id", deleteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Recurring Invoice Deleted",
+        description: "The recurring invoice has been deleted successfully.",
+      });
+
+      fetchRecurringInvoices();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -99,10 +163,7 @@ export default function RecurringInvoices() {
               Automate your regular billing with recurring invoices
             </p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Recurring Invoice
-          </Button>
+          <AddRecurringInvoiceDialog onInvoiceAdded={fetchRecurringInvoices} />
         </div>
 
         {invoices.length === 0 ? (
@@ -112,10 +173,7 @@ export default function RecurringInvoices() {
             <p className="text-muted-foreground mb-6">
               Set up recurring invoices to automatically bill your clients
             </p>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Your First Recurring Invoice
-            </Button>
+            <AddRecurringInvoiceDialog onInvoiceAdded={fetchRecurringInvoices} />
           </Card>
         ) : (
           <div className="grid gap-4">
@@ -141,12 +199,45 @@ export default function RecurringInvoices() {
                     <Badge variant={invoice.is_active ? "default" : "secondary"}>
                       {invoice.is_active ? "Active" : "Paused"}
                     </Badge>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => toggleActive(invoice.id, invoice.is_active)}
+                      >
+                        {invoice.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(invoice.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
             ))}
           </div>
         )}
+
+        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Recurring Invoice</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this recurring invoice? This will not affect previously generated invoices.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
