@@ -205,7 +205,7 @@ export default function InvoiceNew() {
       const validation = clientSchema.safeParse(newClientData);
       if (!validation.success) {
         toast({
-          title: "Validation Error",
+          title: t('validation_error'),
           description: validation.error.errors[0].message,
           variant: "destructive",
         });
@@ -229,14 +229,14 @@ export default function InvoiceNew() {
 
       if (error) throw error;
 
-      toast({ title: "Client added successfully" });
+      toast({ title: t('client_added_successfully') });
       setClients([...clients, { id: data.id, name: data.name, email: data.email }]);
       setSelectedClientId(data.id);
       setNewClientDialog(false);
       setNewClientData({ name: "", email: "", phone: "", address: "" });
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('error'),
         description: error.message,
         variant: "destructive",
       });
@@ -259,8 +259,8 @@ export default function InvoiceNew() {
   const removeLineItem = (id: string) => {
     if (lineItems.length === 1) {
       toast({
-        title: "Warning",
-        description: "Invoice must have at least one line item",
+        title: t('warning'),
+        description: t('invoice_min_one_item'),
         variant: "destructive",
       });
       return;
@@ -304,7 +304,7 @@ export default function InvoiceNew() {
 
   const generateInvoiceNumber = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
+    if (!user) throw new Error(t('not_authenticated'));
 
     // Get the latest invoice number for this user
     const { data, error } = await supabase
@@ -401,8 +401,8 @@ export default function InvoiceNew() {
         console.error("Error saving invoice:", error);
       }
       toast({
-        title: "Error",
-        description: error.message || "Failed to save invoice",
+        title: t('error'),
+        description: error.message || t('failed_save_invoice'),
         variant: "destructive",
       });
     } finally {
@@ -415,7 +415,7 @@ export default function InvoiceNew() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('create_invoice')}</h1>
-          <p className="text-muted-foreground">Fill in the details below</p>
+          <p className="text-muted-foreground">{t('fill_details_below')}</p>
         </div>
 
         <Card>
@@ -531,10 +531,10 @@ export default function InvoiceNew() {
                     <SelectValue placeholder={t('select_template')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="">{t('none')}</SelectItem>
                     {templates.map((template) => (
                       <SelectItem key={template.id} value={template.id}>
-                        {template.template_name} {template.is_default && "(Default)"}
+                        {template.template_name} {template.is_default && `(${t('default')})`}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -154,5 +154,19 @@
   "save_and_send": "Enregistrer et envoyer",
   "add_new_client": "Ajouter un nouveau client",
   "name": "Nom",
-  "template": "Modèle"
+  "template": "Modèle",
+  "select_product": "Sélectionner un produit",
+  "select_client": "Sélectionner un client",
+  "fill_details_below": "Remplissez les détails ci-dessous",
+  "none": "Aucun",
+  "default": "Par défaut",
+  "validation_error": "Erreur de validation",
+  "client_added_successfully": "Client ajouté avec succès",
+  "invoice_min_one_item": "La facture doit contenir au moins un élément",
+  "not_authenticated": "Non authentifié",
+  "please_select_client": "Veuillez sélectionner un client",
+  "fill_required_fields": "Veuillez remplir tous les champs obligatoires pour les éléments",
+  "invoice_saved_draft": "Facture enregistrée comme brouillon",
+  "invoice_created_success": "Facture créée avec succès",
+  "failed_save_invoice": "Échec de l'enregistrement de la facture"
 }

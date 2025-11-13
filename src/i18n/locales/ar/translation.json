@@ -154,5 +154,19 @@
   "save_and_send": "حفظ وإرسال",
   "add_new_client": "إضافة عميل جديد",
   "name": "الاسم",
-  "template": "قالب"
+  "template": "قالب",
+  "select_product": "اختر منتج",
+  "select_client": "اختر عميل",
+  "fill_details_below": "املأ التفاصيل أدناه",
+  "none": "لا شيء",
+  "default": "افتراضي",
+  "validation_error": "خطأ في التحقق",
+  "client_added_successfully": "تمت إضافة العميل بنجاح",
+  "invoice_min_one_item": "يجب أن تحتوي الفاتورة على عنصر واحد على الأقل",
+  "not_authenticated": "غير مصادق عليه",
+  "please_select_client": "الرجاء اختيار عميل",
+  "fill_required_fields": "الرجاء ملء جميع الحقول المطلوبة للعناصر",
+  "invoice_saved_draft": "تم حفظ الفاتورة كمسودة",
+  "invoice_created_success": "تم إنشاء الفاتورة بنجاح",
+  "failed_save_invoice": "فشل حفظ الفاتورة"
 }

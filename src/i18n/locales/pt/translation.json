@@ -154,5 +154,19 @@
   "save_and_send": "Salvar e enviar",
   "add_new_client": "Adicionar novo cliente",
   "name": "Nome",
-  "template": "Modelo"
+  "template": "Modelo",
+  "select_product": "Selecionar produto",
+  "select_client": "Selecionar cliente",
+  "fill_details_below": "Preencha os detalhes abaixo",
+  "none": "Nenhum",
+  "default": "Padrão",
+  "validation_error": "Erro de validação",
+  "client_added_successfully": "Cliente adicionado com sucesso",
+  "invoice_min_one_item": "A fatura deve ter pelo menos um item",
+  "not_authenticated": "Não autenticado",
+  "please_select_client": "Por favor selecione um cliente",
+  "fill_required_fields": "Por favor preencha todos os campos obrigatórios dos itens",
+  "invoice_saved_draft": "Fatura salva como rascunho",
+  "invoice_created_success": "Fatura criada com sucesso",
+  "failed_save_invoice": "Falha ao salvar fatura"
 }
