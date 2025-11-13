@@ -29,15 +29,19 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       setIsAuthenticated(true);
 
-      // Check subscription status (allow both active and trialing)
-      const { data, error } = await supabase.functions.invoke("check-subscription");
+      // Check plan status (allow trial and premium)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan_type, is_premium, trial_end_date')
+        .eq('id', session.user.id)
+        .single();
 
-      if (error) {
-        console.error("Error checking subscription:", error);
+      if (!profile) {
         setHasSubscription(false);
       } else {
-        // Allow access if user has active subscription or is in trial period
-        setHasSubscription(data?.subscribed === true);
+        // Allow access if user is premium or in trial period
+        const isPremium = profile.is_premium || profile.plan_type === 'premium' || profile.plan_type === 'trial';
+        setHasSubscription(isPremium);
       }
     } catch (error) {
       console.error("Error in protected route:", error);

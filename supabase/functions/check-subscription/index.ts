@@ -46,15 +46,40 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No customer found");
       
-      // Update profile to inactive
-      await supabaseClient
+      // Check if user is in trial
+      const { data: profile } = await supabaseClient
         .from('profiles')
-        .update({ subscription_status: 'inactive' })
-        .eq('id', user.id);
+        .select('plan_type, trial_end_date')
+        .eq('id', user.id)
+        .single();
+      
+      let planType = profile?.plan_type || 'trial';
+      let isPremium = false;
+      
+      // Check if trial has expired
+      if (planType === 'trial' && profile?.trial_end_date) {
+        const trialEnd = new Date(profile.trial_end_date);
+        if (trialEnd < new Date()) {
+          planType = 'free';
+          await supabaseClient
+            .from('profiles')
+            .update({ 
+              plan_type: 'free',
+              is_premium: false,
+              subscription_status: 'inactive' 
+            })
+            .eq('id', user.id);
+        } else {
+          isPremium = true; // Trial users get premium features
+        }
+      }
 
       return new Response(JSON.stringify({ 
-        subscribed: false,
-        status: 'inactive'
+        subscribed: isPremium,
+        status: 'inactive',
+        plan_type: planType,
+        is_premium: isPremium,
+        trial_end: profile?.trial_end_date
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -107,16 +132,22 @@ serve(async (req) => {
           current_plan: currentPlan,
           subscription_expiry: subscriptionEnd,
           trial_end_date: trialEnd,
-          stripe_customer_id: customerId
+          stripe_customer_id: customerId,
+          plan_type: status === 'active' || status === 'trialing' ? 'premium' : 'free',
+          is_premium: status === 'active' || status === 'trialing'
         })
         .eq('id', user.id);
     } else {
       logStep("No subscription found");
       
-      // Update profile to inactive
+      // Update profile to inactive/free
       await supabaseClient
         .from('profiles')
-        .update({ subscription_status: 'inactive' })
+        .update({ 
+          subscription_status: 'inactive',
+          plan_type: 'free',
+          is_premium: false
+        })
         .eq('id', user.id);
     }
 
@@ -125,7 +156,9 @@ serve(async (req) => {
       status: status,
       current_plan: currentPlan,
       subscription_end: subscriptionEnd,
-      trial_end: trialEnd
+      trial_end: trialEnd,
+      plan_type: hasActiveSub ? 'premium' : 'free',
+      is_premium: hasActiveSub
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

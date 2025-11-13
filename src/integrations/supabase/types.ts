@@ -243,6 +243,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          clients_count: number | null
           company_logo: string | null
           company_name: string | null
           created_at: string | null
@@ -252,7 +253,11 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          invoices_this_month: number | null
+          is_premium: boolean | null
+          last_reset_date: string | null
           phone: string | null
+          plan_type: Database["public"]["Enums"]["plan_type"] | null
           stripe_customer_id: string | null
           subscription_expiry: string | null
           subscription_status: string | null
@@ -261,6 +266,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          clients_count?: number | null
           company_logo?: string | null
           company_name?: string | null
           created_at?: string | null
@@ -270,7 +276,11 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          invoices_this_month?: number | null
+          is_premium?: boolean | null
+          last_reset_date?: string | null
           phone?: string | null
+          plan_type?: Database["public"]["Enums"]["plan_type"] | null
           stripe_customer_id?: string | null
           subscription_expiry?: string | null
           subscription_status?: string | null
@@ -279,6 +289,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          clients_count?: number | null
           company_logo?: string | null
           company_name?: string | null
           created_at?: string | null
@@ -288,7 +299,11 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          invoices_this_month?: number | null
+          is_premium?: boolean | null
+          last_reset_date?: string | null
           phone?: string | null
+          plan_type?: Database["public"]["Enums"]["plan_type"] | null
           stripe_customer_id?: string | null
           subscription_expiry?: string | null
           subscription_status?: string | null
@@ -302,10 +317,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_expired_trials: { Args: never; Returns: undefined }
+      increment_invoice_count: { Args: { user_id: string }; Returns: undefined }
+      reset_monthly_invoices: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      plan_type: "free" | "trial" | "premium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -432,6 +449,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      plan_type: ["free", "trial", "premium"],
+    },
   },
 } as const

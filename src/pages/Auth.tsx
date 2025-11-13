@@ -100,11 +100,17 @@ export default function Auth() {
         }
 
         if (data.user) {
-          // Create profile
+          // Create profile with 7-day trial
+          const trialEndDate = new Date();
+          trialEndDate.setDate(trialEndDate.getDate() + 7);
+          
           const { error: profileError } = await supabase.from("profiles").insert({
             id: data.user.id,
             email: validation.data.email,
             full_name: validation.data.fullName || null,
+            plan_type: 'trial',
+            is_premium: true,
+            trial_end_date: trialEndDate.toISOString(),
           });
 
           if (profileError && import.meta.env.DEV) {

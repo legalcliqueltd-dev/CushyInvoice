@@ -12,12 +12,19 @@ export const TrialBanner = () => {
 
   const checkTrialStatus = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("check-subscription");
-      
-      if (error || !data) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      if (data.status === "trialing" && data.trial_end) {
-        const trialEnd = new Date(data.trial_end);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan_type, trial_end_date')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) return;
+
+      if (profile.plan_type === 'trial' && profile.trial_end_date) {
+        const trialEnd = new Date(profile.trial_end_date);
         const now = new Date();
         const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
         
