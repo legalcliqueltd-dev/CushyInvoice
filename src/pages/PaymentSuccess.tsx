@@ -17,40 +17,63 @@ export default function PaymentSuccess() {
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto py-12">
-        <Card>
+        <Card className="border-success/20 shadow-xl">
           <CardHeader>
             <div className="flex flex-col items-center text-center space-y-4">
-              <div className="rounded-full bg-success/10 p-3">
-                <CheckCircle className="h-12 w-12 text-success" />
+              <div className="rounded-full bg-gradient-to-br from-success/20 to-success/10 p-4 animate-pulse">
+                <CheckCircle className="h-16 w-16 text-success" />
               </div>
-              <CardTitle className="text-2xl">
-                {isSubscription ? "Subscription Activated!" : "Payment Successful!"}
+              <CardTitle className="text-3xl font-bold">
+                {isSubscription ? "🎉 Welcome to Premium!" : "✅ Payment Confirmed"}
               </CardTitle>
+              {isSubscription && (
+                <div className="bg-success/10 px-4 py-2 rounded-full">
+                  <span className="text-sm font-medium text-success">
+                    Your 7-day free trial has started
+                  </span>
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent className="text-center space-y-6">
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-lg">
               {isSubscription 
-                ? "Your subscription has been activated successfully. You now have full access to CushyInvoice features."
+                ? "You now have unlimited access to all premium features. Create unlimited invoices, enjoy ad-free experience, and access advanced reports."
                 : "Your payment has been processed successfully. The invoice will be updated shortly."}
             </p>
             
+            {isSubscription && (
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <p className="font-semibold">What's included:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>✓ Unlimited invoices and clients</li>
+                  <li>✓ No advertisements</li>
+                  <li>✓ Advanced reporting and analytics</li>
+                  <li>✓ Priority email support</li>
+                </ul>
+              </div>
+            )}
+            
             {sessionId && (
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground bg-muted/30 rounded p-2">
                 <p>Transaction ID: {sessionId}</p>
               </div>
             )}
 
-            <div className="flex gap-3 justify-center">
+            <div className="flex gap-3 justify-center pt-4">
               {invoiceId && (
-                <Button onClick={() => navigate(`/invoices/${invoiceId}`)}>
+                <Button onClick={() => navigate(`/invoices/${invoiceId}`)} size="lg">
                   View Invoice
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               )}
               {isSubscription ? (
-                <Button onClick={() => navigate("/dashboard")}>
-                  Go to Dashboard
+                <Button 
+                  onClick={() => navigate("/dashboard")} 
+                  size="lg"
+                  className="bg-gradient-to-r from-primary to-primary/90"
+                >
+                  Start Creating Invoices
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               ) : (

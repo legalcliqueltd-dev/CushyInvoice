@@ -75,28 +75,48 @@ const Subscribe = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
-      <div className="max-w-5xl w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <div className="max-w-6xl w-full space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold">Start Your 7-Day Free Trial</h1>
-          <p className="text-xl text-muted-foreground">
-            Try CushyInvoice free for 7 days. No charge until your trial ends.
+          <div className="inline-block px-4 py-2 bg-primary/10 rounded-full mb-4">
+            <span className="text-sm font-semibold text-primary">✨ Start Your Free Trial Today</span>
+          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            Choose Your Plan
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Get 7 days free access to all premium features. No credit card required for trial.
           </p>
-          <p className="text-sm text-muted-foreground">Cancel anytime during trial — no charge. Secure payments via Stripe.</p>
+          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground pt-2">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-success" />
+              <span>Cancel anytime</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-success" />
+              <span>No setup fees</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-success" />
+              <span>Secure payments via Stripe</span>
+            </div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {PLANS.map((plan) => (
             <Card
               key={plan.id}
-              className={`relative ${
-                plan.popular ? "border-primary shadow-lg scale-105" : ""
+              className={`relative transition-all hover:scale-105 ${
+                plan.popular 
+                  ? "border-primary shadow-xl ring-2 ring-primary/20" 
+                  : "hover:border-primary/50"
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
-                    Best Value
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <span className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-6 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                    ⭐ Most Popular
                   </span>
                 </div>
               )}
@@ -121,14 +141,16 @@ const Subscribe = () => {
                 </ul>
 
                 <Button
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg"
                   size="lg"
-                  variant={plan.popular ? "default" : "outline"}
                   onClick={() => handleSubscribe(plan.priceId, plan.id)}
                   disabled={loading !== null}
                 >
-                  {loading === plan.id ? "Loading..." : "Start Free Trial"}
+                  {loading === plan.id ? "Processing..." : "Start 7-Day Free Trial"}
                 </Button>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  No credit card required • Cancel anytime
+                </p>
               </CardContent>
             </Card>
           ))}
