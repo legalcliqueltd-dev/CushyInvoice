@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { AddRecurringInvoiceDialog } from "@/components/AddRecurringInvoiceDialog";
-import { Loader2, Lock, Calendar, RefreshCw, Trash2, Pause, Play } from "lucide-react";
+import { Loader2, Lock, Calendar, RefreshCw, Trash2, Pause, Play, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -34,6 +34,7 @@ interface RecurringInvoice {
 export default function RecurringInvoices() {
   const [invoices, setInvoices] = useState<RecurringInvoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { limits } = usePlanLimits();
   const { toast } = useToast();
@@ -122,6 +123,30 @@ export default function RecurringInvoices() {
     }
   };
 
+  const handleGenerateInvoices = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-recurring-invoices");
+
+      if (error) throw error;
+
+      toast({
+        title: "Invoices Generated",
+        description: `Successfully processed ${data.processed} recurring invoice(s).`,
+      });
+
+      fetchRecurringInvoices();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate invoices",
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   if (!limits.isPremium) {
     return (
       <div className="min-h-screen p-8">
@@ -163,7 +188,21 @@ export default function RecurringInvoices() {
               Automate your regular billing with recurring invoices
             </p>
           </div>
-          <AddRecurringInvoiceDialog onInvoiceAdded={fetchRecurringInvoices} />
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleGenerateInvoices}
+              disabled={generating}
+            >
+              {generating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Zap className="mr-2 h-4 w-4" />
+              )}
+              Generate Now
+            </Button>
+            <AddRecurringInvoiceDialog onInvoiceAdded={fetchRecurringInvoices} />
+          </div>
         </div>
 
         {invoices.length === 0 ? (
