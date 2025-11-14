@@ -10,7 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 export const PlanLimitsBanner = () => {
   const [invoicesUsed, setInvoicesUsed] = useState(0);
   const [clientsUsed, setClientsUsed] = useState(0);
-  const { subscription } = useSubscription();
+  const { subscription, loading } = useSubscription();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,8 +37,8 @@ export const PlanLimitsBanner = () => {
     }
   };
 
-  // Show banner only for non-subscribed users
-  if (subscription.subscribed) return null;
+  // Don't show during loading or for subscribed users
+  if (loading || subscription.subscribed) return null;
 
   const invoiceLimit = 5;
   const clientLimit = 3;
