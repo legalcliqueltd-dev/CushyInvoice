@@ -3,16 +3,105 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const invoiceId = searchParams.get("invoice_id");
   const sessionId = searchParams.get("session_id");
+  const provider = searchParams.get("provider");
+  const reference = searchParams.get("reference");
+  const [verifying, setVerifying] = useState(provider === "paystack");
+  const [error, setError] = useState<string | null>(null);
 
   // Determine if this is a subscription or invoice payment
-  const isSubscription = sessionId && !invoiceId;
+  const isSubscription = (sessionId || reference) && !invoiceId;
+
+  useEffect(() => {
+    // Verify Paystack payment
+    if (provider === "paystack" && reference) {
+      const verifyPayment = async () => {
+        try {
+          const { data: { session: { user } } } = await supabase.auth.getSession();
+          if (!user) throw new Error("User not authenticated");
+
+          const { data, error } = await supabase.functions.invoke("verify-paystack-payment", {
+            body: { reference },
+          });
+
+          if (error) throw error;
+
+          if (!data?.verified) {
+            throw new Error("Payment verification failed");
+          }
+
+          toast({
+            title: "Payment Verified",
+            description: "Your subscription has been activated successfully!",
+          });
+
+          setVerifying(false);
+        } catch (err) {
+          console.error("Error verifying payment:", err);
+          const errorMsg = err instanceof Error ? err.message : "Failed to verify payment";
+          setError(errorMsg);
+          toast({
+            title: "Verification Failed",
+            description: errorMsg,
+            variant: "destructive",
+          });
+          setVerifying(false);
+        }
+      };
+
+      verifyPayment();
+    }
+  }, [provider, reference, toast]);
+
+  if (verifying) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto py-12">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center p-12 space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="text-lg font-semibold">Verifying your payment...</p>
+              <p className="text-sm text-muted-foreground">Please wait while we confirm your transaction</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto py-12">
+          <Card className="border-destructive/20">
+            <CardHeader>
+              <CardTitle className="text-destructive">Payment Verification Failed</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">{error}</p>
+              <div className="flex gap-3">
+                <Button onClick={() => navigate("/subscribe")} variant="outline">
+                  Try Again
+                </Button>
+                <Button onClick={() => navigate("/dashboard")}>
+                  Go to Dashboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -54,9 +143,10 @@ export default function PaymentSuccess() {
               </div>
             )}
             
-            {sessionId && (
+            {(sessionId || reference) && (
               <div className="text-xs text-muted-foreground bg-muted/30 rounded p-2">
-                <p>Transaction ID: {sessionId}</p>
+                <p>Transaction ID: {sessionId || reference}</p>
+                {provider && <p className="mt-1">Payment Method: {provider === "paystack" ? "Paystack" : "Stripe"}</p>}
               </div>
             )}
 
