@@ -214,6 +214,9 @@ const Index = () => {
               </a>
             </div>
             <p className="text-sm text-muted-foreground">
+              Support: <a href="mailto:support@cushyinvoice.com" className="hover:text-primary transition-colors">support@cushyinvoice.com</a>
+            </p>
+            <p className="text-sm text-muted-foreground">
               © 2025 CushyInvoice. All rights reserved.
             </p>
           </div>
