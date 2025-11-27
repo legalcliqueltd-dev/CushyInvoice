@@ -13,11 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build project
-        run: |
-          npm install
-          npm run build
-          cp .htaccess dist/.htaccess   # ensure .htaccess is deployed
+        run: npm run build
+
+      - name: Copy .htaccess to dist
+        run: cp .htaccess dist/.htaccess
 
       - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
