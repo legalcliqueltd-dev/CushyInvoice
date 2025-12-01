@@ -25,9 +25,9 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: figeuiotixafbnbwgvpi
+          VITE_SUPABASE_URL: "https://figeuiotixafbnbwgvpi.supabase.co"
+          VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZ2V1aW90aXhhZmJuYndndnBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MDI3ODAsImV4cCI6MjA3ODE3ODc4MH0.o9aaFWk3xo5_S6R1QEBgrpNZmNbLjz1G01Jtq4avnqU"
+          VITE_SUPABASE_PROJECT_ID: "figeuiotixafbnbwgvpi"
 
       - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
