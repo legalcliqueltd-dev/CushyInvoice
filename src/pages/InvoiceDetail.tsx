@@ -238,6 +238,125 @@ export default function InvoiceDetail() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    if (!invoice) return;
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice ${invoice.invoice_number}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; }
+          .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+          .logo { max-height: 60px; }
+          .company-name { font-size: 24px; font-weight: bold; color: #1a1a1a; }
+          .invoice-title { font-size: 32px; font-weight: bold; color: #1a1a1a; margin-bottom: 8px; }
+          .invoice-number { color: #666; font-size: 14px; }
+          .status { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+          .status-paid { background: #22c55e; color: white; }
+          .status-sent { background: #3b82f6; color: white; }
+          .status-draft { background: #9ca3af; color: white; }
+          .status-overdue { background: #ef4444; color: white; }
+          .section { margin-bottom: 30px; }
+          .section-title { font-size: 14px; font-weight: 600; color: #666; margin-bottom: 8px; text-transform: uppercase; }
+          .client-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+          .client-detail { color: #666; font-size: 14px; line-height: 1.5; }
+          .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+          .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+          .detail-label { color: #666; }
+          .detail-value { font-weight: 500; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #666; border-bottom: 2px solid #e5e7eb; }
+          td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+          .text-right { text-align: right; }
+          .totals { margin-left: auto; width: 300px; }
+          .total-row { display: flex; justify-content: space-between; padding: 8px 0; }
+          .total-row.final { border-top: 2px solid #333; font-size: 18px; font-weight: bold; margin-top: 8px; padding-top: 12px; }
+          .notes { background: #f8f9fa; padding: 16px; border-radius: 8px; margin-top: 30px; }
+          .notes-title { font-weight: 600; margin-bottom: 8px; }
+          .notes-content { color: #666; font-size: 14px; }
+          @media print { body { padding: 20px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            ${profile?.company_logo ? `<img src="${profile.company_logo}" alt="Company Logo" class="logo" />` : ''}
+            ${profile?.company_name ? `<div class="company-name">${profile.company_name}</div>` : ''}
+          </div>
+          <div style="text-align: right;">
+            <div class="invoice-title">INVOICE</div>
+            <div class="invoice-number">${invoice.invoice_number}</div>
+            <div class="status status-${invoice.status}">${invoice.status}</div>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="section">
+            <div class="section-title">Bill To</div>
+            <div class="client-name">${invoice.clients.name}</div>
+            <div class="client-detail">${invoice.clients.email}</div>
+            ${invoice.clients.phone ? `<div class="client-detail">${invoice.clients.phone}</div>` : ''}
+            ${invoice.clients.address ? `<div class="client-detail">${invoice.clients.address}</div>` : ''}
+            ${invoice.clients.city ? `<div class="client-detail">${invoice.clients.city}${invoice.clients.state ? `, ${invoice.clients.state}` : ''} ${invoice.clients.zip_code || ''}</div>` : ''}
+          </div>
+          <div class="section">
+            <div class="section-title">Invoice Details</div>
+            <div class="detail-row"><span class="detail-label">Invoice Number</span><span class="detail-value">${invoice.invoice_number}</span></div>
+            <div class="detail-row"><span class="detail-label">Issue Date</span><span class="detail-value">${format(new Date(invoice.issue_date), "PPP")}</span></div>
+            <div class="detail-row"><span class="detail-label">Due Date</span><span class="detail-value">${format(new Date(invoice.due_date), "PPP")}</span></div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="text-right">Quantity</th>
+              <th class="text-right">Unit Price</th>
+              <th class="text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${invoice.invoice_items.map(item => `
+              <tr>
+                <td>${item.description}</td>
+                <td class="text-right">${Number(item.quantity)}</td>
+                <td class="text-right">${getCurrencySymbol(invoice.currency)}${Number(item.unit_price).toFixed(2)}</td>
+                <td class="text-right">${getCurrencySymbol(invoice.currency)}${Number(item.amount).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="total-row"><span>Subtotal</span><span>${getCurrencySymbol(invoice.currency)}${Number(invoice.subtotal).toFixed(2)}</span></div>
+          <div class="total-row"><span>Tax (${Number(invoice.tax_rate)}%)</span><span>${getCurrencySymbol(invoice.currency)}${Number(invoice.tax_amount).toFixed(2)}</span></div>
+          <div class="total-row final"><span>Total</span><span>${getCurrencySymbol(invoice.currency)}${Number(invoice.total).toFixed(2)}</span></div>
+        </div>
+
+        ${invoice.notes ? `
+          <div class="notes">
+            <div class="notes-title">Notes</div>
+            <div class="notes-content">${invoice.notes}</div>
+          </div>
+        ` : ''}
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":
@@ -341,7 +460,7 @@ export default function InvoiceDetail() {
                 Generate Payment Link
               </Button>
             )}
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
