@@ -140,20 +140,25 @@ All colors MUST be HSL.
     --input: 214 32% 91%;
     --ring: 217 91% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 32% 91%;
-    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-accent: 217 91% 97%;
+    --sidebar-accent-foreground: 217 91% 50%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 217 91% 60%;
 
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
     --info: 199 89% 48%;
+    
+    /* Premium/Gold color */
+    --gold: 45 93% 47%;
+    --gold-foreground: 45 93% 20%;
+    --gold-light: 45 93% 90%;
   }
 
   .dark {
@@ -189,14 +194,19 @@ All colors MUST be HSL.
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 210 100% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 13% 18%;
-    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 210 100% 70%;
     --sidebar-border: 220 13% 20%;
     --sidebar-ring: 210 100% 60%;
 
     --success: 142 76% 40%;
     --warning: 38 92% 55%;
     --info: 199 89% 52%;
+    
+    /* Premium/Gold color - dark mode */
+    --gold: 45 93% 55%;
+    --gold-foreground: 45 93% 95%;
+    --gold-light: 45 60% 20%;
   }
 }
 
@@ -206,11 +216,37 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
+  /* Premium badge with gold styling */
+  .premium-badge {
+    @apply inline-flex items-center justify-center;
+  }
+  
+  .premium-badge svg {
+    @apply h-4 w-4 text-gold drop-shadow-sm;
+    filter: drop-shadow(0 1px 2px hsl(var(--gold) / 0.3));
+  }
+
+  /* Improved focus states */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:border-primary/20;
+  }
+
+  /* Smooth transitions */
+  .smooth-transition {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
   .gradient-button {
     @apply relative appearance-none cursor-pointer;
     background: radial-gradient(
@@ -305,5 +341,67 @@ All colors MUST be HSL.
     --border-angle: 210deg;
     --border-color-1: hsla(217, 91%, 90%, 0.2);
     --border-color-2: hsla(217, 91%, 90%, 0.75);
+  }
+
+  /* Auth page gradient background */
+  .auth-gradient {
+    background: linear-gradient(135deg, hsl(217, 91%, 55%) 0%, hsl(217, 91%, 40%) 50%, hsl(220, 70%, 25%) 100%);
+  }
+
+  /* Feature card styling */
+  .feature-card {
+    @apply p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20;
+  }
+}
+
+@layer utilities {
+  /* Text gradient utility */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+  
+  /* Gold text utility */
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+  
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+  
+  @keyframes scaleIn {
+    from { 
+      opacity: 0; 
+      transform: scale(0.95); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
   }
 }
