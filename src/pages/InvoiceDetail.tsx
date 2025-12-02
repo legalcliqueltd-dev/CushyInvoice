@@ -123,6 +123,23 @@ export default function InvoiceDetail() {
 
       if (profileData) {
         setProfile(profileData);
+      } else {
+        // Profile doesn't exist - create one for this user
+        const { error: createError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            email: user.email || "",
+            plan_type: 'trial',
+            is_premium: true,
+            trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          });
+        
+        if (!createError) {
+          setProfile({
+            email: user.email,
+          });
+        }
       }
     } catch (error: any) {
       if (import.meta.env.DEV) {
@@ -335,6 +352,11 @@ export default function InvoiceDetail() {
                     )}
                     {profile?.address && (
                       <p className="text-sm text-muted-foreground">{profile.address}</p>
+                    )}
+                    {(!profile?.company_name && !profile?.address) && (
+                      <p className="text-xs text-amber-600 mt-2">
+                        Update your company info when creating a new invoice
+                      </p>
                     )}
                   </div>
 

@@ -606,7 +606,6 @@ export default function InvoiceNew() {
                     value={companyInfo.company_name}
                     onChange={(e) => setCompanyInfo(prev => ({ ...prev, company_name: e.target.value }))}
                     placeholder="Your Company Name"
-                    onBlur={saveCompanyInfo}
                   />
                 </div>
                 <div className="space-y-2">
@@ -616,7 +615,6 @@ export default function InvoiceNew() {
                     value={companyInfo.email}
                     onChange={(e) => setCompanyInfo(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="company@example.com"
-                    onBlur={saveCompanyInfo}
                   />
                 </div>
                 <div className="space-y-2">
@@ -625,7 +623,6 @@ export default function InvoiceNew() {
                     value={companyInfo.phone}
                     onChange={(e) => setCompanyInfo(prev => ({ ...prev, phone: e.target.value }))}
                     placeholder="+1 234 567 890"
-                    onBlur={saveCompanyInfo}
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
@@ -634,8 +631,17 @@ export default function InvoiceNew() {
                     value={companyInfo.address}
                     onChange={(e) => setCompanyInfo(prev => ({ ...prev, address: e.target.value }))}
                     placeholder="123 Business St, City, Country"
-                    onBlur={saveCompanyInfo}
                   />
+                </div>
+                <div className="sm:col-span-2 flex justify-end">
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    size="sm"
+                    onClick={saveCompanyInfo}
+                  >
+                    Save Company Info
+                  </Button>
                 </div>
               </div>
             </div>
