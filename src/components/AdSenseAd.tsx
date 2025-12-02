@@ -8,6 +8,9 @@ interface AdSenseAdProps {
   className?: string;
 }
 
+// Replace with your actual Google AdSense publisher ID
+const ADSENSE_CLIENT_ID = import.meta.env.VITE_ADSENSE_CLIENT_ID || "";
+
 export const AdSenseAd = ({ 
   slot, 
   format = "auto", 
@@ -21,6 +24,11 @@ export const AdSenseAd = ({
   }, []);
 
   const checkIfShouldShowAd = async () => {
+    // Don't show ads if AdSense is not configured
+    if (!ADSENSE_CLIENT_ID) {
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -32,7 +40,7 @@ export const AdSenseAd = ({
         .from('profiles')
         .select('is_premium, plan_type')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       // Only show ads to free users (not premium and not on trial)
       if (!profile?.is_premium && profile?.plan_type !== 'trial') {
@@ -44,7 +52,7 @@ export const AdSenseAd = ({
   };
 
   useEffect(() => {
-    if (showAd && window.adsbygoogle) {
+    if (showAd && ADSENSE_CLIENT_ID && window.adsbygoogle) {
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch (error) {
@@ -53,14 +61,14 @@ export const AdSenseAd = ({
     }
   }, [showAd]);
 
-  if (!showAd) return null;
+  if (!showAd || !ADSENSE_CLIENT_ID) return null;
 
   return (
     <div className={className}>
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
-        data-ad-client="ca-pub-XXXXXXXXXX" // Replace with your AdSense client ID
+        data-ad-client={ADSENSE_CLIENT_ID}
         data-ad-slot={slot}
         data-ad-format={format}
         data-full-width-responsive={responsive ? "true" : "false"}
