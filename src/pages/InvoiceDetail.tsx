@@ -18,13 +18,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
   Download,
-  Edit,
   Trash2,
-  DollarSign,
   ArrowLeft,
-  Calendar,
   Building2,
   FileText,
+  DollarSign,
 } from "lucide-react";
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
@@ -85,7 +83,6 @@ export default function InvoiceDetail() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState("USD");
-  const [paymentLoading, setPaymentLoading] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
@@ -161,28 +158,6 @@ export default function InvoiceDetail() {
     }
   };
 
-  const handlePayNow = async () => {
-    setPaymentLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { invoiceId: id },
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      console.error('Error creating checkout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create payment session. Please try again.",
-        variant: "destructive",
-      });
-      setPaymentLoading(false);
-    }
-  };
 
   const handleDownloadPdf = async () => {
     if (!invoice) return;
@@ -542,7 +517,7 @@ export default function InvoiceDetail() {
               </Card>
             )}
 
-            {/* Pay Now */}
+            {/* Record Payment */}
             {invoice.status !== "paid" && amountDue > 0 && (
               <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                 <CardContent className="pt-6">
@@ -553,29 +528,10 @@ export default function InvoiceDetail() {
                         {getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <Button 
-                        className="w-full" 
-                        onClick={handlePayNow} 
-                        disabled={paymentLoading}
-                      >
-                        {paymentLoading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <DollarSign className="h-4 w-4 mr-2" />
-                            Pay Now
-                          </>
-                        )}
-                      </Button>
-                      <Button variant="outline" className="w-full">
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Record Payment
-                      </Button>
-                    </div>
+                    <Button variant="outline" className="w-full">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Record Payment
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
