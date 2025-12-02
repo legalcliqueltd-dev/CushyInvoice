@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { AuthLayout } from "@/components/AuthLayout";
-import { Loader2 } from "lucide-react";
+import { Loader2, Chrome } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -195,6 +196,44 @@ export default function Auth() {
         <Button type="submit" className="w-full" disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isLogin ? "Sign In" : "Create Account"}
+        </Button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          disabled={loading}
+          onClick={async () => {
+            setLoading(true);
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: {
+                redirectTo: `${window.location.origin}/auth`,
+              },
+            });
+            if (error) {
+              toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+              });
+              setLoading(false);
+            }
+          }}
+        >
+          <Chrome className="mr-2 h-4 w-4" />
+          Google
         </Button>
 
         <div className="text-center text-sm">
