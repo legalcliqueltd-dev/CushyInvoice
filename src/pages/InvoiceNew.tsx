@@ -28,11 +28,12 @@ import {
 } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, CalendarIcon, Loader2 } from "lucide-react";
+import { Plus, Trash2, CalendarIcon, Loader2, Building2, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
+import { LogoUploadDialog } from "@/components/LogoUploadDialog";
 
 interface Client {
   id: string;
@@ -64,6 +65,14 @@ interface LineItem {
   quantity: number;
   unit_price: number;
   amount: number;
+}
+
+interface CompanyInfo {
+  company_name: string;
+  company_logo: string | null;
+  email: string;
+  phone: string;
+  address: string;
 }
 
 const clientSchema = z.object({
@@ -99,6 +108,17 @@ export default function InvoiceNew() {
   const [newClientDialog, setNewClientDialog] = useState(false);
   const [newClientData, setNewClientData] = useState({ name: "", email: "", phone: "", address: "" });
   
+  // Company info state
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    company_name: "",
+    company_logo: null,
+    email: "",
+    phone: "",
+    address: "",
+  });
+  const [logoUploadDialog, setLogoUploadDialog] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -116,7 +136,7 @@ export default function InvoiceNew() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("default_tax_rate, default_currency")
+        .select("default_tax_rate, default_currency, company_name, company_logo, email, phone, address")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -125,11 +145,109 @@ export default function InvoiceNew() {
       if (data) {
         setTaxRate(Number(data.default_tax_rate) || 0);
         setCurrency(data.default_currency || "USD");
+        setCompanyInfo({
+          company_name: data.company_name || "",
+          company_logo: data.company_logo || null,
+          email: data.email || "",
+          phone: data.phone || "",
+          address: data.address || "",
+        });
       }
     } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error("Error fetching profile defaults:", error);
       }
+    }
+  };
+
+  const handleLogoUpload = async (blob: Blob) => {
+    setUploadingLogo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const fileName = `${user.id}/logo-${Date.now()}.png`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("company-logos")
+        .upload(fileName, blob, { 
+          contentType: "image/png",
+          upsert: true 
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("company-logos")
+        .getPublicUrl(fileName);
+
+      const logoUrl = urlData.publicUrl;
+
+      // Update profile with new logo URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ company_logo: logoUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      setCompanyInfo(prev => ({ ...prev, company_logo: logoUrl }));
+      toast({ title: "Logo uploaded successfully" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload logo",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from("profiles")
+        .update({ company_logo: null })
+        .eq("id", user.id);
+
+      setCompanyInfo(prev => ({ ...prev, company_logo: null }));
+      toast({ title: "Logo removed" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to remove logo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveCompanyInfo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          company_name: companyInfo.company_name,
+          email: companyInfo.email,
+          phone: companyInfo.phone,
+          address: companyInfo.address,
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+      toast({ title: "Company info saved" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to save company info",
+        variant: "destructive",
+      });
     }
   };
 
@@ -415,6 +533,105 @@ export default function InvoiceNew() {
           <h1 className="text-3xl font-bold tracking-tight">Create Invoice</h1>
           <p className="text-muted-foreground">Fill in the details below</p>
         </div>
+
+        {/* Company Info - appears on invoice PDF */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Your Company Info
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">This information will appear on your invoice</p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-6">
+              {/* Logo Section */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative w-24 h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center overflow-hidden bg-muted/30">
+                  {companyInfo.company_logo ? (
+                    <>
+                      <img
+                        src={companyInfo.company_logo}
+                        alt="Company Logo"
+                        className="w-full h-full object-contain"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={handleRemoveLogo}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </>
+                  ) : (
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLogoUploadDialog(true)}
+                  disabled={uploadingLogo}
+                >
+                  {uploadingLogo ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  {companyInfo.company_logo ? "Change Logo" : "Upload Logo"}
+                </Button>
+              </div>
+
+              {/* Company Details */}
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Company Name</Label>
+                  <Input
+                    value={companyInfo.company_name}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, company_name: e.target.value }))}
+                    placeholder="Your Company Name"
+                    onBlur={saveCompanyInfo}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={companyInfo.email}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="company@example.com"
+                    onBlur={saveCompanyInfo}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input
+                    value={companyInfo.phone}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+1 234 567 890"
+                    onBlur={saveCompanyInfo}
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Address</Label>
+                  <Input
+                    value={companyInfo.address}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="123 Business St, City, Country"
+                    onBlur={saveCompanyInfo}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <LogoUploadDialog
+          open={logoUploadDialog}
+          onOpenChange={setLogoUploadDialog}
+          onUpload={handleLogoUpload}
+        />
 
         <Card>
           <CardHeader>
