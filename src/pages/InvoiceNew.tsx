@@ -465,6 +465,21 @@ export default function InvoiceNew() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Auto-save company info to profile before creating invoice
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          company_name: companyInfo.company_name,
+          email: companyInfo.email,
+          phone: companyInfo.phone,
+          address: companyInfo.address,
+        })
+        .eq("id", user.id);
+
+      if (profileError) {
+        console.error("Error saving company info:", profileError);
+      }
+
       const invoiceNumber = await generateInvoiceNumber();
 
       // Create invoice
