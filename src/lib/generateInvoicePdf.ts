@@ -1,7 +1,15 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 import { format } from 'date-fns';
 import { getCurrencySymbol } from './currencies';
+
+// Extend jsPDF type for autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+    lastAutoTable: { finalY: number };
+  }
+}
 
 interface InvoiceItem {
   description: string;
@@ -171,7 +179,7 @@ export async function generateInvoicePdf(
     `${getCurrencySymbol(invoice.currency)}${Number(item.amount).toFixed(2)}`
   ]);
 
-  autoTable(doc, {
+  doc.autoTable({
     startY: yPos,
     head: [['Description', 'Qty', 'Unit Price', 'Amount']],
     body: tableData,
@@ -198,7 +206,7 @@ export async function generateInvoicePdf(
   });
 
   // Get final Y position after table
-  const finalY = (doc as any).lastAutoTable.finalY + 10;
+  const finalY = doc.lastAutoTable.finalY + 10;
 
   // Summary section (right aligned)
   const summaryX = pageWidth - margin - 80;

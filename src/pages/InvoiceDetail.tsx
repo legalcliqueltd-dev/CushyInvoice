@@ -185,10 +185,10 @@ export default function InvoiceDetail() {
   };
 
   const handleDownloadPdf = async () => {
-    if (!invoice || !profile) return;
+    if (!invoice) return;
     setDownloadingPdf(true);
     try {
-      const blob = await generateInvoicePdf(invoice, profile);
+      const blob = await generateInvoicePdf(invoice, profile || {});
       downloadPdf(blob, `Invoice-${invoice.invoice_number}.pdf`);
       toast({
         title: "PDF Downloaded",
@@ -286,9 +286,7 @@ export default function InvoiceDetail() {
               )}
               Download
             </Button>
-            {invoice && profile && (
-              <ShareInvoiceDialog invoice={invoice} company={profile} />
-            )}
+            <ShareInvoiceDialog invoice={invoice} company={profile || {}} />
             <AddPaymentReminderDialog invoiceId={id!} onReminderAdded={fetchInvoice} />
             <Button variant="ghost" size="icon" onClick={handleDelete}>
               <Trash2 className="h-4 w-4 text-destructive" />
