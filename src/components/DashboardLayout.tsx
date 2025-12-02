@@ -15,19 +15,15 @@ import {
   Plus,
   BarChart3,
   Settings,
-  Mail,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
-import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const { t } = useTranslation();
   const [session, setSession] = useState<Session | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -67,16 +63,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   const navItems = [
-    { to: "/dashboard", icon: LayoutDashboard, label: t('dashboard') },
-    { to: "/clients", icon: Users, label: t('clients') },
-    { to: "/products", icon: Package, label: t('products') },
-    { to: "/invoices", icon: FileText, label: t('invoices') },
-    { to: "/recurring", icon: FileText, label: t('recurring'), premium: true },
-    { to: "/expenses", icon: BarChart3, label: t('expenses'), premium: true },
-    { to: "/templates", icon: Package, label: t('templates'), premium: true },
-    { to: "/email-notifications", icon: Mail, label: t('emails') },
-    { to: "/reports", icon: BarChart3, label: t('reports') },
-    { to: "/settings", icon: Settings, label: t('settings') },
+    { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/clients", icon: Users, label: "Clients" },
+    { to: "/products", icon: Package, label: "Products" },
+    { to: "/invoices", icon: FileText, label: "Invoices" },
+    { to: "/recurring", icon: FileText, label: "Recurring", premium: true },
+    { to: "/expenses", icon: BarChart3, label: "Expenses", premium: true },
+    { to: "/templates", icon: Package, label: "Templates", premium: true },
+    { to: "/reports", icon: BarChart3, label: "Reports" },
+    { to: "/settings", icon: Settings, label: "Settings" },
   ];
 
   if (loading) {
@@ -107,7 +102,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <div className="p-6 border-b border-sidebar-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Receipt className="h-6 w-6 text-sidebar-primary" />
-              <span className="text-xl font-bold">{t('app_name')}</span>
+              <span className="text-xl font-bold">InvoiceEase</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -130,7 +125,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <span>{item.label}</span>
                 {item.premium && (
                   <span className="ml-auto text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                    {t('premium')}
+                    Premium
                   </span>
                 )}
               </NavLink>
@@ -139,7 +134,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
           <div className="p-4 border-t border-sidebar-border">
             <div className="mb-3 px-4 py-2 bg-sidebar-accent rounded-lg">
-              <p className="text-xs text-muted-foreground">{t('profile')}</p>
+              <p className="text-xs text-muted-foreground">Logged in as</p>
               <p className="text-sm font-medium truncate">
                 {session?.user?.email}
               </p>
@@ -150,7 +145,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              {t('logout')}
+              Logout
             </Button>
           </div>
         </div>
@@ -170,16 +165,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             <div className="flex-1 lg:flex-none"></div>
 
-            <div className="flex items-center gap-3">
-              <LanguageSwitcher />
-              <Button
-                onClick={() => navigate("/invoices/new")}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('create_invoice')}</span>
-              </Button>
-            </div>
+            <Button
+              onClick={() => navigate("/invoices/new")}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Invoice</span>
+            </Button>
           </div>
         </header>
 

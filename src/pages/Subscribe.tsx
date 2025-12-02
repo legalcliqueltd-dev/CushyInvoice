@@ -12,10 +12,8 @@ const PLANS = [
     name: "Monthly Plan",
     description: "7-day free trial, then $2.99/month",
     price: "$2.99",
-    localPrice: "₦1,500",
     period: "/month",
     priceId: "price_1SSKe7RWxKms6a9XPEoka2SG",
-    paystackAmount: 1500,
     features: [
       "7-day free trial",
       "Unlimited invoices",
@@ -31,10 +29,8 @@ const PLANS = [
     name: "Yearly Plan",
     description: "7-day free trial, then $23.88/year (Save 33%)",
     price: "$23.88",
-    localPrice: "₦12,000",
     period: "/year",
     priceId: "price_1SSKeIRWxKms6a9XncKq0Ixm",
-    paystackAmount: 12000,
     features: [
       "7-day free trial",
       "All Monthly features",
@@ -50,39 +46,21 @@ const PLANS = [
 
 const Subscribe = () => {
   const [loading, setLoading] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paystack">("stripe");
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubscribe = async (priceId: string, planId: string, paystackAmount: number) => {
+  const handleSubscribe = async (priceId: string, planId: string) => {
     try {
       setLoading(planId);
 
-      if (paymentMethod === "stripe") {
-        const { data, error } = await supabase.functions.invoke("create-subscription-session", {
-          body: { priceId },
-        });
+      const { data, error } = await supabase.functions.invoke("create-subscription-session", {
+        body: { priceId },
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data?.url) {
-          window.open(data.url, "_blank");
-        }
-      } else {
-        // Paystack payment
-        const { data, error } = await supabase.functions.invoke("create-paystack-payment", {
-          body: { 
-            planId,
-            amount: paystackAmount,
-            currency: "NGN"
-          },
-        });
-
-        if (error) throw error;
-
-        if (data?.url) {
-          window.open(data.url, "_blank");
-        }
+      if (data?.url) {
+        window.open(data.url, "_blank");
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
@@ -120,32 +98,8 @@ const Subscribe = () => {
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-success" />
-              <span>Secure payments via Stripe & Paystack</span>
+              <span>Secure payments via Stripe</span>
             </div>
-          </div>
-          
-          {/* Payment Method Selection */}
-          <div className="flex justify-center gap-4 pt-4">
-            <button
-              onClick={() => setPaymentMethod("stripe")}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                paymentMethod === "stripe"
-                  ? "bg-primary text-primary-foreground shadow-lg"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              Pay with Stripe (USD)
-            </button>
-            <button
-              onClick={() => setPaymentMethod("paystack")}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                paymentMethod === "paystack"
-                  ? "bg-primary text-primary-foreground shadow-lg"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              Pay with Paystack (NGN)
-            </button>
           </div>
         </div>
 
@@ -171,9 +125,7 @@ const Subscribe = () => {
                 <CardTitle className="text-2xl">{plan.name}</CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
                 <div className="mt-4">
-                  <span className="text-5xl font-bold">
-                    {paymentMethod === "stripe" ? plan.price : plan.localPrice}
-                  </span>
+                  <span className="text-5xl font-bold">{plan.price}</span>
                   <span className="text-muted-foreground">{plan.period}</span>
                 </div>
               </CardHeader>
@@ -191,7 +143,7 @@ const Subscribe = () => {
                 <Button
                   className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg"
                   size="lg"
-                  onClick={() => handleSubscribe(plan.priceId, plan.id, plan.paystackAmount)}
+                  onClick={() => handleSubscribe(plan.priceId, plan.id)}
                   disabled={loading !== null}
                 >
                   {loading === plan.id ? "Processing..." : "Start 7-Day Free Trial"}

@@ -19,10 +19,7 @@ import Settings from "./pages/Settings";
 import RecurringInvoices from "./pages/RecurringInvoices";
 import Expenses from "./pages/Expenses";
 import Templates from "./pages/Templates";
-import EmailNotifications from "./pages/EmailNotifications";
 import NotFound from "./pages/NotFound";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -36,8 +33,6 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfService />} />
           <Route path="/subscribe" element={<Subscribe />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-failed" element={<PaymentFailed />} />
@@ -52,7 +47,6 @@ const App = () => (
           <Route path="/recurring" element={<ProtectedRoute><RecurringInvoices /></ProtectedRoute>} />
           <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
           <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
-          <Route path="/email-notifications" element={<ProtectedRoute><EmailNotifications /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           

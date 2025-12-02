@@ -62,26 +62,7 @@ export const useSubscription = () => {
     try {
       const { data, error } = await supabase.functions.invoke("customer-portal");
       
-      // Check for the special NO_CUSTOMER error
-      if (error && error.message?.includes("404")) {
-        toast({
-          title: "No Active Subscription",
-          description: "You need to subscribe first before managing your subscription",
-          variant: "destructive",
-        });
-        return;
-      }
-      
       if (error) throw error;
-      
-      if (data?.error === "NO_CUSTOMER") {
-        toast({
-          title: "No Active Subscription",
-          description: data.message || "You need to subscribe first",
-          variant: "destructive",
-        });
-        return;
-      }
       
       if (data?.url) {
         window.open(data.url, "_blank");
@@ -100,7 +81,7 @@ export const useSubscription = () => {
 
   const startCheckout = useCallback(async (priceId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
+      const { data, error } = await supabase.functions.invoke("create-subscription-session", {
         body: { priceId },
       });
 

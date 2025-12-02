@@ -1,4 +1,4 @@
-name: Deploy to Hostinger
+name: Deploy Website
 
 on:
   push:
@@ -6,35 +6,25 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
+        uses: actions/checkout@v3
 
       - name: Build project
-        run: npm run build
-        env:
-          VITE_SUPABASE_URL: "https://figeuiotixafbnbwgvpi.supabase.co"
-          VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZ2V1aW90aXhhZmJuYndndnBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MDI3ODAsImV4cCI6MjA3ODE3ODc4MH0.o9aaFWk3xo5_S6R1QEBgrpNZmNbLjz1G01Jtq4avnqU"
-          VITE_SUPABASE_PROJECT_ID: "figeuiotixafbnbwgvpi"
+        run: |
+          npm install
+          npm run build
+          cp .htaccess dist/.htaccess   # ensure .htaccess is deployed
 
       - name: Deploy to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
           local-dir: ./dist/
-          server-dir: public_html/
-          dangerous-clean-slate: true
+          server-dir: /public_html/

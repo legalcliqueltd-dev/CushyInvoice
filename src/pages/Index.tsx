@@ -214,14 +214,6 @@ const Index = () => {
               </a>
             </div>
             <p className="text-sm text-muted-foreground">
-              Support: <a href="mailto:support@cushyinvoice.com" className="hover:text-primary transition-colors">support@cushyinvoice.com</a>
-            </p>
-            <div className="flex gap-4 justify-center text-sm text-muted-foreground">
-              <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
-              <span>•</span>
-              <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
-            </div>
-            <p className="text-sm text-muted-foreground">
               © 2025 CushyInvoice. All rights reserved.
             </p>
           </div>

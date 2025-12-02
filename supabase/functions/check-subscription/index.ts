@@ -105,23 +105,8 @@ serve(async (req) => {
     if (subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
       status = subscription.status;
-      
-      // Safely convert timestamps with validation
-      try {
-        if (subscription.current_period_end && !isNaN(subscription.current_period_end)) {
-          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-        }
-      } catch (e) {
-        logStep("Error converting subscription end date", { error: e });
-      }
-      
-      try {
-        if (subscription.trial_end && !isNaN(subscription.trial_end)) {
-          trialEnd = new Date(subscription.trial_end * 1000).toISOString();
-        }
-      } catch (e) {
-        logStep("Error converting trial end date", { error: e });
-      }
+      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
       
       const priceId = subscription.items.data[0].price.id;
       

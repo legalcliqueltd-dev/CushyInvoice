@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Crown, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSubscription } from "@/hooks/useSubscription";
 
 export const PlanLimitsBanner = () => {
+  const [isPremium, setIsPremium] = useState(true);
   const [invoicesUsed, setInvoicesUsed] = useState(0);
   const [clientsUsed, setClientsUsed] = useState(0);
-  const { subscription, loading } = useSubscription();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,12 +23,14 @@ export const PlanLimitsBanner = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('invoices_this_month, clients_count')
+        .select('plan_type, is_premium, invoices_this_month, clients_count')
         .eq('id', user.id)
         .single();
 
       if (!profile) return;
 
+      const premium = profile.is_premium || profile.plan_type === 'premium';
+      setIsPremium(premium);
       setInvoicesUsed(profile.invoices_this_month || 0);
       setClientsUsed(profile.clients_count || 0);
     } catch (error) {
@@ -37,8 +38,7 @@ export const PlanLimitsBanner = () => {
     }
   };
 
-  // Don't show during loading or for subscribed users
-  if (loading || subscription.subscribed) return null;
+  if (isPremium) return null;
 
   const invoiceLimit = 5;
   const clientLimit = 3;

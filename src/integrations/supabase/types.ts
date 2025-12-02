@@ -59,50 +59,6 @@ export type Database = {
         }
         Relationships: []
       }
-      email_logs: {
-        Row: {
-          body: string
-          created_at: string | null
-          email_type: string
-          id: string
-          invoice_id: string | null
-          recipient_email: string
-          sent_manually: boolean | null
-          subject: string
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string | null
-          email_type: string
-          id?: string
-          invoice_id?: string | null
-          recipient_email: string
-          sent_manually?: boolean | null
-          subject: string
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string | null
-          email_type?: string
-          id?: string
-          invoice_id?: string | null
-          recipient_email?: string
-          sent_manually?: boolean | null
-          subject?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_logs_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       expenses: {
         Row: {
           amount: number
@@ -245,10 +201,8 @@ export type Database = {
           invoice_number: string
           issue_date: string
           notes: string | null
-          payment_link: string | null
           pdf_url: string | null
           status: string
-          stripe_session_id: string | null
           subtotal: number
           tax_amount: number | null
           tax_rate: number | null
@@ -266,10 +220,8 @@ export type Database = {
           invoice_number: string
           issue_date?: string
           notes?: string | null
-          payment_link?: string | null
           pdf_url?: string | null
           status?: string
-          stripe_session_id?: string | null
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
@@ -287,10 +239,8 @@ export type Database = {
           invoice_number?: string
           issue_date?: string
           notes?: string | null
-          payment_link?: string | null
           pdf_url?: string | null
           status?: string
-          stripe_session_id?: string | null
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
@@ -441,10 +391,8 @@ export type Database = {
           invoices_this_month: number | null
           is_premium: boolean | null
           last_reset_date: string | null
-          paystack_customer_code: string | null
           phone: string | null
           plan_type: Database["public"]["Enums"]["plan_type"] | null
-          preferred_language: string | null
           stripe_customer_id: string | null
           subscription_expiry: string | null
           subscription_status: string | null
@@ -466,10 +414,8 @@ export type Database = {
           invoices_this_month?: number | null
           is_premium?: boolean | null
           last_reset_date?: string | null
-          paystack_customer_code?: string | null
           phone?: string | null
           plan_type?: Database["public"]["Enums"]["plan_type"] | null
-          preferred_language?: string | null
           stripe_customer_id?: string | null
           subscription_expiry?: string | null
           subscription_status?: string | null
@@ -491,10 +437,8 @@ export type Database = {
           invoices_this_month?: number | null
           is_premium?: boolean | null
           last_reset_date?: string | null
-          paystack_customer_code?: string | null
           phone?: string | null
           plan_type?: Database["public"]["Enums"]["plan_type"] | null
-          preferred_language?: string | null
           stripe_customer_id?: string | null
           subscription_expiry?: string | null
           subscription_status?: string | null

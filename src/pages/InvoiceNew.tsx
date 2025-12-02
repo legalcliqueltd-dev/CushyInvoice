@@ -33,7 +33,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
-import { useTranslation } from "react-i18next";
 
 interface Client {
   id: string;
@@ -75,7 +74,6 @@ const clientSchema = z.object({
 });
 
 export default function InvoiceNew() {
-  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -205,7 +203,7 @@ export default function InvoiceNew() {
       const validation = clientSchema.safeParse(newClientData);
       if (!validation.success) {
         toast({
-          title: t('validation_error'),
+          title: "Validation Error",
           description: validation.error.errors[0].message,
           variant: "destructive",
         });
@@ -229,14 +227,14 @@ export default function InvoiceNew() {
 
       if (error) throw error;
 
-      toast({ title: t('client_added_successfully') });
+      toast({ title: "Client added successfully" });
       setClients([...clients, { id: data.id, name: data.name, email: data.email }]);
       setSelectedClientId(data.id);
       setNewClientDialog(false);
       setNewClientData({ name: "", email: "", phone: "", address: "" });
     } catch (error: any) {
       toast({
-        title: t('error'),
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -259,8 +257,8 @@ export default function InvoiceNew() {
   const removeLineItem = (id: string) => {
     if (lineItems.length === 1) {
       toast({
-        title: t('warning'),
-        description: t('invoice_min_one_item'),
+        title: "Warning",
+        description: "Invoice must have at least one line item",
         variant: "destructive",
       });
       return;
@@ -304,7 +302,7 @@ export default function InvoiceNew() {
 
   const generateInvoiceNumber = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error(t('not_authenticated'));
+    if (!user) throw new Error("Not authenticated");
 
     // Get the latest invoice number for this user
     const { data, error } = await supabase
@@ -401,8 +399,8 @@ export default function InvoiceNew() {
         console.error("Error saving invoice:", error);
       }
       toast({
-        title: t('error'),
-        description: error.message || t('failed_save_invoice'),
+        title: "Error",
+        description: error.message || "Failed to save invoice",
         variant: "destructive",
       });
     } finally {
@@ -414,22 +412,22 @@ export default function InvoiceNew() {
     <DashboardLayout>
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('create_invoice')}</h1>
-          <p className="text-muted-foreground">{t('fill_details_below')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Create Invoice</h1>
+          <p className="text-muted-foreground">Fill in the details below</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('invoice_details')}</CardTitle>
+            <CardTitle>Invoice Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Client Selection */}
             <div className="space-y-2">
-              <Label>{t('client')} *</Label>
+              <Label>Client *</Label>
               <div className="flex gap-2">
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder={t('select_client')} />
+                    <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
@@ -447,11 +445,11 @@ export default function InvoiceNew() {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>{t('add_new_client')}</DialogTitle>
+                      <DialogTitle>Add New Client</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>{t('name')} *</Label>
+                        <Label>Name *</Label>
                         <Input
                           value={newClientData.name}
                           onChange={(e) =>
@@ -460,7 +458,7 @@ export default function InvoiceNew() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t('email')} *</Label>
+                        <Label>Email *</Label>
                         <Input
                           type="email"
                           value={newClientData.email}
@@ -470,7 +468,7 @@ export default function InvoiceNew() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t('phone')}</Label>
+                        <Label>Phone</Label>
                         <Input
                           value={newClientData.phone}
                           onChange={(e) =>
@@ -479,7 +477,7 @@ export default function InvoiceNew() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t('address')}</Label>
+                        <Label>Address</Label>
                         <Input
                           value={newClientData.address}
                           onChange={(e) =>
@@ -489,9 +487,9 @@ export default function InvoiceNew() {
                       </div>
                       <div className="flex gap-2 justify-end">
                         <Button variant="outline" onClick={() => setNewClientDialog(false)}>
-                          {t('cancel')}
+                          Cancel
                         </Button>
-                        <Button onClick={handleAddClient}>{t('add_client')}</Button>
+                        <Button onClick={handleAddClient}>Add Client</Button>
                       </div>
                     </div>
                   </DialogContent>
@@ -501,10 +499,10 @@ export default function InvoiceNew() {
 
             {/* Currency Selection */}
             <div className="space-y-2">
-              <Label>{t('currency')} *</Label>
+              <Label>Currency *</Label>
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('currency')} />
+                  <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
                   <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Global</div>
@@ -525,16 +523,16 @@ export default function InvoiceNew() {
 
             {templates.length > 0 && (
               <div className="space-y-2">
-                <Label>{t('template')} (Optional)</Label>
+                <Label>Template (Optional)</Label>
                 <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('select_template')} />
+                    <SelectValue placeholder="Select a template" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('none')}</SelectItem>
+                    <SelectItem value="">None</SelectItem>
                     {templates.map((template) => (
                       <SelectItem key={template.id} value={template.id}>
-                        {template.template_name} {template.is_default && `(${t('default')})`}
+                        {template.template_name} {template.is_default && "(Default)"}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -545,7 +543,7 @@ export default function InvoiceNew() {
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t('issue_date')} *</Label>
+                <Label>Issue Date *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -556,7 +554,7 @@ export default function InvoiceNew() {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {issueDate ? format(issueDate, "PPP") : <span>{t('pick_date')}</span>}
+                      {issueDate ? format(issueDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -572,7 +570,7 @@ export default function InvoiceNew() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t('due_date')} *</Label>
+                <Label>Due Date *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -583,7 +581,7 @@ export default function InvoiceNew() {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dueDate ? format(dueDate, "PPP") : <span>{t('pick_date')}</span>}
+                      {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -604,13 +602,13 @@ export default function InvoiceNew() {
         {/* Line Items */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('invoice_items')}</CardTitle>
+            <CardTitle>Line Items</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {lineItems.map((item, index) => (
               <div key={item.id} className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{t('item')} {index + 1}</span>
+                  <span className="font-medium">Item {index + 1}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -622,13 +620,13 @@ export default function InvoiceNew() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t('select_product')} (Optional)</Label>
+                    <Label>Product (Optional)</Label>
                     <Select
                       value={item.product_id || ""}
                       onValueChange={(value) => selectProduct(item.id, value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={t('select_product')} />
+                        <SelectValue placeholder="Select a product" />
                       </SelectTrigger>
                       <SelectContent>
                         {products.map((product) => (
@@ -641,20 +639,20 @@ export default function InvoiceNew() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t('description')} *</Label>
+                    <Label>Description *</Label>
                     <Input
                       value={item.description}
                       onChange={(e) =>
                         updateLineItem(item.id, "description", e.target.value)
                       }
-                      placeholder={t('description')}
+                      placeholder="Description of item"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>{t('quantity')} *</Label>
+                    <Label>Quantity *</Label>
                     <Input
                       type="number"
                       min="0.01"
@@ -667,7 +665,7 @@ export default function InvoiceNew() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t('unit_price')} *</Label>
+                    <Label>Unit Price *</Label>
                     <Input
                       type="number"
                       min="0"
@@ -680,7 +678,7 @@ export default function InvoiceNew() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t('amount')}</Label>
+                    <Label>Amount</Label>
                     <Input
                       value={`${getCurrencySymbol(currency)}${item.amount.toFixed(2)}`}
                       disabled
@@ -693,7 +691,7 @@ export default function InvoiceNew() {
 
             <Button variant="outline" onClick={addLineItem} className="w-full">
               <Plus className="mr-2 h-4 w-4" />
-              {t('add_item')}
+              Add Line Item
             </Button>
           </CardContent>
         </Card>
@@ -701,11 +699,11 @@ export default function InvoiceNew() {
         {/* Totals */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('total')}</CardTitle>
+            <CardTitle>Totals</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('tax_rate')} (%)</Label>
+              <Label>Tax Rate (%)</Label>
               <Input
                 type="number"
                 min="0"
@@ -718,21 +716,21 @@ export default function InvoiceNew() {
 
             <div className="space-y-2 pt-4 border-t">
               <div className="flex justify-between">
-                <span>{t('subtotal')}:</span>
+                <span>Subtotal:</span>
                 <span className="font-medium">{getCurrencySymbol(currency)}{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('tax')} ({taxRate}%):</span>
+                <span>Tax ({taxRate}%):</span>
                 <span className="font-medium">{getCurrencySymbol(currency)}{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold">
-                <span>{t('total')}:</span>
+                <span>Total:</span>
                 <span>{getCurrencySymbol(currency)}{total.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="space-y-2 pt-4 border-t">
-              <Label>{t('notes')} (Optional)</Label>
+              <Label>Notes (Optional)</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -746,15 +744,15 @@ export default function InvoiceNew() {
         {/* Actions */}
         <div className="flex gap-4 justify-end">
           <Button variant="outline" onClick={() => navigate("/invoices")} disabled={loading}>
-            {t('cancel')}
+            Cancel
           </Button>
           <Button variant="outline" onClick={() => handleSave("draft")} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t('save_as_draft')}
+            Save as Draft
           </Button>
           <Button onClick={() => handleSave("sent")} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t('save_and_send')}
+            Save & Send
           </Button>
         </div>
       </div>

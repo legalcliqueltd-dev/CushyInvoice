@@ -10,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Loader2, Crown, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSubscription } from "@/hooks/useSubscription";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useTranslation } from "react-i18next";
 
 interface ProfileData {
   company_name: string;
@@ -33,7 +31,6 @@ interface SubscriptionData {
 }
 
 export default function Settings() {
-  const { t } = useTranslation();
   const [profile, setProfile] = useState<ProfileData>({
     company_name: "",
     full_name: "",
@@ -718,14 +715,6 @@ export default function Settings() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Enter 3-letter currency code (e.g., USD, EUR, GBP)
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="language">{t('language')}</Label>
-                  <LanguageSwitcher />
-                  <p className="text-xs text-muted-foreground">
-                    Select your preferred language for the interface
                   </p>
                 </div>
 
