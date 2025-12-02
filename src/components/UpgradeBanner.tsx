@@ -23,7 +23,7 @@ export const UpgradeBanner = () => {
         .from('profiles')
         .select('is_premium, plan_type')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (!profile?.is_premium && profile?.plan_type !== 'trial') {
         setShowBanner(true);

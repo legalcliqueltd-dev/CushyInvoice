@@ -19,7 +19,7 @@ export const TrialBanner = () => {
         .from('profiles')
         .select('plan_type, trial_end_date')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (!profile) return;
 
