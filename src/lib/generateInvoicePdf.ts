@@ -43,26 +43,54 @@ interface CompanyData {
   phone?: string;
 }
 
-// Helper function to load image as base64
+// Helper function to load image as base64 using Image element (better CORS handling)
 async function loadImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl);
+          } else {
+            resolve(null);
+          }
+        } catch (e) {
+          console.error('Canvas error:', e);
+          resolve(null);
+        }
+      };
+      
+      img.onerror = () => {
+        console.error('Failed to load image:', url);
+        resolve(null);
+      };
+      
+      // Add timestamp to bypass cache and force fresh CORS request
+      const separator = url.includes('?') ? '&' : '?';
+      img.src = `${url}${separator}t=${Date.now()}`;
+    } catch (e) {
+      console.error('Image loading error:', e);
+      resolve(null);
+    }
+  });
 }
 
 export async function generateInvoicePdf(
   invoice: InvoiceData,
   company: CompanyData
 ): Promise<Blob> {
+  // Debug: Log company data received
+  console.log('PDF Generation - Company data received:', JSON.stringify(company, null, 2));
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
@@ -81,22 +109,32 @@ export async function generateInvoicePdf(
   let logoXOffset = margin;
   if (company.company_logo) {
     try {
+      console.log('Loading logo from:', company.company_logo);
       const logoBase64 = await loadImageAsBase64(company.company_logo);
       if (logoBase64) {
+        console.log('Logo loaded successfully');
+        // Detect image format from base64
+        const imageFormat = logoBase64.includes('image/png') ? 'PNG' : 'JPEG';
         // Add logo to the left side of header
-        doc.addImage(logoBase64, 'PNG', margin, 8, 30, 30);
+        doc.addImage(logoBase64, imageFormat, margin, 8, 30, 30);
         logoXOffset = margin + 38; // Offset text to the right of logo
+      } else {
+        console.log('Logo failed to load - logoBase64 is null');
       }
     } catch (error) {
       console.error('Error loading logo:', error);
     }
+  } else {
+    console.log('No company logo URL provided');
   }
 
   // Company name or "INVOICE" header
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text(company.company_name || 'INVOICE', logoXOffset, 28);
+  const headerText = company.company_name || 'INVOICE';
+  console.log('PDF Header text:', headerText);
+  doc.text(headerText, logoXOffset, 28);
 
   // Invoice number on the right
   doc.setFontSize(12);
