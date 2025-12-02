@@ -4,6 +4,7 @@ import "react-image-crop/dist/ReactCrop.css";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -287,6 +288,9 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
           <DialogTitle>
             {step === "select" ? "Upload Company Logo" : "Edit Logo"}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {step === "select" ? "Select an image to upload as your company logo" : "Crop or edit your logo image"}
+          </DialogDescription>
         </DialogHeader>
 
         {step === "select" && (

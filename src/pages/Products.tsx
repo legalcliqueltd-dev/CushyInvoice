@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -209,6 +210,9 @@ export default function Products() {
                 <DialogTitle>
                   {editingProduct ? "Edit Product" : "Add New Product"}
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                  {editingProduct ? "Update product details" : "Add a new product or service"}
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
