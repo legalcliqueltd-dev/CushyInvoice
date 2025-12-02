@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +73,9 @@ export const AddPaymentReminderDialog = ({ invoiceId, onReminderAdded }: AddPaym
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Schedule Payment Reminder</DialogTitle>
+          <DialogDescription className="sr-only">
+            Set up a payment reminder for this invoice
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

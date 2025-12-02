@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -219,6 +220,9 @@ export default function Clients() {
                 <DialogTitle>
                   {editingClient ? "Edit Client" : "Add New Client"}
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                  {editingClient ? "Update client information" : "Add a new client to your list"}
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
