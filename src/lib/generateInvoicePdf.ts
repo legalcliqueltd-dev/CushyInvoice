@@ -43,6 +43,22 @@ interface CompanyData {
   phone?: string;
 }
 
+// Helper function to load image as base64
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function generateInvoicePdf(
   invoice: InvoiceData,
   company: CompanyData
@@ -61,11 +77,26 @@ export async function generateInvoicePdf(
   doc.setFillColor(...primaryColor);
   doc.rect(0, 0, pageWidth, 45, 'F');
 
+  // Add company logo if available
+  let logoXOffset = margin;
+  if (company.company_logo) {
+    try {
+      const logoBase64 = await loadImageAsBase64(company.company_logo);
+      if (logoBase64) {
+        // Add logo to the left side of header
+        doc.addImage(logoBase64, 'PNG', margin, 8, 30, 30);
+        logoXOffset = margin + 38; // Offset text to the right of logo
+      }
+    } catch (error) {
+      console.error('Error loading logo:', error);
+    }
+  }
+
   // Company name or "INVOICE" header
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
+  doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text(company.company_name || 'INVOICE', margin, 30);
+  doc.text(company.company_name || 'INVOICE', logoXOffset, 28);
 
   // Invoice number on the right
   doc.setFontSize(12);
