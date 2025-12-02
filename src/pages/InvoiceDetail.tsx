@@ -18,18 +18,20 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
   Download,
-  Mail,
   Edit,
   Trash2,
   DollarSign,
   ArrowLeft,
-  Share2,
-  CreditCard,
+  Calendar,
+  Building2,
+  FileText,
 } from "lucide-react";
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddPaymentReminderDialog } from "@/components/AddPaymentReminderDialog";
+import { ShareInvoiceDialog } from "@/components/ShareInvoiceDialog";
+import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
 
 interface InvoiceData {
   id: string;
@@ -70,6 +72,9 @@ interface InvoiceData {
 interface ProfileData {
   company_name?: string;
   company_logo?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
 }
 
 export default function InvoiceDetail() {
@@ -79,9 +84,9 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generatingPayment, setGeneratingPayment] = useState(false);
   const [displayCurrency, setDisplayCurrency] = useState("USD");
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -112,10 +117,10 @@ export default function InvoiceDetail() {
       setInvoice(data);
       setDisplayCurrency(data?.currency || "USD");
 
-      // Fetch profile for company logo
+      // Fetch profile for company info
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("company_name, company_logo")
+        .select("company_name, company_logo, address, email, phone")
         .eq("id", user.id)
         .single();
 
@@ -179,77 +184,40 @@ export default function InvoiceDetail() {
     }
   };
 
-  const handleSendEmail = async () => {
-    if (!invoice) return;
-
+  const handleDownloadPdf = async () => {
+    if (!invoice || !profile) return;
+    setDownloadingPdf(true);
     try {
-      const { data, error } = await supabase.functions.invoke("send-invoice-email", {
-        body: {
-          invoice_id: invoice.id,
-          client_email: invoice.clients.email,
-          client_name: invoice.clients.name,
-          invoice_number: invoice.invoice_number,
-          total: invoice.total,
-          currency: invoice.currency,
-        },
-      });
-
-      if (error) throw error;
-
+      const blob = await generateInvoicePdf(invoice, profile);
+      downloadPdf(blob, `Invoice-${invoice.invoice_number}.pdf`);
       toast({
-        title: "Email Sent",
-        description: "Invoice notification has been sent to the client.",
+        title: "PDF Downloaded",
+        description: "Invoice PDF has been downloaded successfully.",
       });
-    } catch (error: any) {
-      console.error("Error sending email:", error);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
       toast({
         title: "Error",
-        description: "Failed to send email notification.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleGeneratePaymentLink = async () => {
-    setGeneratingPayment(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-invoice-payment", {
-        body: { invoiceId: id },
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, "_blank");
-        toast({
-          title: "Payment Link Generated",
-          description: "Opening Stripe checkout in a new tab...",
-        });
-      }
-    } catch (error: any) {
-      console.error("Error generating payment link:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate payment link",
+        description: "Failed to generate PDF.",
         variant: "destructive",
       });
     } finally {
-      setGeneratingPayment(false);
+      setDownloadingPdf(false);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":
-        return "bg-success text-white";
+        return "bg-emerald-500/10 text-emerald-600 border-emerald-200";
       case "sent":
-        return "bg-info text-white";
+        return "bg-blue-500/10 text-blue-600 border-blue-200";
       case "overdue":
-        return "bg-destructive text-white";
+        return "bg-red-500/10 text-red-600 border-red-200";
       case "draft":
-        return "bg-muted text-muted-foreground";
+        return "bg-muted text-muted-foreground border-border";
       default:
-        return "bg-muted text-muted-foreground";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
@@ -263,7 +231,7 @@ export default function InvoiceDetail() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </DashboardLayout>
     );
@@ -273,6 +241,7 @@ export default function InvoiceDetail() {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
+          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">Invoice not found</p>
         </div>
       </DashboardLayout>
@@ -281,323 +250,340 @@ export default function InvoiceDetail() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Company Logo */}
-        {profile?.company_logo && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <img
-                  src={profile.company_logo}
-                  alt={profile.company_name || "Company Logo"}
-                  className="h-16 w-auto object-contain"
-                />
-                {profile.company_name && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">From</p>
-                    <p className="font-semibold text-lg">{profile.company_name}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/invoices")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+            <Button variant="ghost" size="icon" onClick={() => navigate("/invoices")}>
+              <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
                   {invoice.invoice_number}
                 </h1>
-                <Badge className={getStatusColor(invoice.status)}>
-                  {invoice.status}
+                <Badge variant="outline" className={getStatusColor(invoice.status)}>
+                  {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                 </Badge>
               </div>
-              <p className="text-muted-foreground">
-                Issued: {format(new Date(invoice.issue_date), "PPP")}
+              <p className="text-sm text-muted-foreground mt-1">
+                Created {format(new Date(invoice.issue_date), "MMM d, yyyy")}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            {invoice.status !== "paid" && (
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={handleGeneratePaymentLink}
-                disabled={generatingPayment}
-              >
-                {generatingPayment ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CreditCard className="h-4 w-4 mr-2" />
-                )}
-                Generate Payment Link
-              </Button>
-            )}
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleSendEmail}>
-              <Mail className="h-4 w-4 mr-2" />
-              Send Email
-            </Button>
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => {
-                const text = `Invoice ${invoice.invoice_number} from ${profile?.company_name || 'Company'}\n\nAmount Due: ${getCurrencySymbol(invoice.currency)}${invoice.total.toFixed(2)}\nDue Date: ${format(new Date(invoice.due_date), 'PPP')}\n\nView details: ${window.location.href}`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                window.open(whatsappUrl, '_blank');
-              }}
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
             >
-              <Share2 className="h-4 w-4 mr-2" />
-              Share via WhatsApp
+              {downloadingPdf ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              Download
             </Button>
+            {invoice && profile && (
+              <ShareInvoiceDialog invoice={invoice} company={profile} />
+            )}
             <AddPaymentReminderDialog invoiceId={id!} onReminderAdded={fetchInvoice} />
-            <Button variant="ghost" size="sm" onClick={handleDelete}>
-              <Trash2 className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={handleDelete}>
+              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           </div>
         </div>
 
-        {/* Currency Selector */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">Display Currency:</span>
-              <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">Global</div>
-                  {currencies.filter(c => c.region === 'global').map((curr) => (
-                    <SelectItem key={curr.code} value={curr.code}>
-                      {curr.code} - {curr.symbol}
-                    </SelectItem>
-                  ))}
-                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground mt-2">African</div>
-                  {currencies.filter(c => c.region === 'africa').map((curr) => (
-                    <SelectItem key={curr.code} value={curr.code}>
-                      {curr.code} - {curr.symbol}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Invoice Details */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Bill To</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="font-semibold">{invoice.clients.name}</p>
-              <p className="text-sm text-muted-foreground">{invoice.clients.email}</p>
-              {invoice.clients.phone && (
-                <p className="text-sm text-muted-foreground">{invoice.clients.phone}</p>
-              )}
-              {invoice.clients.address && (
-                <div className="text-sm text-muted-foreground">
-                  <p>{invoice.clients.address}</p>
-                  {invoice.clients.city && (
-                    <p>
-                      {invoice.clients.city}
-                      {invoice.clients.state && `, ${invoice.clients.state}`}{" "}
-                      {invoice.clients.zip_code}
-                    </p>
-                  )}
-                </div>
-              )}
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardContent className="pt-4 pb-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary mt-1">
+                {getCurrencySymbol(invoice.currency)}{Number(invoice.total).toFixed(2)}
+              </p>
             </CardContent>
           </Card>
-
           <Card>
-            <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Invoice Number:</span>
-                <span className="font-medium">{invoice.invoice_number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Issue Date:</span>
-                <span className="font-medium">
-                  {format(new Date(invoice.issue_date), "PPP")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Due Date:</span>
-                <span className="font-medium">
-                  {format(new Date(invoice.due_date), "PPP")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <Badge className={getStatusColor(invoice.status)}>
-                  {invoice.status}
-                </Badge>
-              </div>
+            <CardContent className="pt-4 pb-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Paid</p>
+              <p className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">
+                {getCurrencySymbol(invoice.currency)}{totalPaid.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due</p>
+              <p className="text-xl sm:text-2xl font-bold text-amber-600 mt-1">
+                {getCurrencySymbol(invoice.currency)}{amountDue.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
+              <p className="text-lg sm:text-xl font-semibold mt-1">
+                {format(new Date(invoice.due_date), "MMM d")}
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Line Items */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoice.invoice_items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.description}</TableCell>
-                    <TableCell className="text-right">{Number(item.quantity)}</TableCell>
-                    <TableCell className="text-right">
-                      {getCurrencySymbol(displayCurrency)}{Number(item.unit_price).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {getCurrencySymbol(displayCurrency)}{Number(item.amount).toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            <Separator className="my-4" />
-
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span className="font-medium">{getCurrencySymbol(displayCurrency)}{Number(invoice.subtotal).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax ({Number(invoice.tax_rate)}%):</span>
-                <span className="font-medium">{getCurrencySymbol(displayCurrency)}{Number(invoice.tax_amount).toFixed(2)}</span>
-              </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total:</span>
-                <span>{getCurrencySymbol(displayCurrency)}{Number(invoice.total).toFixed(2)}</span>
-              </div>
-              {totalPaid > 0 && (
-                <>
-                  <div className="flex justify-between text-success">
-                    <span>Total Paid:</span>
-                    <span>-{getCurrencySymbol(displayCurrency)}{totalPaid.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Amount Due:</span>
-                    <span>{getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Notes */}
-        {invoice.notes && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {invoice.notes}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Payments */}
-        {invoice.payments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoice.payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>
-                        {format(new Date(payment.payment_date), "PPP")}
-                      </TableCell>
-                      <TableCell>{payment.payment_method || "N/A"}</TableCell>
-                      <TableCell className="text-right">
-                        {getCurrencySymbol(displayCurrency)}{Number(payment.amount).toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Pay Now / Record Payment */}
-        {invoice.status !== "paid" && amountDue > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Options</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Amount Due: {getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}
-                </p>
-                <div className="flex gap-3">
-                  <Button onClick={handlePayNow} disabled={paymentLoading}>
-                    {paymentLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Pay Now
-                      </>
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Left Column - Invoice Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* From/To Section */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {/* From */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">From</span>
+                    </div>
+                    {profile?.company_logo && (
+                      <img
+                        src={profile.company_logo}
+                        alt={profile.company_name || "Company Logo"}
+                        className="h-10 w-auto object-contain mb-2"
+                      />
                     )}
-                  </Button>
-                  <Button variant="outline">
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Record Payment Manually
-                  </Button>
+                    <p className="font-semibold">{profile?.company_name || "Your Company"}</p>
+                    {profile?.email && (
+                      <p className="text-sm text-muted-foreground">{profile.email}</p>
+                    )}
+                    {profile?.phone && (
+                      <p className="text-sm text-muted-foreground">{profile.phone}</p>
+                    )}
+                    {profile?.address && (
+                      <p className="text-sm text-muted-foreground">{profile.address}</p>
+                    )}
+                  </div>
+
+                  {/* To */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Bill To</span>
+                    </div>
+                    <p className="font-semibold">{invoice.clients.name}</p>
+                    <p className="text-sm text-muted-foreground">{invoice.clients.email}</p>
+                    {invoice.clients.phone && (
+                      <p className="text-sm text-muted-foreground">{invoice.clients.phone}</p>
+                    )}
+                    {invoice.clients.address && (
+                      <div className="text-sm text-muted-foreground">
+                        <p>{invoice.clients.address}</p>
+                        {invoice.clients.city && (
+                          <p>
+                            {invoice.clients.city}
+                            {invoice.clients.state && `, ${invoice.clients.state}`}{" "}
+                            {invoice.clients.zip_code}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+
+            {/* Line Items */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Items</CardTitle>
+                  <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
+                    <SelectTrigger className="w-[120px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Global</div>
+                      {currencies.filter(c => c.region === 'global').map((curr) => (
+                        <SelectItem key={curr.code} value={curr.code} className="text-xs">
+                          {curr.code} - {curr.symbol}
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">African</div>
+                      {currencies.filter(c => c.region === 'africa').map((curr) => (
+                        <SelectItem key={curr.code} value={curr.code} className="text-xs">
+                          {curr.code} - {curr.symbol}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">Description</TableHead>
+                        <TableHead className="text-right font-semibold w-20">Qty</TableHead>
+                        <TableHead className="text-right font-semibold w-28">Price</TableHead>
+                        <TableHead className="text-right font-semibold w-28">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invoice.invoice_items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.description}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">{Number(item.quantity)}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {getCurrencySymbol(displayCurrency)}{Number(item.unit_price).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {getCurrencySymbol(displayCurrency)}{Number(item.amount).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{getCurrencySymbol(displayCurrency)}{Number(invoice.subtotal).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground">Tax ({Number(invoice.tax_rate)}%)</span>
+                    <span>{getCurrencySymbol(displayCurrency)}{Number(invoice.tax_amount).toFixed(2)}</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between py-1 text-base font-bold">
+                    <span>Total</span>
+                    <span className="text-primary">{getCurrencySymbol(displayCurrency)}{Number(invoice.total).toFixed(2)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notes */}
+            {invoice.notes && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {invoice.notes}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Right Column - Sidebar */}
+          <div className="space-y-6">
+            {/* Invoice Details */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Invoice #</span>
+                  <span className="text-sm font-medium">{invoice.invoice_number}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Issue Date</span>
+                  <span className="text-sm font-medium">
+                    {format(new Date(invoice.issue_date), "MMM d, yyyy")}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Due Date</span>
+                  <span className="text-sm font-medium">
+                    {format(new Date(invoice.due_date), "MMM d, yyyy")}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <Badge variant="outline" className={getStatusColor(invoice.status)}>
+                    {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment History */}
+            {invoice.payments.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Payments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {invoice.payments.map((payment) => (
+                      <div key={payment.id} className="flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-medium">
+                            {getCurrencySymbol(displayCurrency)}{Number(payment.amount).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(payment.payment_date), "MMM d, yyyy")}
+                          </p>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {payment.payment_method || "N/A"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pay Now */}
+            {invoice.status !== "paid" && amountDue > 0 && (
+              <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Amount Due</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full" 
+                        onClick={handlePayNow} 
+                        disabled={paymentLoading}
+                      >
+                        {paymentLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            Pay Now
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="outline" className="w-full">
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Record Payment
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

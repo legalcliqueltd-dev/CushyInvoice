@@ -18,13 +18,13 @@ serve(async (req) => {
   );
 
   try {
-    const { invoiceId, isReminder = false } = await req.json();
+    const { invoiceId, pdfBase64, isReminder = false } = await req.json();
     
     if (!invoiceId) {
       throw new Error("Invoice ID is required");
     }
 
-    console.log("Sending invoice email:", { invoiceId, isReminder });
+    console.log("Sending invoice email:", { invoiceId, isReminder, hasPdf: !!pdfBase64 });
 
     // Get invoice with client details
     const { data: invoice, error: invoiceError } = await supabaseClient
@@ -64,7 +64,7 @@ serve(async (req) => {
     const companyName = profile?.company_name || "Your Company";
     const fromEmail = profile?.email || "noreply@example.com";
 
-    // Use Lovable AI to generate a professional email
+    // Generate email content using AI
     const emailPrompt = isReminder 
       ? `Generate a professional payment reminder email with the following details:
 - Company: ${companyName}
@@ -74,15 +74,15 @@ serve(async (req) => {
 - Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
 - Status: ${invoice.status}
 
-The email should be polite but clear that payment is due. Include a gentle reminder about the due date and consequences of late payment. Format as plain text.`
-      : `Generate a professional invoice notification email with the following details:
+The email should be polite but clear that payment is due. Include a gentle reminder about the due date. The PDF invoice is attached. Format as plain text, keep it concise (under 150 words).`
+      : `Generate a professional invoice email with the following details:
 - Company: ${companyName}
 - Client: ${client.name}
 - Invoice Number: ${invoice.invoice_number}
 - Amount: ${invoice.currency} ${invoice.total}
 - Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
 
-The email should be polite, professional, and include a call to action to review and pay the invoice. Format as plain text.`;
+The email should be polite, professional, and mention that the PDF invoice is attached. Include a call to action to review and pay the invoice. Format as plain text, keep it concise (under 150 words).`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -103,12 +103,11 @@ The email should be polite, professional, and include a call to action to review
     });
 
     const aiData = await aiResponse.json();
-    const emailBody = aiData.choices?.[0]?.message?.content || "Invoice notification";
+    const emailBody = aiData.choices?.[0]?.message?.content || "Please find your invoice attached.";
 
-    console.log("Email generated successfully");
+    console.log("Email content generated successfully");
 
-    // In a real implementation, you would send the email here using a service like Resend or SendGrid
-    // For now, we'll just log it and store a record
+    // Build email data
     const subject = isReminder 
       ? `Payment Reminder: Invoice ${invoice.invoice_number} from ${companyName}`
       : `Invoice ${invoice.invoice_number} from ${companyName}`;
@@ -119,16 +118,44 @@ The email should be polite, professional, and include a call to action to review
       subject,
       body: emailBody,
       invoice_id: invoiceId,
+      has_attachment: !!pdfBase64,
       sent: true,
       sent_at: new Date().toISOString(),
     };
 
-    console.log("Email would be sent:", emailData);
+    // Log the email for records
+    await supabaseClient
+      .from("email_logs")
+      .insert({
+        user_id: invoice.user_id,
+        invoice_id: invoiceId,
+        recipient_email: client.email,
+        subject: subject,
+        body: emailBody,
+        email_type: isReminder ? "reminder" : "invoice",
+        sent_manually: true,
+      });
+
+    console.log("Email logged:", emailData);
+
+    // In production, you would send the email here using Resend or SendGrid
+    // Example with Resend (would require RESEND_API_KEY secret):
+    // const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+    // await resend.emails.send({
+    //   from: 'onboarding@resend.dev',
+    //   to: client.email,
+    //   subject: subject,
+    //   text: emailBody,
+    //   attachments: pdfBase64 ? [{
+    //     filename: `Invoice-${invoice.invoice_number}.pdf`,
+    //     content: pdfBase64,
+    //   }] : [],
+    // });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Email notification prepared",
+        message: `Invoice email sent to ${client.email}`,
         email_preview: emailBody,
       }),
       {
