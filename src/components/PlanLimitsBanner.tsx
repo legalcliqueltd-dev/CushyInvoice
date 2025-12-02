@@ -25,7 +25,7 @@ export const PlanLimitsBanner = () => {
         .from('profiles')
         .select('plan_type, is_premium, invoices_this_month, clients_count')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile) return;
 

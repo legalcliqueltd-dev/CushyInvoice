@@ -118,7 +118,7 @@ export default function InvoiceNew() {
         .from("profiles")
         .select("default_tax_rate, default_currency")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

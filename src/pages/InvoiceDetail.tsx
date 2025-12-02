@@ -122,7 +122,7 @@ export default function InvoiceDetail() {
         .from("profiles")
         .select("company_name, company_logo, address, email, phone")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profileData) {
         setProfile(profileData);

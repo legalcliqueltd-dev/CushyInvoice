@@ -43,7 +43,7 @@ export const usePlanLimits = () => {
         .from('profiles')
         .select('plan_type, is_premium, trial_end_date, invoices_this_month, clients_count')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile) return;
 
