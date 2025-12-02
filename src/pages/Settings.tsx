@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2, Crown, RefreshCw } from "lucide-react";
+import { Upload, Loader2, Crown, RefreshCw, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSubscription } from "@/hooks/useSubscription";
+import { LogoUploadDialog } from "@/components/LogoUploadDialog";
 
 interface ProfileData {
   company_name: string;
@@ -47,6 +48,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [logoDialogOpen, setLogoDialogOpen] = useState(false);
   const { 
     subscription, 
     loading: subscriptionLoading, 
@@ -137,30 +139,7 @@ export default function Settings() {
     }
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Error",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "Error",
-        description: "File size must be less than 2MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleLogoUpload = async (blob: Blob) => {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -177,13 +156,12 @@ export default function Settings() {
       }
 
       // Upload new logo
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}.png`;
       const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("company-logos")
-        .upload(filePath, file);
+        .upload(filePath, blob, { contentType: "image/png" });
 
       if (uploadError) throw uploadError;
 
@@ -216,6 +194,41 @@ export default function Settings() {
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      if (profile.company_logo) {
+        const oldPath = profile.company_logo.split("/").pop();
+        if (oldPath) {
+          await supabase.storage
+            .from("company-logos")
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ company_logo: null })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setProfile({ ...profile, company_logo: "" });
+      toast({
+        title: "Success",
+        description: "Logo removed",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove logo",
+        variant: "destructive",
+      });
     }
   };
 
@@ -493,41 +506,42 @@ export default function Settings() {
                       <img
                         src={profile.company_logo}
                         alt="Company logo"
-                        className="h-16 w-16 object-contain border rounded"
+                        className="h-16 w-16 object-contain border rounded bg-white"
                       />
                     )}
-                    <div>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        disabled={uploading}
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <label htmlFor="logo-upload">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
                         <Button
                           type="button"
                           variant="outline"
-                          disabled={uploading}
-                          asChild
+                          onClick={() => setLogoDialogOpen(true)}
                         >
-                          <span>
-                            {uploading ? (
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            ) : (
-                              <Upload className="h-4 w-4 mr-2" />
-                            )}
-                            {uploading ? "Uploading..." : "Upload Logo"}
-                          </span>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {profile.company_logo ? "Change Logo" : "Upload Logo"}
                         </Button>
-                      </label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Max 2MB, PNG or JPG
+                        {profile.company_logo && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={handleRemoveLogo}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        PNG or JPG. Supports cropping &amp; background removal.
                       </p>
                     </div>
                   </div>
                 </div>
+
+                <LogoUploadDialog
+                  open={logoDialogOpen}
+                  onOpenChange={setLogoDialogOpen}
+                  onUpload={handleLogoUpload}
+                />
 
                 <Button onClick={handleProfileUpdate} disabled={saving}>
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
