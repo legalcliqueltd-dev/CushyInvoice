@@ -29,18 +29,60 @@ export default function Auth() {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        // Ensure profile exists for OAuth users
+        ensureProfileExists(session.user.id, session.user.email || "");
         navigate("/dashboard");
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
+        // Create profile for new OAuth users
+        if (event === 'SIGNED_IN') {
+          setTimeout(() => {
+            ensureProfileExists(session.user.id, session.user.email || "", session.user.user_metadata?.full_name);
+          }, 0);
+        }
         navigate("/dashboard");
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const ensureProfileExists = async (userId: string, email: string, fullName?: string) => {
+    try {
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        // Create profile with 7-day trial for new users
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 7);
+        
+        await supabase.from("profiles").insert({
+          id: userId,
+          email: email,
+          full_name: fullName || null,
+          plan_type: 'trial',
+          is_premium: true,
+          trial_end_date: trialEndDate.toISOString(),
+        });
+        
+        if (import.meta.env.DEV) {
+          console.log("Profile created for OAuth user:", userId);
+        }
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Error ensuring profile exists:", error);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

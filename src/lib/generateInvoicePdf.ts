@@ -43,8 +43,25 @@ interface CompanyData {
   phone?: string;
 }
 
-// Helper function to load image as base64 using Image element (better CORS handling)
+// Helper function to load image as base64 using fetch (better for Supabase Storage)
 async function loadImageAsBase64(url: string): Promise<string | null> {
+  // First try fetch method (works better with Supabase Storage CORS)
+  try {
+    const response = await fetch(url, { mode: 'cors' });
+    if (response.ok) {
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch (fetchError) {
+    console.log('Fetch method failed, trying Image element:', fetchError);
+  }
+  
+  // Fallback to Image element method
   return new Promise((resolve) => {
     try {
       const img = new Image();
