@@ -213,6 +213,14 @@ const Index = () => {
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
+            <div className="flex items-center gap-4 text-sm">
+              <a
+                href="/privacy"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                Privacy Policy
+              </a>
+            </div>
             <p className="text-sm text-muted-foreground">
               © 2025 CushyInvoice. All rights reserved.
             </p>
