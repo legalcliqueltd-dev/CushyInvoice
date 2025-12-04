@@ -220,6 +220,13 @@ const Index = () => {
               >
                 Privacy Policy
               </a>
+              <span className="text-muted-foreground">•</span>
+              <a
+                href="/terms"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                Terms of Service
+              </a>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2025 CushyInvoice. All rights reserved.
