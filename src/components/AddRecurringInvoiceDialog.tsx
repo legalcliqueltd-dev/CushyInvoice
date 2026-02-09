@@ -134,7 +134,7 @@ export const AddRecurringInvoiceDialog = ({ onInvoiceAdded }: AddRecurringInvoic
           Create Recurring Invoice
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] neo-card-subtle">
         <DialogHeader>
           <DialogTitle>Create Recurring Invoice</DialogTitle>
           <DialogDescription className="sr-only">
