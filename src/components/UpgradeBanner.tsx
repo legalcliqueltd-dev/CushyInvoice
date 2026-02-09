@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Crown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Crown, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 export const UpgradeBanner = () => {
   const [dismissed, setDismissed] = useState(false);
