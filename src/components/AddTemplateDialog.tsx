@@ -89,7 +89,7 @@ export const AddTemplateDialog = ({ onTemplateAdded }: AddTemplateDialogProps) =
           Create Template
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] neo-card-subtle">
         <DialogHeader>
           <DialogTitle>Create Custom Template</DialogTitle>
           <DialogDescription className="sr-only">
