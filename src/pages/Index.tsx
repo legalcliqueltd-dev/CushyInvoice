@@ -122,13 +122,13 @@ const Index = () => {
           </svg>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
-            <GradientButton onClick={() => navigate("/auth")} className="text-lg px-10 py-5">
+            <GradientButton onClick={() => navigate("/auth")} className="text-lg px-10 py-5 w-full sm:w-auto">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </GradientButton>
             <button
               onClick={() => window.open("https://wa.me/2348129797793", "_blank")}
-              className="neo-brutal-btn rounded-xl px-8 py-4 text-base font-bold bg-emerald-400 text-foreground inline-flex items-center justify-center gap-2"
+              className="neo-brutal-btn rounded-xl px-8 py-4 text-base font-bold bg-emerald-400 text-foreground inline-flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px]"
             >
               <MessageCircle className="w-5 h-5" />
               WhatsApp Support
