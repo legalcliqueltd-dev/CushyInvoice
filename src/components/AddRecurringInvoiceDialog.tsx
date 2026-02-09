@@ -217,7 +217,7 @@ export const AddRecurringInvoiceDialog = ({ onInvoiceAdded }: AddRecurringInvoic
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="neo-btn-subtle">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create
             </Button>

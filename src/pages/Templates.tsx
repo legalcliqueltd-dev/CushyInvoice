@@ -155,9 +155,7 @@ export default function Templates() {
                 <p className="text-sm text-muted-foreground mb-6 max-w-sm">
                   Create branded templates to make your invoices stand out and look professional
                 </p>
-                <SubscriptionGuard message="Custom templates require a Premium plan.">
-                  <AddTemplateDialog onTemplateAdded={fetchTemplates} />
-                </SubscriptionGuard>
+                <AddTemplateDialog onTemplateAdded={fetchTemplates} />
               </div>
             </Card>
           )}

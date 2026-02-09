@@ -142,7 +142,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               >
                 <item.icon className="h-[18px] w-[18px] transition-transform group-hover:scale-110" />
                 <span className="flex-1 text-sm">{item.label}</span>
-                {item.premium && (
+                {item.premium && !sub.subscribed && (
                   <span className="premium-badge" title="Premium Feature">
                     <Crown className="h-4 w-4" />
                   </span>

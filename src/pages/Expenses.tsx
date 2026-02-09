@@ -99,29 +99,6 @@ export default function Expenses() {
     }
   };
 
-  if (!limits.isPremium) {
-    return (
-      <DashboardLayout>
-        <div className="max-w-4xl mx-auto">
-          <Card className="p-12 text-center neo-card-subtle">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-primary/10">
-                <Lock className="h-12 w-12 text-primary" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Premium Feature</h1>
-            <p className="text-muted-foreground mb-8 text-lg">
-              Expense tracking is available on the Premium plan. Keep tabs on your business spending.
-            </p>
-            <Button size="lg" onClick={() => navigate("/subscribe")} className="neo-btn-subtle">
-              Upgrade to Premium
-            </Button>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   if (loading) {
     return (
       <DashboardLayout>

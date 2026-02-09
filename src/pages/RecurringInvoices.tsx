@@ -249,7 +249,6 @@ export default function RecurringInvoices() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
-      </SubscriptionGuard>
     </DashboardLayout>
   );
 }

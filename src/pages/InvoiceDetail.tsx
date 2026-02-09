@@ -278,7 +278,6 @@ export default function InvoiceDetail() {
               Download
             </Button>
             <ShareInvoiceDialog invoice={invoice} company={profile || {}} />
-            <AddPaymentReminderDialog invoiceId={id!} onReminderAdded={fetchInvoice} />
             <Button variant="ghost" size="icon" onClick={handleDelete}>
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>

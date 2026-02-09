@@ -134,7 +134,9 @@ Deno.serve(async (req) => {
         .update({
           subscription_status: 'canceled',
           current_plan: null,
-          subscription_expiry: null
+          subscription_expiry: null,
+          is_premium: false,
+          plan_type: 'free',
         })
         .eq('id', user.id);
 

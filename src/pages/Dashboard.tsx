@@ -315,12 +315,13 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        {/* AdSense Footer Ad */}
-        <AdSenseAd 
-          slot="0987654321" 
-          format="rectangle"
-          className="my-4"
-        />
+        {!subscription.subscribed && (
+          <AdSenseAd 
+            slot="0987654321" 
+            format="rectangle"
+            className="my-4"
+          />
+        )}
       </div>
     </DashboardLayout>
   );
