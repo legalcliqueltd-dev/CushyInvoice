@@ -1,71 +1,101 @@
 
+# Landing Page UI Overhaul -- Gen Z + Neobrutalism
 
-# Plan: Fix Templates, Add Cancel Subscription, and Set Up Native Mobile Apps
+## Overview
+Transform the landing page from a standard corporate SaaS look into an energetic, Gen Z-friendly design with neobrutalism accents, animated gradients, background noise texture, and boosted blue saturation.
 
-## 1. Fix Templates Page Not Loading
+## What Changes
 
-The Templates page is wrapped in a `SubscriptionGuard` component that blocks the entire page if the user isn't subscribed. Even for subscribed users, the subscription check may be failing or slow, causing the page to appear stuck on a loading spinner.
+### 1. Boost Blue Saturation (CSS Variables)
+**File: `src/index.css`**
+- Increase primary blue from `217 91% 60%` to `220 100% 55%` -- punchier, more saturated blue
+- Update accent, ring, and sidebar colors to match
+- Keep dark mode consistent with the new saturated palette
 
-**Changes:**
-- Remove `SubscriptionGuard` as the page wrapper -- instead, show default templates to all users and only gate custom template creation behind the subscription check
-- Add `DashboardLayout` wrapper (currently missing -- every other protected page uses it, but Templates doesn't)
-- Fix the loading state to show within the dashboard layout instead of a blank full-screen spinner
+### 2. Add Background Noise Texture + Animated Gradient
+**File: `src/index.css`**
+- Add a subtle SVG noise filter as a pseudo-element overlay on the landing page background using a CSS class `.landing-bg`
+- Add a slow-moving animated gradient blob keyframe (`@keyframes blob-float`) for floating gradient orbs in the hero
+- Add `.neo-brutal` button class: thick 3px black border, 4px offset box-shadow, translate on hover to create a "press" effect
+- Add `.neo-card` class: 2px black border, subtle shadow offset, rounded corners
 
-**Files:** `src/pages/Templates.tsx`
+### 3. Redesign Landing Page Component
+**File: `src/pages/Index.tsx`**
 
-## 2. Improve Templates Page Design
+**Navigation:**
+- Neobrutalism-style nav buttons with thick borders and shadow offsets
+- Logo with a colored background pill shape
 
-- Add the `DashboardLayout` wrapper for consistent navigation
-- Improve the default template cards with a mini invoice preview mockup instead of plain color blocks
-- Add hover effects and better spacing
-- Make the "Create Template" button more prominent
-- Improve the empty state design
-- Ensure responsive grid layout works on mobile
+**Hero Section:**
+- Large animated gradient blobs floating behind the text (3 colored circles with blur + animation)
+- Bold, oversized heading with a highlighted keyword using a rotated background rectangle (marker highlight effect)
+- Subtext in a more casual, Gen Z tone ("stop chasing payments. start vibing with your invoices.")
+- CTA buttons with neobrutalism style: thick black borders, shadow offset, hover press animation
+- Add a decorative SVG arrow/squiggle doodle near the CTA
 
-**Files:** `src/pages/Templates.tsx`
+**Features Section:**
+- Neobrutalism cards with thick borders, colored backgrounds (pastel blue, purple, green, orange), and offset shadows
+- Icons inside colored circles with thick borders
+- Staggered fade-in animation on scroll (using CSS animation-delay)
 
-## 3. Add Cancel Subscription Option
+**Testimonials:**
+- Cards with neobrutalism borders and slight rotation (transform: rotate(-1deg / 1deg / 2deg)) for a casual scattered look
+- Colorful avatar circles instead of plain text names
+- Star ratings in yellow/gold with thicker styling
 
-Currently, the Settings > Billing tab has a "Manage Subscription" button that opens the Stripe Customer Portal. This already allows cancellation, but there's no explicit "Cancel Subscription" button visible.
+**CTA Section:**
+- Full-width gradient banner with noise overlay
+- Neobrutalism button in contrasting color (e.g., yellow with black border)
 
-**Changes:**
-- Add a dedicated "Cancel Subscription" button in the Billing tab alongside "Manage Subscription"
-- The button will open the Stripe Customer Portal directly (same `customer-portal` edge function)
-- Add a confirmation dialog before redirecting to the portal
-- Show clear messaging about what happens when they cancel (access continues until end of billing period)
+**Footer:**
+- Cleaner layout, social icons in neobrutalism pill shapes
 
-**Files:** `src/pages/Settings.tsx`
+### 4. Add Tailwind Keyframes for Blob Animation
+**File: `tailwind.config.ts`**
+- Add `blob-float` keyframe for the animated gradient blobs
+- Add `float` animation utility
 
-## 4. Set Up Capacitor for Native Mobile Apps (iOS and Android)
+## Technical Details
 
-This sets up the foundation so you can build real native apps from the existing web app.
+### New CSS Classes in `src/index.css`
+```css
+.neo-brutal-btn {
+  border: 3px solid currentColor;
+  box-shadow: 4px 4px 0px currentColor;
+  transition: all 0.15s ease;
+}
+.neo-brutal-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px currentColor;
+}
+.neo-card {
+  border: 2px solid hsl(var(--foreground));
+  box-shadow: 4px 4px 0px hsl(var(--foreground) / 0.15);
+}
+.landing-noise::after {
+  /* SVG noise texture overlay at low opacity */
+}
+```
 
-**Changes:**
-- Install Capacitor dependencies: `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`, `@capacitor/android`
-- Create `capacitor.config.ts` with:
-  - App ID: `app.lovable.e23699a8f80e4b9dbb96d8d50a1c74ed`
-  - App Name: `cushyinvoice`
-  - Hot-reload server URL pointing to preview sandbox for development
+### New Tailwind Keyframes
+```text
+blob-float: translates and scales blobs in a loop
+  0%   -> translate(0, 0) scale(1)
+  33%  -> translate(30px, -50px) scale(1.1)
+  66%  -> translate(-20px, 20px) scale(0.9)
+  100% -> translate(0, 0) scale(1)
+```
 
-**After implementation, you will need to do the following on your local machine:**
-1. Export the project to GitHub via the "Export to GitHub" button, then clone it
-2. Run `npm install`
-3. Run `npx cap add ios` and/or `npx cap add android`
-4. Run `npx cap update ios` or `npx cap update android`
-5. Run `npm run build`
-6. Run `npx cap sync`
-7. Run `npx cap run ios` (requires Mac with Xcode) or `npx cap run android` (requires Android Studio)
+### Files Changed
+| File | Change |
+|------|--------|
+| `src/index.css` | Boost blue saturation, add noise overlay class, neobrutalism utility classes, blob animation keyframes |
+| `src/pages/Index.tsx` | Full redesign with neobrutalism cards/buttons, animated gradient blobs, noise background, Gen Z copy, staggered animations |
+| `tailwind.config.ts` | Add blob-float keyframe and float animation |
 
-**Files:** `capacitor.config.ts`, `package.json`
-
----
-
-## Technical Summary
-
-| Task | Files Changed |
-|------|--------------|
-| Fix Templates loading | `src/pages/Templates.tsx` |
-| Templates design improvement | `src/pages/Templates.tsx` |
-| Cancel subscription button | `src/pages/Settings.tsx` |
-| Capacitor setup | `capacitor.config.ts`, `package.json` |
-
+### What Stays the Same
+- All links and routes (privacy, terms, social links, auth navigation)
+- WhatsApp support button functionality
+- Overall page structure (nav, hero, features, testimonials, CTA, footer)
+- The existing `GradientButton` component (still used but supplemented with neo-brutal style buttons)
+- Dashboard and all other pages remain untouched
