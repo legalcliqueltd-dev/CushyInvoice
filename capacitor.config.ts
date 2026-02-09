@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'cushyinvoice',
   webDir: 'dist',
   server: {
-    url: 'https://e23699a8-f80e-4b9d-bb96-d8d50a1c74ed.lovableproject.com?forceHideBadge=true',
+    url: 'https://cushyinvoice.com',
     cleartext: true,
   },
 };
