@@ -351,7 +351,7 @@ export default function Settings() {
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
                 <CardDescription>
