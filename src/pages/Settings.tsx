@@ -439,7 +439,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Company Information</CardTitle>
                 <CardDescription>
