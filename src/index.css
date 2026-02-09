@@ -466,6 +466,18 @@ All colors MUST be HSL.
     transform: translate(3px, 3px);
     box-shadow: 0px 0px 0px hsl(var(--foreground));
   }
+
+  /* Mobile bottom navigation */
+  .mobile-bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-card border-t-2 border-foreground/10;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mobile-bottom-nav-item {
+    @apply flex flex-col items-center justify-center gap-1 py-2 px-3 min-h-[56px] min-w-[56px] text-muted-foreground transition-colors;
+  }
+  .mobile-bottom-nav-item.active {
+    @apply text-primary font-medium;
+  }
 }
 
 @layer utilities {

@@ -8,6 +8,18 @@ const config: CapacitorConfig = {
     url: 'https://cushyinvoice.com',
     cleartext: true,
   },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: false,
+      backgroundColor: '#1a56db',
+      showSpinner: true,
+      spinnerColor: '#ffffff',
+      androidScaleType: 'CENTER_CROP',
+      splashFullScreen: true,
+      splashImmersive: true,
+    },
+  },
 };
 
 export default config;
