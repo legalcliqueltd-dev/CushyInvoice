@@ -206,7 +206,7 @@ export default function Reports() {
         ) : (
           <>
             <div className="grid gap-4 md:grid-cols-2">
-              <Card>
+              <Card className="neo-stat-card border-l-success">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
                 </CardHeader>
