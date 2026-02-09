@@ -42,6 +42,7 @@ interface InvoiceData {
   total: number;
   currency: string;
   notes?: string;
+  logo_bg_color?: string;
   clients: {
     name: string;
     email: string;
