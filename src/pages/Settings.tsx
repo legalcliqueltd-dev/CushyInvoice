@@ -342,7 +342,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-5 neo-card-subtle">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="company">Company Info</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
@@ -351,7 +351,7 @@ export default function Settings() {
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
                 <CardDescription>
@@ -410,14 +410,14 @@ export default function Settings() {
                   />
                 </div>
 
-                <Button onClick={handleProfileUpdate} disabled={saving}>
+                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Profile
                 </Button>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Account Security</CardTitle>
                 <CardDescription>
@@ -439,7 +439,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Company Information</CardTitle>
                 <CardDescription>
@@ -554,7 +554,7 @@ export default function Settings() {
                   onUpload={handleLogoUpload}
                 />
 
-                <Button onClick={handleProfileUpdate} disabled={saving}>
+                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Changes
                 </Button>
@@ -563,7 +563,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Subscription & Billing</CardTitle>
                 <CardDescription>
@@ -704,7 +704,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="defaults" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Invoice Defaults</CardTitle>
                 <CardDescription>
@@ -750,7 +750,7 @@ export default function Settings() {
                   </p>
                 </div>
 
-                <Button onClick={handleProfileUpdate} disabled={saving}>
+                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Defaults
                 </Button>
@@ -759,7 +759,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Change Password</CardTitle>
                 <CardDescription>
@@ -800,7 +800,7 @@ export default function Settings() {
                   />
                 </div>
 
-                <Button onClick={handlePasswordChange} disabled={saving}>
+                <Button onClick={handlePasswordChange} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Update Password
                 </Button>

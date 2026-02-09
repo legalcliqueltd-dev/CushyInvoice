@@ -118,7 +118,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
                 <Receipt className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-bold tracking-tight">CushyInvoice</span>
+              <span className="text-lg font-extrabold tracking-tight">CushyInvoice</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -134,8 +134,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className="group flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
-                activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm"
+                className="group flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 border-l-2 border-l-transparent"
+                activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm border-l-2 border-l-primary"
                 onClick={() => setSidebarOpen(false)}
               >
                 <item.icon className="h-[18px] w-[18px] transition-transform group-hover:scale-110" />

@@ -125,7 +125,7 @@ export default function Reports() {
         </div>
 
         {/* Date Range Filter */}
-        <Card>
+        <Card className="neo-card-subtle">
           <CardHeader>
             <CardTitle>Filter by Date Range</CardTitle>
           </CardHeader>
@@ -206,7 +206,7 @@ export default function Reports() {
         ) : (
           <>
             <div className="grid gap-4 md:grid-cols-2">
-              <Card>
+              <Card className="neo-stat-card border-l-success">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
                 </CardHeader>
@@ -220,7 +220,7 @@ export default function Reports() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="neo-stat-card border-l-destructive">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Total Unpaid</CardTitle>
                 </CardHeader>
@@ -236,7 +236,7 @@ export default function Reports() {
             </div>
 
             {/* Export Button */}
-            <Card>
+            <Card className="neo-card-subtle">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -245,7 +245,7 @@ export default function Reports() {
                       Download invoice data as CSV ({reportData.invoices.length} invoice{reportData.invoices.length !== 1 ? "s" : ""})
                     </p>
                   </div>
-                  <Button onClick={exportToCSV} disabled={reportData.invoices.length === 0}>
+                  <Button onClick={exportToCSV} disabled={reportData.invoices.length === 0} className="neo-btn-subtle">
                     <Download className="h-4 w-4 mr-2" />
                     Export to CSV
                   </Button>

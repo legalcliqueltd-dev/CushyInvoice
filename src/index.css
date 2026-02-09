@@ -394,6 +394,52 @@ All colors MUST be HSL.
     background-repeat: repeat;
     background-size: 256px 256px;
   }
+
+  /* Subtle neo-card for dashboard context */
+  .neo-card-subtle {
+    border: 1.5px solid hsl(var(--foreground) / 0.15);
+    box-shadow: 3px 3px 0px hsl(var(--foreground) / 0.08);
+    transition: all 0.2s ease;
+  }
+  .neo-card-subtle:hover {
+    box-shadow: 4px 4px 0px hsl(var(--foreground) / 0.12);
+    transform: translate(-0.5px, -0.5px);
+  }
+
+  /* Stat card with colored left accent */
+  .neo-stat-card {
+    border: 1.5px solid hsl(var(--foreground) / 0.12);
+    box-shadow: 3px 3px 0px hsl(var(--foreground) / 0.06);
+    border-left-width: 4px;
+    transition: all 0.2s ease;
+  }
+  .neo-stat-card:hover {
+    box-shadow: 4px 4px 0px hsl(var(--foreground) / 0.1);
+    transform: translate(-0.5px, -0.5px);
+  }
+
+  /* Status-based left border colors */
+  .border-l-success { border-left-color: hsl(var(--success)); }
+  .border-l-info { border-left-color: hsl(var(--info)); }
+  .border-l-warning { border-left-color: hsl(var(--warning)); }
+  .border-l-destructive { border-left-color: hsl(var(--destructive)); }
+  .border-l-primary { border-left-color: hsl(var(--primary)); }
+  .border-l-muted { border-left-color: hsl(var(--muted-foreground)); }
+
+  /* Subtle neo button for dashboard (less aggressive than landing) */
+  .neo-btn-subtle {
+    border: 2px solid hsl(var(--foreground));
+    box-shadow: 3px 3px 0px hsl(var(--foreground));
+    transition: all 0.15s ease;
+  }
+  .neo-btn-subtle:hover {
+    transform: translate(1.5px, 1.5px);
+    box-shadow: 1.5px 1.5px 0px hsl(var(--foreground));
+  }
+  .neo-btn-subtle:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0px 0px 0px hsl(var(--foreground));
+  }
 }
 
 @layer utilities {

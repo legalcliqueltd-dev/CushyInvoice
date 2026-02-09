@@ -116,14 +116,14 @@ export default function Invoices() {
             <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
             <p className="text-muted-foreground">Manage all your invoices</p>
           </div>
-          <Button onClick={() => navigate("/invoices/new")}>
+          <Button onClick={() => navigate("/invoices/new")} className="neo-btn-subtle">
             <Plus className="mr-2 h-4 w-4" />
             New Invoice
           </Button>
         </div>
 
         {/* Search */}
-        <Card>
+        <Card className="neo-card-subtle">
           <CardContent className="pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -153,7 +153,7 @@ export default function Invoices() {
           </Card>
         ) : (
           <>
-            <Card>
+            <Card className="neo-card-subtle">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>

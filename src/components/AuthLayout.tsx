@@ -34,7 +34,7 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left side - Brand & Features */}
-      <div className="hidden lg:flex lg:w-[55%] auth-gradient p-12 flex-col justify-between text-white relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-[55%] auth-gradient landing-noise p-12 flex-col justify-between text-white relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
@@ -65,7 +65,7 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
             {features.map((feature, index) => (
               <div 
                 key={index} 
-                className="feature-card group hover:bg-white/15 transition-all duration-300"
+                className="feature-card group hover:bg-white/15 transition-all duration-300 border-2 border-white/20 shadow-[3px_3px_0px_rgba(255,255,255,0.1)]"
               >
                 <feature.icon className="h-6 w-6 mb-3 text-white/90 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
@@ -104,7 +104,7 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
           </div>
 
           {/* Form */}
-          <div className="bg-card rounded-2xl border border-border p-6 lg:p-8 shadow-soft">
+          <div className="bg-card rounded-2xl p-6 lg:p-8 neo-card-subtle">
             {children}
           </div>
 

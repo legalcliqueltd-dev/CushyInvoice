@@ -210,7 +210,7 @@ export default function Clients() {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openNewDialog}>
+              <Button onClick={openNewDialog} className="neo-btn-subtle">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Client
               </Button>
@@ -337,7 +337,7 @@ export default function Clients() {
         </div>
 
         {/* Search */}
-        <Card>
+        <Card className="neo-card-subtle">
           <CardContent className="pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -368,7 +368,7 @@ export default function Clients() {
           </Card>
         ) : (
           <>
-            <Card>
+            <Card className="neo-card-subtle">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>
