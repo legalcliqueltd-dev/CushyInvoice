@@ -759,7 +759,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Change Password</CardTitle>
                 <CardDescription>
