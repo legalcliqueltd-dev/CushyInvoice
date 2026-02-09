@@ -22,6 +22,7 @@ import RecurringInvoices from "./pages/RecurringInvoices";
 import Expenses from "./pages/Expenses";
 import Templates from "./pages/Templates";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
