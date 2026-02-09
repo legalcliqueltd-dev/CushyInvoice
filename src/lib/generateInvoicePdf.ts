@@ -31,6 +31,7 @@ interface InvoiceData {
   total: number;
   currency: string;
   notes?: string;
+  logo_bg_color?: string;
   clients: Client;
   invoice_items: InvoiceItem[];
 }
