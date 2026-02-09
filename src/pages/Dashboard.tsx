@@ -139,16 +139,18 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <TrialBanner />
-        <UpgradeBanner />
-        <PlanLimitsBanner />
-        
-        {/* AdSense Banner Ad */}
-        <AdSenseAd 
-          slot="1234567890" 
-          format="horizontal"
-          className="my-4"
-        />
+        {!subscription.subscribed && (
+          <>
+            <TrialBanner />
+            <UpgradeBanner />
+            <PlanLimitsBanner />
+            <AdSenseAd 
+              slot="1234567890" 
+              format="horizontal"
+              className="my-4"
+            />
+          </>
+        )}
         
         <div className="flex items-center justify-between">
           <div>
