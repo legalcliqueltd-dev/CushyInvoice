@@ -220,7 +220,7 @@ export default function Reports() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="neo-stat-card border-l-destructive">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Total Unpaid</CardTitle>
                 </CardHeader>
