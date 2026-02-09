@@ -1,0 +1,1 @@
+ALTER TABLE public.invoices ADD COLUMN logo_bg_color text DEFAULT '#ffffff';

@@ -104,6 +104,7 @@ export default function InvoiceNew() {
   const [taxRate, setTaxRate] = useState(0);
   const [currency, setCurrency] = useState("USD");
   const [notes, setNotes] = useState("");
+  const [logoBgColor, setLogoBgColor] = useState("#ffffff");
   const [loading, setLoading] = useState(false);
   const [newClientDialog, setNewClientDialog] = useState(false);
   const [newClientData, setNewClientData] = useState({ name: "", email: "", phone: "", address: "" });
@@ -499,7 +500,8 @@ export default function InvoiceNew() {
           tax_amount: tax,
           total,
           notes,
-        })
+          logo_bg_color: logoBgColor,
+        } as any)
         .select()
         .single();
 
@@ -562,13 +564,16 @@ export default function InvoiceNew() {
             <div className="flex flex-col sm:flex-row gap-6">
               {/* Logo Section */}
               <div className="flex flex-col items-center gap-3">
-                <div className="relative w-24 h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center overflow-hidden bg-muted/30">
+                <div
+                  className="relative w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden border-2 border-border"
+                  style={{ backgroundColor: logoBgColor }}
+                >
                   {companyInfo.company_logo ? (
                     <>
                       <img
                         src={companyInfo.company_logo}
                         alt="Company Logo"
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain p-1"
                       />
                       <Button
                         variant="destructive"
@@ -583,19 +588,32 @@ export default function InvoiceNew() {
                     <Upload className="h-8 w-8 text-muted-foreground" />
                   )}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLogoUploadDialog(true)}
-                  disabled={uploadingLogo}
-                >
-                  {uploadingLogo ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4 mr-2" />
-                  )}
-                  {companyInfo.company_logo ? "Change Logo" : "Upload Logo"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLogoUploadDialog(true)}
+                    disabled={uploadingLogo}
+                  >
+                    {uploadingLogo ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {companyInfo.company_logo ? "Change" : "Upload"}
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="logoBgColor" className="text-xs text-muted-foreground sr-only">BG</Label>
+                    <input
+                      id="logoBgColor"
+                      type="color"
+                      value={logoBgColor}
+                      onChange={(e) => setLogoBgColor(e.target.value)}
+                      className="w-7 h-7 rounded-md border border-border cursor-pointer p-0.5"
+                      title="Logo background color"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Company Details */}
@@ -759,24 +777,32 @@ export default function InvoiceNew() {
               </Select>
             </div>
 
-            {templates.length > 0 && (
-              <div className="space-y-2">
-                <Label>Template (Optional)</Label>
-                <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.template_name} {template.is_default && "(Default)"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>Template (Optional)</Label>
+              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Default Templates</div>
+                  <SelectItem value="builtin-modern">Modern</SelectItem>
+                  <SelectItem value="builtin-classic">Classic</SelectItem>
+                  <SelectItem value="builtin-minimal">Minimal</SelectItem>
+                  <SelectItem value="builtin-bold">Bold</SelectItem>
+                  {templates.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-1">Your Templates</div>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.template_name} {template.is_default && "(Default)"}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">

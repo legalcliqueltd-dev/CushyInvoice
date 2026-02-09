@@ -22,6 +22,7 @@ import RecurringInvoices from "./pages/RecurringInvoices";
 import Expenses from "./pages/Expenses";
 import Templates from "./pages/Templates";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/reset" element={<ResetPassword />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/subscribe" element={<Subscribe />} />

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { AuthLayout } from "@/components/AuthLayout";
-import { Loader2, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Loader2, Mail, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { z } from "zod";
 
@@ -16,12 +16,16 @@ const authSchema = z.object({
   fullName: z.string().optional(),
 });
 
+const APP_DOMAIN = "https://cushyinvoice.com";
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -29,7 +33,6 @@ export default function Auth() {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // Ensure profile exists for OAuth users
         ensureProfileExists(session.user.id, session.user.email || "");
         navigate("/dashboard");
       }
@@ -37,7 +40,6 @@ export default function Auth() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // Create profile for new OAuth users
         if (event === 'SIGNED_IN') {
           setTimeout(() => {
             ensureProfileExists(session.user.id, session.user.email || "", session.user.user_metadata?.full_name);
@@ -52,7 +54,6 @@ export default function Auth() {
 
   const ensureProfileExists = async (userId: string, email: string, fullName?: string) => {
     try {
-      // Check if profile exists
       const { data: existingProfile } = await supabase
         .from("profiles")
         .select("id")
@@ -60,7 +61,6 @@ export default function Auth() {
         .maybeSingle();
 
       if (!existingProfile) {
-        // Create profile with 7-day trial for new users
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 7);
         
@@ -84,12 +84,43 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${APP_DOMAIN}/auth/reset`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+      toast({
+        title: "Check your email",
+        description: "A password reset link has been sent to your email.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Validate input
       const validation = authSchema.safeParse({
         email: email.trim(),
         password,
@@ -128,7 +159,7 @@ export default function Auth() {
           email: validation.data.email,
           password: validation.data.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${APP_DOMAIN}/dashboard`,
             data: {
               full_name: validation.data.fullName,
             },
@@ -143,7 +174,6 @@ export default function Auth() {
         }
 
         if (data.user) {
-          // Create profile with 7-day trial
           const trialEndDate = new Date();
           trialEndDate.setDate(trialEndDate.getDate() + 7);
           
@@ -185,7 +215,7 @@ export default function Auth() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${APP_DOMAIN}/auth`,
       },
     });
     if (error) {
@@ -197,6 +227,72 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  // Forgot password view
+  if (isForgotPassword) {
+    return (
+      <AuthLayout
+        title="Reset your password"
+        subtitle="Enter your email and we'll send you a reset link"
+      >
+        {resetSent ? (
+          <div className="space-y-5 text-center">
+            <div className="rounded-full bg-primary/10 w-16 h-16 flex items-center justify-center mx-auto">
+              <Mail className="h-8 w-8 text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Check your email for a password reset link. It may take a minute to arrive.
+            </p>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setIsForgotPassword(false);
+                setResetSent(false);
+              }}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Sign In
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={handleForgotPassword} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="resetEmail" className="text-sm font-medium">
+                Email Address
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="resetEmail"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="pl-10 h-11"
+                />
+              </div>
+            </div>
+            <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Send Reset Link
+              {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setIsForgotPassword(false)}
+              className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="inline mr-1 h-3 w-3" />
+              Back to Sign In
+            </button>
+          </form>
+        )}
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout
@@ -248,9 +344,20 @@ export default function Auth() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium">
-            Password
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-sm font-medium">
+              Password
+            </Label>
+            {isLogin && (
+              <button
+                type="button"
+                onClick={() => setIsForgotPassword(true)}
+                className="text-xs text-primary hover:underline"
+              >
+                Forgot password?
+              </button>
+            )}
+          </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input

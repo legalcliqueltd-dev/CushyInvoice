@@ -31,6 +31,7 @@ interface InvoiceData {
   total: number;
   currency: string;
   notes?: string;
+  logo_bg_color?: string;
   clients: Client;
   invoice_items: InvoiceItem[];
 }
@@ -130,11 +131,18 @@ export async function generateInvoicePdf(
       const logoBase64 = await loadImageAsBase64(company.company_logo);
       if (logoBase64) {
         console.log('Logo loaded successfully');
-        // Detect image format from base64
         const imageFormat = logoBase64.includes('image/png') ? 'PNG' : 'JPEG';
-        // Add logo to the left side of header
-        doc.addImage(logoBase64, imageFormat, margin, 8, 30, 30);
-        logoXOffset = margin + 38; // Offset text to the right of logo
+        
+        // Draw rounded background behind logo
+        const bgColor = invoice.logo_bg_color || '#ffffff';
+        const r = parseInt(bgColor.slice(1, 3), 16);
+        const g = parseInt(bgColor.slice(3, 5), 16);
+        const b = parseInt(bgColor.slice(5, 7), 16);
+        doc.setFillColor(r, g, b);
+        doc.roundedRect(margin, 6, 34, 34, 4, 4, 'F');
+        
+        doc.addImage(logoBase64, imageFormat, margin + 2, 8, 30, 30);
+        logoXOffset = margin + 42;
       } else {
         console.log('Logo failed to load - logoBase64 is null');
       }
