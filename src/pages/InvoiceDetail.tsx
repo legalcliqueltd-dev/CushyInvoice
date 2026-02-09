@@ -27,7 +27,6 @@ import {
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AddPaymentReminderDialog } from "@/components/AddPaymentReminderDialog";
 import { ShareInvoiceDialog } from "@/components/ShareInvoiceDialog";
 import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
 
