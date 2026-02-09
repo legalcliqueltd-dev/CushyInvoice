@@ -37,12 +37,8 @@ export default function Expenses() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (limits.isPremium) {
-      fetchExpenses();
-    } else {
-      setLoading(false);
-    }
-  }, [limits.isPremium]);
+    fetchExpenses();
+  }, []);
 
   const fetchExpenses = async () => {
     try {
