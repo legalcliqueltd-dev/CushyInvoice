@@ -22,25 +22,42 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+
     // Listen for PASSWORD_RECOVERY event from the magic link
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
         setReady(true);
       }
     });
 
-    // Also check current session (user may have already landed)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // Check if we already have a session (the hash may have been processed already)
+    const checkSession = async () => {
+      // Small delay to allow Supabase to process hash fragment tokens
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      if (!mounted) return;
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && mounted) {
         setReady(true);
+      } else if (mounted) {
+        // If still no session after waiting, show error
+        setError("Reset link is invalid or has expired. Please request a new one.");
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleReset = async (e: React.FormEvent) => {
@@ -78,10 +95,18 @@ export default function ResetPassword() {
 
   if (!ready) {
     return (
-      <AuthLayout title="Reset Password" subtitle="Verifying your reset link...">
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+      <AuthLayout title="Reset Password" subtitle={error || "Verifying your reset link..."}>
+        {error ? (
+          <div className="text-center py-4">
+            <Button onClick={() => navigate("/auth")} className="mt-4">
+              Back to Login
+            </Button>
+          </div>
+        ) : (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
       </AuthLayout>
     );
   }
