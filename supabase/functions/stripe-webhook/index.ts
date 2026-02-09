@@ -7,6 +7,14 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
 
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
+const safeTimestampToISO = (timestamp: any): string | null => {
+  if (!timestamp) return null;
+  if (typeof timestamp === 'string') return timestamp;
+  const ms = typeof timestamp === 'number' ? timestamp * 1000 : NaN;
+  const date = new Date(ms);
+  return isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 Deno.serve(async (req) => {
   const signature = req.headers.get('stripe-signature');
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
@@ -77,10 +85,11 @@ Deno.serve(async (req) => {
         currentPlan = 'yearly';
       }
 
-      const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+      const subscriptionEnd = safeTimestampToISO(subscription.current_period_end);
+      const trialEnd = safeTimestampToISO(subscription.trial_end);
 
       // Update user profile
+      const isActive = subscription.status === 'active' || subscription.status === 'trialing';
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -88,7 +97,9 @@ Deno.serve(async (req) => {
           current_plan: currentPlan,
           subscription_expiry: subscriptionEnd,
           trial_end_date: trialEnd,
-          stripe_customer_id: customerId
+          stripe_customer_id: customerId,
+          is_premium: isActive,
+          plan_type: isActive ? 'premium' : 'free'
         })
         .eq('id', user.id);
 

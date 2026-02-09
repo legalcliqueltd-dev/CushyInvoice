@@ -12,6 +12,14 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+const safeTimestampToISO = (timestamp: any): string | null => {
+  if (!timestamp) return null;
+  if (typeof timestamp === 'string') return timestamp;
+  const ms = typeof timestamp === 'number' ? timestamp * 1000 : NaN;
+  const date = new Date(ms);
+  return isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -105,8 +113,8 @@ serve(async (req) => {
     if (subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
       status = subscription.status;
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+      subscriptionEnd = safeTimestampToISO(subscription.current_period_end);
+      trialEnd = safeTimestampToISO(subscription.trial_end);
       
       const priceId = subscription.items.data[0].price.id;
       
