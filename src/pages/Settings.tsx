@@ -750,7 +750,7 @@ export default function Settings() {
                   </p>
                 </div>
 
-                <Button onClick={handleProfileUpdate} disabled={saving}>
+                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Defaults
                 </Button>
