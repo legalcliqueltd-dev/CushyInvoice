@@ -54,6 +54,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { subscription } = useSubscription();
 
   useEffect(() => {
     fetchDashboardData();
