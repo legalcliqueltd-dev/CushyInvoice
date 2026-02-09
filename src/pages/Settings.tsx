@@ -704,7 +704,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="defaults" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Invoice Defaults</CardTitle>
                 <CardDescription>
