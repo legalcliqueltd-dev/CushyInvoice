@@ -121,7 +121,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 217 91% 60%;
+    --primary: 220 100% 55%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 214 32% 91%;
@@ -130,7 +130,7 @@ All colors MUST be HSL.
     --muted: 214 32% 91%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 217 91% 60%;
+    --accent: 220 100% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -138,18 +138,18 @@ All colors MUST be HSL.
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --ring: 220 100% 55%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 220 100% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 91% 97%;
-    --sidebar-accent-foreground: 217 91% 50%;
+    --sidebar-accent: 220 100% 97%;
+    --sidebar-accent-foreground: 220 100% 50%;
     --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 220 100% 55%;
 
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
@@ -351,6 +351,48 @@ All colors MUST be HSL.
   /* Feature card styling */
   .feature-card {
     @apply p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20;
+  }
+
+  /* Neobrutalism button */
+  .neo-brutal-btn {
+    border: 3px solid hsl(var(--foreground));
+    box-shadow: 4px 4px 0px hsl(var(--foreground));
+    transition: all 0.15s ease;
+  }
+  .neo-brutal-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px hsl(var(--foreground));
+  }
+  .neo-brutal-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px hsl(var(--foreground));
+  }
+
+  /* Neobrutalism card */
+  .neo-card {
+    border: 2px solid hsl(var(--foreground));
+    box-shadow: 5px 5px 0px hsl(var(--foreground) / 0.15);
+    transition: all 0.2s ease;
+  }
+  .neo-card:hover {
+    box-shadow: 7px 7px 0px hsl(var(--foreground) / 0.2);
+    transform: translate(-1px, -1px);
+  }
+
+  /* Landing page noise overlay */
+  .landing-noise {
+    position: relative;
+  }
+  .landing-noise::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
   }
 }
 
