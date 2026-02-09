@@ -113,8 +113,8 @@ serve(async (req) => {
     if (subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
       status = subscription.status;
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+      subscriptionEnd = safeTimestampToISO(subscription.current_period_end);
+      trialEnd = safeTimestampToISO(subscription.trial_end);
       
       const priceId = subscription.items.data[0].price.id;
       
