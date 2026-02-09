@@ -37,6 +37,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { subscription: sub } = useSubscription();
 
   useEffect(() => {
     // Set up auth listener
