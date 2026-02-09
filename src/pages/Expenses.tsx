@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -17,15 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-interface Expense {
-  id: string;
-  category: string;
-  amount: number;
-  currency: string;
-  expense_date: string;
-  description: string;
-}
 
 interface Expense {
   id: string;
@@ -68,7 +60,6 @@ export default function Expenses() {
       const total = data?.reduce((sum, expense) => sum + Number(expense.amount), 0) || 0;
       setTotalExpenses(total);
 
-      // Calculate category totals
       const categoryMap: { [key: string]: number } = {};
       data?.forEach((expense) => {
         const category = expense.category;
@@ -116,9 +107,9 @@ export default function Expenses() {
 
   if (!limits.isPremium) {
     return (
-      <div className="min-h-screen p-8">
+      <DashboardLayout>
         <div className="max-w-4xl mx-auto">
-          <Card className="p-12 text-center">
+          <Card className="p-12 text-center neo-card-subtle">
             <div className="flex justify-center mb-6">
               <div className="p-4 rounded-full bg-primary/10">
                 <Lock className="h-12 w-12 text-primary" />
@@ -128,38 +119,40 @@ export default function Expenses() {
             <p className="text-muted-foreground mb-8 text-lg">
               Expense tracking is available on the Premium plan. Keep tabs on your business spending.
             </p>
-            <Button size="lg" onClick={() => navigate("/subscribe")}>
+            <Button size="lg" onClick={() => navigate("/subscribe")} className="neo-btn-subtle">
               Upgrade to Premium
             </Button>
           </Card>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold">Expenses</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
+            <p className="text-muted-foreground">
               Track and manage your business expenses
             </p>
           </div>
           <AddExpenseDialog onExpenseAdded={fetchExpenses} />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="p-6">
+        <div className="grid md:grid-cols-2 gap-4">
+          <Card className="p-6 neo-stat-card border-l-destructive">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-destructive/10">
                 <DollarSign className="h-6 w-6 text-destructive" />
@@ -170,7 +163,7 @@ export default function Expenses() {
               </div>
             </div>
           </Card>
-          <Card className="p-6">
+          <Card className="p-6 neo-stat-card border-l-primary">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-primary/10">
                 <Receipt className="h-6 w-6 text-primary" />
@@ -184,13 +177,13 @@ export default function Expenses() {
         </div>
 
         {Object.keys(categoryTotals).length > 0 && (
-          <Card className="p-6 mb-8">
+          <Card className="p-6 neo-card-subtle">
             <h2 className="text-xl font-semibold mb-4">Expenses by Category</h2>
             <div className="grid gap-3">
               {Object.entries(categoryTotals)
                 .sort(([, a], [, b]) => b - a)
                 .map(([category, total]) => (
-                  <div key={category} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={category} className="flex items-center justify-between p-3 border rounded-lg border-l-4 border-l-destructive">
                     <span className="font-medium">{category}</span>
                     <span className="text-destructive font-semibold">${total.toFixed(2)}</span>
                   </div>
@@ -200,7 +193,7 @@ export default function Expenses() {
         )}
 
         {expenses.length === 0 ? (
-          <Card className="p-12 text-center">
+          <Card className="p-12 text-center neo-card-subtle">
             <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Expenses Yet</h3>
             <p className="text-muted-foreground mb-6">
@@ -209,7 +202,7 @@ export default function Expenses() {
             <AddExpenseDialog onExpenseAdded={fetchExpenses} />
           </Card>
         ) : (
-          <Card>
+          <Card className="neo-card-subtle">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Recent Expenses</h2>
               <div className="space-y-4">
@@ -263,6 +256,6 @@ export default function Expenses() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

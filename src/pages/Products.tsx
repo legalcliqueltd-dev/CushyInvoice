@@ -303,7 +303,7 @@ export default function Products() {
           </Card>
         ) : (
           <>
-            <Card>
+            <Card className="neo-card-subtle">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>

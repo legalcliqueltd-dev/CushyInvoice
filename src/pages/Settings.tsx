@@ -800,7 +800,7 @@ export default function Settings() {
                   />
                 </div>
 
-                <Button onClick={handlePasswordChange} disabled={saving}>
+                <Button onClick={handlePasswordChange} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Update Password
                 </Button>

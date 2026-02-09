@@ -104,7 +104,7 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
           </div>
 
           {/* Form */}
-          <div className="bg-card rounded-2xl border border-border p-6 lg:p-8 shadow-soft">
+          <div className="bg-card rounded-2xl p-6 lg:p-8 neo-card-subtle">
             {children}
           </div>
 

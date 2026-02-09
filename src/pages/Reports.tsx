@@ -245,7 +245,7 @@ export default function Reports() {
                       Download invoice data as CSV ({reportData.invoices.length} invoice{reportData.invoices.length !== 1 ? "s" : ""})
                     </p>
                   </div>
-                  <Button onClick={exportToCSV} disabled={reportData.invoices.length === 0}>
+                  <Button onClick={exportToCSV} disabled={reportData.invoices.length === 0} className="neo-btn-subtle">
                     <Download className="h-4 w-4 mr-2" />
                     Export to CSV
                   </Button>

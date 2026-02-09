@@ -118,7 +118,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
                 <Receipt className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-bold tracking-tight">CushyInvoice</span>
+              <span className="text-lg font-extrabold tracking-tight">CushyInvoice</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}

@@ -368,7 +368,7 @@ export default function Clients() {
           </Card>
         ) : (
           <>
-            <Card>
+            <Card className="neo-card-subtle">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>

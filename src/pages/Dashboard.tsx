@@ -250,7 +250,7 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Invoices */}
-        <Card>
+        <Card className="neo-card-subtle">
           <CardHeader>
             <CardTitle>Recent Invoices</CardTitle>
           </CardHeader>
