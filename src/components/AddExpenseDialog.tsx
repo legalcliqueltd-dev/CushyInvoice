@@ -93,7 +93,7 @@ export const AddExpenseDialog = ({ onExpenseAdded }: AddExpenseDialogProps) => {
           Add Expense
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] neo-card-subtle">
         <DialogHeader>
           <DialogTitle>Add New Expense</DialogTitle>
           <DialogDescription className="sr-only">
@@ -189,7 +189,7 @@ export const AddExpenseDialog = ({ onExpenseAdded }: AddExpenseDialogProps) => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="neo-btn-subtle">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Add Expense
             </Button>

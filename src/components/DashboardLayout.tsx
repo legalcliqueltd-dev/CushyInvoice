@@ -22,6 +22,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Session } from "@supabase/supabase-js";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -36,6 +37,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { subscription: sub } = useSubscription();
 
   useEffect(() => {
     // Set up auth listener
@@ -140,7 +142,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               >
                 <item.icon className="h-[18px] w-[18px] transition-transform group-hover:scale-110" />
                 <span className="flex-1 text-sm">{item.label}</span>
-                {item.premium && (
+                {item.premium && !sub.subscribed && (
                   <span className="premium-badge" title="Premium Feature">
                     <Crown className="h-4 w-4" />
                   </span>

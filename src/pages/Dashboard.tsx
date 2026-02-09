@@ -5,6 +5,7 @@ import { PlanLimitsBanner } from "@/components/PlanLimitsBanner";
 import { UpgradeBanner } from "@/components/UpgradeBanner";
 import { AdSenseAd } from "@/components/AdSenseAd";
 import { useSubscription } from "@/hooks/useSubscription";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +54,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { subscription } = useSubscription();
 
   useEffect(() => {
     fetchDashboardData();
@@ -137,16 +139,18 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <TrialBanner />
-        <UpgradeBanner />
-        <PlanLimitsBanner />
-        
-        {/* AdSense Banner Ad */}
-        <AdSenseAd 
-          slot="1234567890" 
-          format="horizontal"
-          className="my-4"
-        />
+        {!subscription.subscribed && (
+          <>
+            <TrialBanner />
+            <UpgradeBanner />
+            <PlanLimitsBanner />
+            <AdSenseAd 
+              slot="1234567890" 
+              format="horizontal"
+              className="my-4"
+            />
+          </>
+        )}
         
         <div className="flex items-center justify-between">
           <div>
@@ -311,12 +315,13 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        {/* AdSense Footer Ad */}
-        <AdSenseAd 
-          slot="0987654321" 
-          format="rectangle"
-          className="my-4"
-        />
+        {!subscription.subscribed && (
+          <AdSenseAd 
+            slot="0987654321" 
+            format="rectangle"
+            className="my-4"
+          />
+        )}
       </div>
     </DashboardLayout>
   );

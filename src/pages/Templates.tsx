@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { AddTemplateDialog } from "@/components/AddTemplateDialog";
-import { SubscriptionGuard } from "@/components/SubscriptionGuard";
+
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { TemplatePreviewCard } from "@/components/TemplatePreviewCard";
 import { Loader2, FileText, Trash2, Plus, Sparkles } from "lucide-react";
@@ -94,17 +94,7 @@ export default function Templates() {
               Customize how your invoices look with branded templates
             </p>
           </div>
-          <SubscriptionGuard
-            message="Custom templates require a Premium plan."
-            fallback={
-              <Button variant="outline" disabled>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
-            }
-          >
-            <AddTemplateDialog onTemplateAdded={fetchTemplates} />
-          </SubscriptionGuard>
+          <AddTemplateDialog onTemplateAdded={fetchTemplates} />
         </div>
 
         {/* Default Templates */}
@@ -165,9 +155,7 @@ export default function Templates() {
                 <p className="text-sm text-muted-foreground mb-6 max-w-sm">
                   Create branded templates to make your invoices stand out and look professional
                 </p>
-                <SubscriptionGuard message="Custom templates require a Premium plan.">
-                  <AddTemplateDialog onTemplateAdded={fetchTemplates} />
-                </SubscriptionGuard>
+                <AddTemplateDialog onTemplateAdded={fetchTemplates} />
               </div>
             </Card>
           )}

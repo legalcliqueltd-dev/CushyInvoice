@@ -214,7 +214,7 @@ export function ShareInvoiceDialog({ invoice, company }: ShareInvoiceDialogProps
           Share
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md neo-card-subtle">
         <DialogHeader>
           <DialogTitle>Share Invoice</DialogTitle>
           <DialogDescription>

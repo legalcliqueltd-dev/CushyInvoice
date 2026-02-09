@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { AddRecurringInvoiceDialog } from "@/components/AddRecurringInvoiceDialog";
 import { Loader2, Calendar, RefreshCw, Trash2, Pause, Play, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -152,7 +151,6 @@ export default function RecurringInvoices() {
 
   return (
     <DashboardLayout>
-      <SubscriptionGuard message="Recurring invoices are available on the Premium plan. Automate your invoicing and save time.">
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
@@ -251,7 +249,6 @@ export default function RecurringInvoices() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
-      </SubscriptionGuard>
     </DashboardLayout>
   );
 }

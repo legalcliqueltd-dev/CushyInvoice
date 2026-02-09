@@ -33,14 +33,14 @@ export const SubscriptionGuard = ({
     }
 
     return (
-      <Alert className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20">
+      <Alert className="neo-card-subtle border-primary/20">
         <Crown className="h-5 w-5 text-primary" />
         <AlertDescription className="flex items-center justify-between gap-4">
           <span className="flex-1">{message}</span>
           <Button 
             size="sm" 
             onClick={() => navigate('/subscribe')}
-            className="bg-gradient-to-r from-primary to-primary/90"
+            className="neo-btn-subtle"
           >
             Upgrade Now
           </Button>

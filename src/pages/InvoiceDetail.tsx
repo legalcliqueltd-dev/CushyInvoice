@@ -27,7 +27,6 @@ import {
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AddPaymentReminderDialog } from "@/components/AddPaymentReminderDialog";
 import { ShareInvoiceDialog } from "@/components/ShareInvoiceDialog";
 import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
 
@@ -279,7 +278,6 @@ export default function InvoiceDetail() {
               Download
             </Button>
             <ShareInvoiceDialog invoice={invoice} company={profile || {}} />
-            <AddPaymentReminderDialog invoiceId={id!} onReminderAdded={fetchInvoice} />
             <Button variant="ghost" size="icon" onClick={handleDelete}>
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>

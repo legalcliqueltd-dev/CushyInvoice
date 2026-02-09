@@ -4,9 +4,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
-import { Loader2, Lock, Receipt, DollarSign, Trash2 } from "lucide-react";
+import { Loader2, Receipt, DollarSign, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -34,17 +33,12 @@ export default function Expenses() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [categoryTotals, setCategoryTotals] = useState<{ [key: string]: number }>({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const { limits } = usePlanLimits();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (limits.isPremium) {
-      fetchExpenses();
-    } else {
-      setLoading(false);
-    }
-  }, [limits.isPremium]);
+    fetchExpenses();
+  }, []);
 
   const fetchExpenses = async () => {
     try {
@@ -104,29 +98,6 @@ export default function Expenses() {
       setDeleteId(null);
     }
   };
-
-  if (!limits.isPremium) {
-    return (
-      <DashboardLayout>
-        <div className="max-w-4xl mx-auto">
-          <Card className="p-12 text-center neo-card-subtle">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-primary/10">
-                <Lock className="h-12 w-12 text-primary" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Premium Feature</h1>
-            <p className="text-muted-foreground mb-8 text-lg">
-              Expense tracking is available on the Premium plan. Keep tabs on your business spending.
-            </p>
-            <Button size="lg" onClick={() => navigate("/subscribe")} className="neo-btn-subtle">
-              Upgrade to Premium
-            </Button>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (loading) {
     return (
