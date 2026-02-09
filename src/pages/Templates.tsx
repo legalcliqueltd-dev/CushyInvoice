@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { AddTemplateDialog } from "@/components/AddTemplateDialog";
-import { Loader2, Palette, FileText, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { SubscriptionGuard } from "@/components/SubscriptionGuard";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { TemplatePreviewCard } from "@/components/TemplatePreviewCard";
+import { Loader2, FileText, Trash2, Plus, Sparkles } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,12 +28,18 @@ interface Template {
   is_default: boolean;
 }
 
+const defaultTemplates = [
+  { name: "Modern", style: "modern", color: "#6366f1" },
+  { name: "Classic", style: "classic", color: "#059669" },
+  { name: "Minimal", style: "minimal", color: "#64748b" },
+  { name: "Bold", style: "bold", color: "#dc2626" },
+];
+
 export default function Templates() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTemplates();
@@ -60,7 +67,6 @@ export default function Templates() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-
     try {
       const { error } = await supabase
         .from("invoice_templates")
@@ -68,124 +74,112 @@ export default function Templates() {
         .eq("id", deleteId);
 
       if (error) throw error;
-
-      toast({
-        title: "Template Deleted",
-        description: "The template has been deleted successfully.",
-      });
-
+      toast({ title: "Template Deleted", description: "The template has been deleted successfully." });
       fetchTemplates();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setDeleteId(null);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const defaultTemplates = [
-    { name: "Modern", style: "modern", color: "#6366f1" },
-    { name: "Classic", style: "classic", color: "#059669" },
-    { name: "Minimal", style: "minimal", color: "#64748b" },
-    { name: "Bold", style: "bold", color: "#dc2626" },
-  ];
-
   return (
-    <SubscriptionGuard message="Custom invoice templates are available on the Premium plan. Create branded invoices that stand out.">
-      <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <DashboardLayout>
+      <div className="space-y-8 max-w-7xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold">Invoice Templates</h1>
-            <p className="text-muted-foreground mt-2">
-              Customize your invoice appearance with branded templates
+            <h1 className="text-3xl font-bold tracking-tight">Invoice Templates</h1>
+            <p className="text-muted-foreground mt-1">
+              Customize how your invoices look with branded templates
             </p>
           </div>
-          <AddTemplateDialog onTemplateAdded={fetchTemplates} />
+          <SubscriptionGuard
+            message="Custom templates require a Premium plan."
+            fallback={
+              <Button variant="outline" disabled>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Template
+              </Button>
+            }
+          >
+            <AddTemplateDialog onTemplateAdded={fetchTemplates} />
+          </SubscriptionGuard>
         </div>
 
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Default Templates</h2>
-          <div className="grid md:grid-cols-4 gap-4">
+        {/* Default Templates */}
+        <section>
+          <h2 className="text-lg font-semibold mb-4">Default Templates</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {defaultTemplates.map((template) => (
-              <Card key={template.style} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-                <div
-                  className="w-full h-32 rounded-lg mb-4"
-                  style={{ backgroundColor: template.color }}
-                />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold">{template.name}</h3>
-                    <p className="text-sm text-muted-foreground capitalize">{template.style}</p>
-                  </div>
-                  <Palette className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </Card>
+              <TemplatePreviewCard
+                key={template.style}
+                name={template.name}
+                style={template.style}
+                color={template.color}
+              />
             ))}
           </div>
-        </div>
+        </section>
 
-        {templates.length > 0 && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Your Custom Templates</h2>
-            <div className="grid md:grid-cols-3 gap-4">
+        {/* Custom Templates */}
+        <section>
+          <h2 className="text-lg font-semibold mb-4">Your Custom Templates</h2>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : templates.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {templates.map((template) => (
-                <Card key={template.id} className="p-6 hover:shadow-lg transition-shadow relative group">
-                  <div
-                    className="w-full h-32 rounded-lg mb-4"
-                    style={{ backgroundColor: template.primary_color }}
+                <div key={template.id} className="relative group">
+                  <TemplatePreviewCard
+                    name={template.template_name}
+                    style={template.layout_style}
+                    color={template.primary_color}
                   />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold">{template.template_name}</h3>
-                      <p className="text-sm text-muted-foreground capitalize">{template.layout_style}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {template.is_default && <Badge>Default</Badge>}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteId(template.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                    {template.is_default && <Badge variant="secondary" className="text-xs">Default</Badge>}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteId(template.id);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <Card className="border-dashed">
+              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold mb-1">No custom templates yet</h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                  Create branded templates to make your invoices stand out and look professional
+                </p>
+                <SubscriptionGuard message="Custom templates require a Premium plan.">
+                  <AddTemplateDialog onTemplateAdded={fetchTemplates} />
+                </SubscriptionGuard>
+              </div>
+            </Card>
+          )}
+        </section>
 
-        {templates.length === 0 && (
-          <Card className="p-12 text-center mt-8">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Custom Templates Yet</h3>
-            <p className="text-muted-foreground mb-6">
-              Create custom templates to match your brand identity
-            </p>
-            <AddTemplateDialog onTemplateAdded={fetchTemplates} />
-          </Card>
-        )}
-
+        {/* Delete confirmation */}
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Template</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this template? Invoices using this template will not be affected.
+                Are you sure? Existing invoices using this template won't be affected.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -197,7 +191,6 @@ export default function Templates() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
-    </SubscriptionGuard>
+    </DashboardLayout>
   );
 }
