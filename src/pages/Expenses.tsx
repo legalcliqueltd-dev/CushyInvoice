@@ -4,9 +4,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
-import { Loader2, Lock, Receipt, DollarSign, Trash2 } from "lucide-react";
+import { Loader2, Receipt, DollarSign, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
