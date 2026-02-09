@@ -156,11 +156,11 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate("/clients")}>
+            <Button onClick={() => navigate("/clients")} className="neo-btn-subtle">
               <UserPlus className="h-4 w-4 mr-2" />
               Add Client
             </Button>
-            <Button onClick={() => navigate("/invoices/new")}>
+            <Button onClick={() => navigate("/invoices/new")} className="neo-btn-subtle">
               <Plus className="h-4 w-4 mr-2" />
               Create Invoice
             </Button>
