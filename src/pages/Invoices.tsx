@@ -116,7 +116,7 @@ export default function Invoices() {
             <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
             <p className="text-muted-foreground">Manage all your invoices</p>
           </div>
-          <Button onClick={() => navigate("/invoices/new")}>
+          <Button onClick={() => navigate("/invoices/new")} className="neo-btn-subtle">
             <Plus className="mr-2 h-4 w-4" />
             New Invoice
           </Button>
