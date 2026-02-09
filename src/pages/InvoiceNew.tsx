@@ -563,13 +563,16 @@ export default function InvoiceNew() {
             <div className="flex flex-col sm:flex-row gap-6">
               {/* Logo Section */}
               <div className="flex flex-col items-center gap-3">
-                <div className="relative w-24 h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center overflow-hidden bg-muted/30">
+                <div
+                  className="relative w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden border-2 border-border"
+                  style={{ backgroundColor: logoBgColor }}
+                >
                   {companyInfo.company_logo ? (
                     <>
                       <img
                         src={companyInfo.company_logo}
                         alt="Company Logo"
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain p-1"
                       />
                       <Button
                         variant="destructive"
@@ -584,19 +587,32 @@ export default function InvoiceNew() {
                     <Upload className="h-8 w-8 text-muted-foreground" />
                   )}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLogoUploadDialog(true)}
-                  disabled={uploadingLogo}
-                >
-                  {uploadingLogo ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4 mr-2" />
-                  )}
-                  {companyInfo.company_logo ? "Change Logo" : "Upload Logo"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLogoUploadDialog(true)}
+                    disabled={uploadingLogo}
+                  >
+                    {uploadingLogo ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {companyInfo.company_logo ? "Change" : "Upload"}
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="logoBgColor" className="text-xs text-muted-foreground sr-only">BG</Label>
+                    <input
+                      id="logoBgColor"
+                      type="color"
+                      value={logoBgColor}
+                      onChange={(e) => setLogoBgColor(e.target.value)}
+                      className="w-7 h-7 rounded-md border border-border cursor-pointer p-0.5"
+                      title="Logo background color"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Company Details */}
