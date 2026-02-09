@@ -336,11 +336,16 @@ export default function InvoiceDetail() {
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">From</span>
                     </div>
                     {profile?.company_logo && (
-                      <img
-                        src={profile.company_logo}
-                        alt={profile.company_name || "Company Logo"}
-                        className="h-10 w-auto object-contain mb-2"
-                      />
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden border border-border mb-2"
+                        style={{ backgroundColor: invoice?.logo_bg_color || '#ffffff' }}
+                      >
+                        <img
+                          src={profile.company_logo}
+                          alt={profile.company_name || "Company Logo"}
+                          className="w-full h-full object-contain p-0.5"
+                        />
+                      </div>
                     )}
                     <p className="font-semibold">{profile?.company_name || "Your Company"}</p>
                     {profile?.email && (

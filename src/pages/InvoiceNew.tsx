@@ -500,7 +500,8 @@ export default function InvoiceNew() {
           tax_amount: tax,
           total,
           notes,
-        })
+          logo_bg_color: logoBgColor,
+        } as any)
         .select()
         .single();
 
