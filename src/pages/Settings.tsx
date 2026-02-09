@@ -1,4 +1,14 @@
 import { useState, useEffect } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -49,6 +59,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [logoDialogOpen, setLogoDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const { 
     subscription, 
     loading: subscriptionLoading, 
@@ -643,9 +654,9 @@ export default function Settings() {
                   )}
                 </div>
 
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t space-y-3">
                   {subscription.subscribed ? (
-                    <div className="space-y-3">
+                    <>
                       <div className="flex flex-wrap gap-2">
                         <Button 
                           onClick={openCustomerPortal} 
@@ -657,15 +668,22 @@ export default function Settings() {
                         <Button 
                           onClick={checkSubscription} 
                           variant="outline"
-                          size="sm"
+                          size="icon"
                         >
                           <RefreshCw className="h-4 w-4" />
                         </Button>
                       </div>
+                      <Button
+                        variant="outline"
+                        className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setCancelDialogOpen(true)}
+                      >
+                        Cancel Subscription
+                      </Button>
                       <p className="text-xs text-muted-foreground">
-                        Update payment method, change plan, or cancel subscription
+                        Update payment method, change plan, or manage billing
                       </p>
-                    </div>
+                    </>
                   ) : (
                     <>
                       <Button 
@@ -790,6 +808,33 @@ export default function Settings() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Cancel Subscription Dialog */}
+        <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to cancel? You'll continue to have access to Premium features until the end of your current billing period
+                {subscription.subscription_end && (
+                  <> ({new Date(subscription.subscription_end).toLocaleDateString()})</>
+                )}.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive hover:bg-destructive/90"
+                onClick={() => {
+                  setCancelDialogOpen(false);
+                  openCustomerPortal();
+                }}
+              >
+                Continue to Cancel
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
