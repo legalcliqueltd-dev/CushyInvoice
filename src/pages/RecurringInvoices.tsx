@@ -151,7 +151,6 @@ export default function RecurringInvoices() {
 
   return (
     <DashboardLayout>
-      <SubscriptionGuard message="Recurring invoices are available on the Premium plan. Automate your invoicing and save time.">
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
