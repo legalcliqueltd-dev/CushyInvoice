@@ -200,7 +200,7 @@ export default function Products() {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openNewDialog}>
+              <Button onClick={openNewDialog} className="neo-btn-subtle">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Product
               </Button>
