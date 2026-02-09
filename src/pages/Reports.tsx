@@ -236,7 +236,7 @@ export default function Reports() {
             </div>
 
             {/* Export Button */}
-            <Card>
+            <Card className="neo-card-subtle">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
