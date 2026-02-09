@@ -97,12 +97,12 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 lg:py-32 relative">
-        <div className="text-center max-w-3xl mx-auto space-y-8 relative z-10">
+      <section className="container mx-auto px-4 py-12 sm:py-20 lg:py-32 relative">
+        <div className="text-center max-w-3xl mx-auto space-y-6 sm:space-y-8 relative z-10">
           <div className="inline-block neo-brutal-btn rounded-full px-4 py-1.5 text-sm font-bold bg-primary/10 text-foreground cursor-default" style={{ boxShadow: "3px 3px 0px hsl(var(--foreground) / 0.3)" }}>
             ✨ invoicing, but make it fun
           </div>
-          <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
             stop chasing payments.
             <br />
             <span className="relative inline-block">
