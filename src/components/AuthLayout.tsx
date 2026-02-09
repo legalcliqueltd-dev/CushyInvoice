@@ -34,7 +34,7 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left side - Brand & Features */}
-      <div className="hidden lg:flex lg:w-[55%] auth-gradient p-12 flex-col justify-between text-white relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-[55%] auth-gradient landing-noise p-12 flex-col justify-between text-white relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
