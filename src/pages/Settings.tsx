@@ -342,7 +342,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-5 neo-card-subtle">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="company">Company Info</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
