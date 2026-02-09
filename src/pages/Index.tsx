@@ -61,7 +61,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background landing-noise">
+    <div className="min-h-screen bg-background landing-noise overflow-x-hidden">
       {/* Animated gradient blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px] animate-blob-float" />
@@ -70,7 +70,7 @@ const Index = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b-2 border-foreground/10 bg-background/90 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b-2 border-foreground/10 bg-background/90 backdrop-blur-md safe-top">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-primary rounded-lg p-1.5">
@@ -78,18 +78,19 @@ const Index = () => {
             </div>
             <span className="text-xl font-black tracking-tight">CushyInvoice</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate("/auth")}
-              className="neo-brutal-btn rounded-lg px-4 py-2 text-sm font-bold bg-background text-foreground"
+              className="neo-brutal-btn rounded-lg px-3 sm:px-4 py-2 text-sm font-bold bg-background text-foreground min-h-[44px]"
             >
               Sign In
             </button>
             <button
               onClick={() => navigate("/auth")}
-              className="neo-brutal-btn rounded-lg px-4 py-2 text-sm font-bold bg-primary text-primary-foreground"
+              className="neo-brutal-btn rounded-lg px-3 sm:px-4 py-2 text-sm font-bold bg-primary text-primary-foreground min-h-[44px]"
             >
-              Get Started →
+              <span className="hidden sm:inline">Get Started →</span>
+              <span className="sm:hidden">Start →</span>
             </button>
           </div>
         </div>
