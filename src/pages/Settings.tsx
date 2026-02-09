@@ -563,7 +563,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-4">
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Subscription & Billing</CardTitle>
                 <CardDescription>
