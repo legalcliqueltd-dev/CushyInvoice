@@ -7,6 +7,14 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
 
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
+const safeTimestampToISO = (timestamp: any): string | null => {
+  if (!timestamp) return null;
+  if (typeof timestamp === 'string') return timestamp;
+  const ms = typeof timestamp === 'number' ? timestamp * 1000 : NaN;
+  const date = new Date(ms);
+  return isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 Deno.serve(async (req) => {
   const signature = req.headers.get('stripe-signature');
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');

@@ -12,6 +12,14 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+const safeTimestampToISO = (timestamp: any): string | null => {
+  if (!timestamp) return null;
+  if (typeof timestamp === 'string') return timestamp;
+  const ms = typeof timestamp === 'number' ? timestamp * 1000 : NaN;
+  const date = new Date(ms);
+  return isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
