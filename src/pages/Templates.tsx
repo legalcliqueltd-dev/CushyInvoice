@@ -94,17 +94,7 @@ export default function Templates() {
               Customize how your invoices look with branded templates
             </p>
           </div>
-          <SubscriptionGuard
-            message="Custom templates require a Premium plan."
-            fallback={
-              <Button variant="outline" disabled>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
-            }
-          >
-            <AddTemplateDialog onTemplateAdded={fetchTemplates} />
-          </SubscriptionGuard>
+          <AddTemplateDialog onTemplateAdded={fetchTemplates} />
         </div>
 
         {/* Default Templates */}
