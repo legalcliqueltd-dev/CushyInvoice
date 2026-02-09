@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { AddTemplateDialog } from "@/components/AddTemplateDialog";
-import { SubscriptionGuard } from "@/components/SubscriptionGuard";
+
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { TemplatePreviewCard } from "@/components/TemplatePreviewCard";
 import { Loader2, FileText, Trash2, Plus, Sparkles } from "lucide-react";
