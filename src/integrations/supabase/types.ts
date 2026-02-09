@@ -244,6 +244,7 @@ export type Database = {
           id: string
           invoice_number: string
           issue_date: string
+          logo_bg_color: string | null
           notes: string | null
           payment_link: string | null
           pdf_url: string | null
@@ -265,6 +266,7 @@ export type Database = {
           id?: string
           invoice_number: string
           issue_date?: string
+          logo_bg_color?: string | null
           notes?: string | null
           payment_link?: string | null
           pdf_url?: string | null
@@ -286,6 +288,7 @@ export type Database = {
           id?: string
           invoice_number?: string
           issue_date?: string
+          logo_bg_color?: string | null
           notes?: string | null
           payment_link?: string | null
           pdf_url?: string | null
