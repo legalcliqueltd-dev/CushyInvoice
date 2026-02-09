@@ -776,24 +776,32 @@ export default function InvoiceNew() {
               </Select>
             </div>
 
-            {templates.length > 0 && (
-              <div className="space-y-2">
-                <Label>Template (Optional)</Label>
-                <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.template_name} {template.is_default && "(Default)"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>Template (Optional)</Label>
+              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Default Templates</div>
+                  <SelectItem value="builtin-modern">Modern</SelectItem>
+                  <SelectItem value="builtin-classic">Classic</SelectItem>
+                  <SelectItem value="builtin-minimal">Minimal</SelectItem>
+                  <SelectItem value="builtin-bold">Bold</SelectItem>
+                  {templates.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-1">Your Templates</div>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.template_name} {template.is_default && "(Default)"}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
