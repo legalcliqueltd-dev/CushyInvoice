@@ -221,7 +221,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t-2 border-foreground/10 mt-16 relative z-10">
+      <footer className="border-t-2 border-foreground/10 mt-16 relative z-10 safe-bottom">
         <div className="container mx-auto px-4 py-10">
           <div className="flex flex-col items-center gap-6">
             <div className="flex items-center gap-2">

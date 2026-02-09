@@ -19,7 +19,7 @@ import {
   RefreshCw,
   Wallet,
   Palette,
-  ChevronRight,
+  MoreHorizontal,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -29,6 +29,26 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 interface DashboardLayoutProps {
   children: ReactNode;
 }
+
+const navItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/clients", icon: Users, label: "Clients" },
+  { to: "/products", icon: Package, label: "Products" },
+  { to: "/invoices", icon: FileText, label: "Invoices" },
+  { to: "/recurring", icon: RefreshCw, label: "Recurring", premium: true },
+  { to: "/expenses", icon: Wallet, label: "Expenses", premium: true },
+  { to: "/templates", icon: Palette, label: "Templates", premium: true },
+  { to: "/reports", icon: BarChart3, label: "Reports" },
+  { to: "/settings", icon: Settings, label: "Settings" },
+];
+
+// Bottom nav shows these 4 items + More
+const bottomNavItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Home" },
+  { to: "/invoices", icon: FileText, label: "Invoices" },
+  { to: "/clients", icon: Users, label: "Clients" },
+  { to: "/reports", icon: BarChart3, label: "Reports" },
+];
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -40,7 +60,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { subscription: sub } = useSubscription();
 
   useEffect(() => {
-    // Set up auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -50,7 +69,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -70,18 +88,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     });
   };
 
-  const navItems = [
-    { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/clients", icon: Users, label: "Clients" },
-    { to: "/products", icon: Package, label: "Products" },
-    { to: "/invoices", icon: FileText, label: "Invoices" },
-    { to: "/recurring", icon: RefreshCw, label: "Recurring", premium: true },
-    { to: "/expenses", icon: Wallet, label: "Expenses", premium: true },
-    { to: "/templates", icon: Palette, label: "Templates", premium: true },
-    { to: "/reports", icon: BarChart3, label: "Reports" },
-    { to: "/settings", icon: Settings, label: "Settings" },
-  ];
-
   const userInitials = session?.user?.email
     ? session.user.email.substring(0, 2).toUpperCase()
     : "U";
@@ -96,6 +102,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </div>
     );
   }
+
+  const isActiveRoute = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-background">
@@ -113,7 +121,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full safe-top">
           {/* Logo Header */}
           <div className="h-16 px-6 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -124,7 +132,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+              className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="h-5 w-5" />
             </button>
@@ -136,7 +144,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className="group flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 border-l-2 border-l-transparent"
+                className="group flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 border-l-2 border-l-transparent min-h-[44px]"
                 activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm border-l-2 border-l-primary"
                 onClick={() => setSidebarOpen(false)}
               >
@@ -152,7 +160,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-border safe-bottom">
             <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-muted/50 rounded-xl">
               <Avatar className="h-10 w-10 border-2 border-primary/20">
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
@@ -168,7 +176,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
             <Button
               variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 min-h-[44px]"
               onClick={handleLogout}
             >
               <LogOut className="mr-3 h-4 w-4" />
@@ -181,11 +189,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Main content */}
       <div className="lg:pl-[280px]">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border">
+        <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border safe-top">
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
+              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -194,7 +202,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             <Button
               onClick={() => navigate("/invoices/new")}
-              className="gap-2 shadow-sm"
+              className="gap-2 shadow-sm min-h-[44px]"
               size="default"
             >
               <Plus className="h-4 w-4" />
@@ -204,9 +212,32 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="p-4 lg:p-8 animate-fade-in">{children}</main>
+        {/* Page content - add bottom padding for mobile nav */}
+        <main className="p-4 lg:p-8 pb-24 lg:pb-8 animate-fade-in">{children}</main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav lg:hidden">
+        <div className="flex items-center justify-around">
+          {bottomNavItems.map((item) => (
+            <button
+              key={item.to}
+              onClick={() => navigate(item.to)}
+              className={`mobile-bottom-nav-item ${isActiveRoute(item.to) ? "active" : ""}`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="text-[10px]">{item.label}</span>
+            </button>
+          ))}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className={`mobile-bottom-nav-item`}
+          >
+            <MoreHorizontal className="h-5 w-5" />
+            <span className="text-[10px]">More</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };
