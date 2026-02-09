@@ -1,39 +1,16 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Crown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const UpgradeBanner = () => {
-  const [showBanner, setShowBanner] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const navigate = useNavigate();
+  const { subscription } = useSubscription();
 
-  useEffect(() => {
-    checkIfShouldShow();
-  }, []);
-
-  const checkIfShouldShow = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_premium, plan_type')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-      if (!profile?.is_premium && profile?.plan_type !== 'trial') {
-        setShowBanner(true);
-      }
-    } catch (error) {
-      console.error("Error checking upgrade eligibility:", error);
-    }
-  };
-
-  if (!showBanner || dismissed) return null;
+  if (subscription.subscribed || dismissed) return null;
 
   return (
     <Alert className="mb-6 bg-gradient-to-r from-primary/10 via-primary/5 to-purple-500/10 border-primary/30 relative overflow-hidden">
