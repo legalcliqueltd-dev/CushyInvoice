@@ -1,88 +1,89 @@
 
-
-# Mobile App Enhancement Plan
+# Mobile App & Feature Enhancements Plan
 
 ## Overview
-Three major improvements for the CushyInvoice native mobile apps: fix iOS domain config, add a branded splash screen, and optimize the UI for mobile screens -- all while keeping the neobrutalism style, animations, gradients, and noise textures intact.
+Four improvements: (1) fix post-auth redirect to stay in-app, (2) add forgot password flow, (3) logo background container with color picker, and (4) template selector on invoice creation page.
 
 ---
 
-## 1. iOS Custom Domain Fix
+## 1. Fix Post-Auth Redirect for Native App
 
-Update `capacitor.config.ts` to ensure both iOS and Android use `https://cushyinvoice.com`. The current config already has `server.url` set to `https://cushyinvoice.com`, so this is already correct for both platforms. No changes needed here -- Capacitor applies the `server` config to both iOS and Android.
+**Problem**: After logging in within the Capacitor app, the webview navigates but may open external browser windows (especially Google OAuth). The app should stay within the webview after authentication.
 
----
-
-## 2. Splash Screen
-
-### What will happen
-- Install `@capacitor/splash-screen` plugin
-- Configure splash screen settings in `capacitor.config.ts` with auto-hide after the app loads
-- Add splash screen image assets to the `public/` folder (a simple branded splash with the CushyInvoice logo on a primary blue background)
-- Call `SplashScreen.hide()` in `main.tsx` after the React app mounts
-
-### Splash screen design
-- Background: Primary blue gradient matching the neobrutalism theme
-- Center: CushyInvoice logo (Receipt icon + text)
-- Auto-hide after 2 seconds or when app is ready
+**Changes**:
+- In `src/pages/Auth.tsx`, update the Google OAuth `redirectTo` to use the custom domain explicitly: `https://cushyinvoice.com/auth`
+- Add detection for Capacitor environment using `window.Capacitor` to ensure navigation stays in-app
+- The email/password login already navigates via `react-router` so it stays in-app naturally
+- For signup `emailRedirectTo`, also set to `https://cushyinvoice.com/dashboard`
 
 ---
 
-## 3. Mobile UI Optimization
+## 2. Forgot Password Feature
 
-All changes will preserve the existing neobrutalism aesthetic (thick borders, offset shadows, noise textures, gradient buttons, blob animations).
+**Changes to `src/pages/Auth.tsx`**:
+- Add a "Forgot password?" link below the password field (visible only on login mode)
+- Add a new state `isForgotPassword` to toggle a password reset form
+- The reset form shows only an email field and calls `supabase.auth.resetPasswordForEmail()` with `redirectTo: https://cushyinvoice.com/auth/reset`
+- Show success message: "Check your email for a password reset link"
 
-### 3a. Viewport & Safe Areas (`index.html`)
-- Add `viewport-fit=cover` to the viewport meta tag
-- Add `apple-mobile-web-app-capable` and status bar meta tags
-- Add safe area padding via CSS env() variables
+**New file: `src/pages/ResetPassword.tsx`**:
+- A page at `/auth/reset` that reads the token from URL
+- Shows a form with "New Password" and "Confirm Password" fields
+- Calls `supabase.auth.updateUser({ password })` to set the new password
+- On success, redirects to `/dashboard`
 
-### 3b. Global Mobile CSS (`src/index.css`)
-- Add safe area inset utilities using `env(safe-area-inset-*)` for notch/home indicator support
-- Add touch-friendly tap highlight removal
-- Add `-webkit-overflow-scrolling: touch` for smooth scrolling
-- Ensure noise overlay and neo-card styles still render correctly on mobile
+**Route addition in `src/App.tsx`**:
+- Add route for `/auth/reset` pointing to `ResetPassword` page
 
-### 3c. Dashboard Layout (`src/components/DashboardLayout.tsx`)
-- Add bottom safe area padding to the sidebar
-- Make the top header respect safe area insets (notch)
-- Increase mobile touch targets for nav items (min 44px height)
-- Add bottom navigation bar for mobile (visible on small screens only) with key quick-access items: Dashboard, Invoices, Clients, and a "More" menu
-- Keep the existing sidebar for tablet/desktop
+---
 
-### 3d. Landing Page (`src/pages/Index.tsx`)
-- Add safe area padding to the sticky nav and footer
-- Reduce hero text sizes slightly on very small screens (< 375px)
-- Make CTA buttons full-width on mobile
-- Ensure blob animations don't cause horizontal overflow on mobile (add `overflow-x: hidden` to container)
+## 3. Logo Background Container
 
-### 3e. Auth Page (`src/pages/Auth.tsx`)
-- Add safe area padding
-- Ensure form inputs have proper `font-size: 16px` to prevent iOS zoom on focus
+**Problem**: Logos currently display without a dedicated background, which can look inconsistent on invoices.
 
-### 3f. General Touch Improvements
-- All interactive elements will have minimum 44x44px touch targets
-- Add `touch-action: manipulation` to prevent double-tap zoom on buttons
+**Changes to `src/pages/InvoiceNew.tsx`**:
+- Wrap the logo preview in a square container with rounded corners (`rounded-xl`)
+- Default background color: white (`#ffffff`)
+- Add a small color picker input next to the logo to let users change the background color
+- Store the selected `logo_bg_color` in state (default: `#ffffff`)
+- Pass `logo_bg_color` through to the invoice save and PDF generation
+
+**Changes to `src/lib/generateInvoicePdf.ts`**:
+- Before drawing the logo image, draw a filled rounded rectangle behind it using the chosen background color
+- This ensures the PDF also shows the logo with its colored background container
+
+**Changes to `src/pages/InvoiceDetail.tsx`**:
+- Display the logo with the same rounded background container when viewing an invoice
+
+**Database**: Add `logo_bg_color` column to the `invoices` table (VARCHAR, default `#ffffff`, nullable) so each invoice can store its logo background color preference.
+
+---
+
+## 4. Template Selector on Invoice Creation
+
+**Current state**: Templates are already fetched and shown in a dropdown on the create invoice page, but only when the user has custom templates (`templates.length > 0`).
+
+**Changes to `src/pages/InvoiceNew.tsx`**:
+- Always show the template selector (not conditionally on `templates.length > 0`)
+- Include the 4 built-in default templates (Modern, Classic, Minimal, Bold) alongside any custom user templates in the dropdown
+- Group templates: "Default Templates" section and "Your Templates" section in the Select dropdown
+- When a built-in template is selected, apply its style settings (color, layout) to the invoice
+- Remove the condition that hides the template selector when no custom templates exist
 
 ---
 
 ## Technical Details
 
-### Files to create
-- None (splash screen assets will be generated natively via Capacitor after `cap sync`)
-
 ### Files to modify
-1. **`capacitor.config.ts`** -- Add splash screen plugin config
-2. **`index.html`** -- Add mobile meta tags, viewport-fit, apple-mobile-web-app tags
-3. **`src/index.css`** -- Add safe area utilities, touch styles, mobile bottom nav styles
-4. **`src/components/DashboardLayout.tsx`** -- Add mobile bottom navigation bar, safe area support, larger touch targets
-5. **`src/pages/Index.tsx`** -- Mobile-responsive improvements, overflow fix
-6. **`src/main.tsx`** -- Add SplashScreen.hide() call on mount
-7. **`package.json`** -- Add `@capacitor/splash-screen` dependency
+1. **`src/pages/Auth.tsx`** -- Add forgot password link/flow, fix OAuth redirectTo for native app
+2. **`src/pages/InvoiceNew.tsx`** -- Logo background container with color picker, always-visible template selector with default templates
+3. **`src/lib/generateInvoicePdf.ts`** -- Draw rounded colored background behind logo in PDF
+4. **`src/pages/InvoiceDetail.tsx`** -- Show logo with background container
+5. **`src/App.tsx`** -- Add `/auth/reset` route
+6. **`src/components/LogoUploadDialog.tsx`** -- No changes needed (logo upload itself is fine)
 
-### After implementation
-You will need to:
-1. Pull the latest code from GitHub
-2. Run `npm install`
-3. Run `npx cap sync` to sync splash screen and config changes
-4. Rebuild in Android Studio / Xcode
+### Files to create
+1. **`src/pages/ResetPassword.tsx`** -- Password reset page with new password form
+
+### Database migration
+- Add `logo_bg_color` column (VARCHAR, default '#ffffff') to `invoices` table
