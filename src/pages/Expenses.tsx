@@ -33,7 +33,6 @@ export default function Expenses() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [categoryTotals, setCategoryTotals] = useState<{ [key: string]: number }>({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const { limits } = usePlanLimits();
   const { toast } = useToast();
   const navigate = useNavigate();
 
