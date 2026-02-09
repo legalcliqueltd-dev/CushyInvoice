@@ -410,14 +410,14 @@ export default function Settings() {
                   />
                 </div>
 
-                <Button onClick={handleProfileUpdate} disabled={saving}>
+                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Profile
                 </Button>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="neo-card-subtle">
               <CardHeader>
                 <CardTitle>Account Security</CardTitle>
                 <CardDescription>
