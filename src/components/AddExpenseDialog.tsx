@@ -93,7 +93,7 @@ export const AddExpenseDialog = ({ onExpenseAdded }: AddExpenseDialogProps) => {
           Add Expense
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] neo-card-subtle">
         <DialogHeader>
           <DialogTitle>Add New Expense</DialogTitle>
           <DialogDescription className="sr-only">
