@@ -1,61 +1,21 @@
 
+# Update Capacitor to Use Custom Domain
 
-# Fix: "Invalid time value" Crash Preventing Paid Users From Being Recognized
+## Problem
+The app on your phone is loading the Lovable login page instead of your CushyInvoice app because the Capacitor configuration points to the Lovable preview URL.
 
-## Root Cause
-Both the **stripe-webhook** and **check-subscription** edge functions are crashing with `"Invalid time value"` when calling `new Date(subscription.current_period_end * 1000).toISOString()`.
+## What Will Change
+Update the `capacitor.config.ts` file to use `https://cushyinvoice.com` instead of the current Lovable URL.
 
-The Stripe API returns `current_period_end` and `trial_end` as Unix timestamps (seconds), but the value being received may already be in a different format depending on the Stripe SDK version. The `* 1000` multiplication on an unexpected value produces an invalid Date, which crashes `.toISOString()`.
+## After the Change
+Once updated, you will need to:
+1. Pull the latest code from GitHub
+2. Run `npx cap sync android`
+3. Rebuild and run the app in Android Studio
 
-This means:
-- The webhook received the user's `customer.subscription.created` event but **crashed before updating the database**
-- The check-subscription function also crashes every call, so even periodic checks fail
-- The user's profile remains: `is_premium: false`, `plan_type: free`, `stripe_customer_id: null`
+The app on your phone will then load your CushyInvoice website directly.
 
-## Fix
+## Technical Details
 
-### 1. Add safe date conversion helper to both edge functions
-
-Replace raw `new Date(value * 1000).toISOString()` calls with a safe helper:
-
-```typescript
-const safeTimestampToISO = (timestamp: any): string | null => {
-  if (!timestamp) return null;
-  // If it's already a string (ISO date), return as-is
-  if (typeof timestamp === 'string') return timestamp;
-  // If it's a number, treat as Unix seconds
-  const ms = typeof timestamp === 'number' ? timestamp * 1000 : NaN;
-  const date = new Date(ms);
-  return isNaN(date.getTime()) ? null : date.toISOString();
-};
-```
-
-### 2. Update `supabase/functions/stripe-webhook/index.ts`
-- Add the `safeTimestampToISO` helper
-- Line 80: Change `new Date(subscription.current_period_end * 1000).toISOString()` to `safeTimestampToISO(subscription.current_period_end)`
-- Line 81: Change the `trial_end` conversion similarly
-- Also add `is_premium: true` and `plan_type: 'premium'` to the profile update for active/trialing subscriptions (currently missing from the created/updated handler)
-
-### 3. Update `supabase/functions/check-subscription/index.ts`
-- Add the same `safeTimestampToISO` helper
-- Line 108: Change `new Date(subscription.current_period_end * 1000).toISOString()` to `safeTimestampToISO(subscription.current_period_end)`
-- Line 109: Change the `trial_end` conversion similarly
-
-### 4. Fix the user's profile data immediately
-Run a database update to set the correct subscription data for user `fe8ab737-d7e6-4885-b947-3b0ce1632589`:
-- `is_premium: true`
-- `plan_type: 'premium'`
-- `subscription_status: 'trialing'`
-- `stripe_customer_id: 'cus_TwpoCXUkxt68hw'`
-- `current_plan: 'monthly'` (based on the subscription's price ID)
-
-### 5. Redeploy both edge functions
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `supabase/functions/stripe-webhook/index.ts` | Safe date conversion, add is_premium/plan_type on subscription create/update |
-| `supabase/functions/check-subscription/index.ts` | Safe date conversion |
-| Database | Fix gobeth.ltd@gmail.com profile to reflect active subscription |
-
+**File: `capacitor.config.ts`**
+- Change `server.url` from `https://e23699a8-f80e-4b9d-bb96-d8d50a1c74ed.lovableproject.com?forceHideBadge=true` to `https://cushyinvoice.com`
