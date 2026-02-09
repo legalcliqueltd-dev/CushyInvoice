@@ -1,101 +1,119 @@
 
-# Landing Page UI Overhaul -- Gen Z + Neobrutalism
 
-## Overview
-Transform the landing page from a standard corporate SaaS look into an energetic, Gen Z-friendly design with neobrutalism accents, animated gradients, background noise texture, and boosted blue saturation.
+# Extend Neobrutalism UI Across the App (Excluding Landing Page)
 
-## What Changes
+## Goal
+Apply subtle neobrutalism accents and the updated saturated blue palette consistently across all dashboard pages, the auth page, and the sidebar -- without disrupting usability or navigation flow. The changes are cosmetic only; no functionality changes.
 
-### 1. Boost Blue Saturation (CSS Variables)
-**File: `src/index.css`**
-- Increase primary blue from `217 91% 60%` to `220 100% 55%` -- punchier, more saturated blue
-- Update accent, ring, and sidebar colors to match
-- Keep dark mode consistent with the new saturated palette
+## Design Principles
+- **Subtle, not aggressive**: Dashboard pages need to be professional and easy to scan. Neobrutalism touches will be lighter than the landing page -- thinner borders (2px), smaller shadows, no rotation effects.
+- **Consistency**: Every page gets the same card style, button accents, and spacing rhythm.
+- **No disruption**: All layouts, interactions, and data flows remain identical.
 
-### 2. Add Background Noise Texture + Animated Gradient
-**File: `src/index.css`**
-- Add a subtle SVG noise filter as a pseudo-element overlay on the landing page background using a CSS class `.landing-bg`
-- Add a slow-moving animated gradient blob keyframe (`@keyframes blob-float`) for floating gradient orbs in the hero
-- Add `.neo-brutal` button class: thick 3px black border, 4px offset box-shadow, translate on hover to create a "press" effect
-- Add `.neo-card` class: 2px black border, subtle shadow offset, rounded corners
+## Changes by File
 
-### 3. Redesign Landing Page Component
-**File: `src/pages/Index.tsx`**
+### 1. Fix Missing DashboardLayout on 3 Pages
+**Files:** `src/pages/Expenses.tsx`, `src/pages/RecurringInvoices.tsx`
 
-**Navigation:**
-- Neobrutalism-style nav buttons with thick borders and shadow offsets
-- Logo with a colored background pill shape
+These pages render without the sidebar navigation. Wrap their content in `<DashboardLayout>` so users can navigate normally. The RecurringInvoices page also uses `SubscriptionGuard` as an outer wrapper which blocks the layout -- move the guard inside the layout instead.
 
-**Hero Section:**
-- Large animated gradient blobs floating behind the text (3 colored circles with blur + animation)
-- Bold, oversized heading with a highlighted keyword using a rotated background rectangle (marker highlight effect)
-- Subtext in a more casual, Gen Z tone ("stop chasing payments. start vibing with your invoices.")
-- CTA buttons with neobrutalism style: thick black borders, shadow offset, hover press animation
-- Add a decorative SVG arrow/squiggle doodle near the CTA
+### 2. Sidebar Enhancement
+**File:** `src/components/DashboardLayout.tsx`
 
-**Features Section:**
-- Neobrutalism cards with thick borders, colored backgrounds (pastel blue, purple, green, orange), and offset shadows
-- Icons inside colored circles with thick borders
-- Staggered fade-in animation on scroll (using CSS animation-delay)
+- Add a subtle 2px left accent border on the active nav item (primary blue)
+- Add a tiny colored dot indicator next to premium nav items instead of (or alongside) the crown icon
+- Slightly increase font weight on section header "CushyInvoice"
 
-**Testimonials:**
-- Cards with neobrutalism borders and slight rotation (transform: rotate(-1deg / 1deg / 2deg)) for a casual scattered look
-- Colorful avatar circles instead of plain text names
-- Star ratings in yellow/gold with thicker styling
+### 3. Dashboard Page Cards
+**File:** `src/pages/Dashboard.tsx`
 
-**CTA Section:**
-- Full-width gradient banner with noise overlay
-- Neobrutalism button in contrasting color (e.g., yellow with black border)
+- Apply `neo-card` class to stat cards for subtle border + offset shadow
+- Add colored left-border accent to each stat card (green for paid, blue for outstanding, etc.)
+- Style the "Recent Invoices" list items with a subtle left-border color based on status
+- Style action buttons (Add Client, Create Invoice) with `neo-brutal-btn` class
 
-**Footer:**
-- Cleaner layout, social icons in neobrutalism pill shapes
+### 4. Clients Page
+**File:** `src/pages/Clients.tsx`
 
-### 4. Add Tailwind Keyframes for Blob Animation
-**File: `tailwind.config.ts`**
-- Add `blob-float` keyframe for the animated gradient blobs
-- Add `float` animation utility
+- Apply `neo-card` to the search card and table card
+- Style the "Add Client" button with `neo-brutal-btn`
+- Add subtle row hover with a left-border highlight on the table
 
-## Technical Details
+### 5. Products Page
+**File:** `src/pages/Products.tsx`
 
-### New CSS Classes in `src/index.css`
-```css
-.neo-brutal-btn {
-  border: 3px solid currentColor;
-  box-shadow: 4px 4px 0px currentColor;
-  transition: all 0.15s ease;
-}
-.neo-brutal-btn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px currentColor;
-}
-.neo-card {
-  border: 2px solid hsl(var(--foreground));
-  box-shadow: 4px 4px 0px hsl(var(--foreground) / 0.15);
-}
-.landing-noise::after {
-  /* SVG noise texture overlay at low opacity */
-}
-```
+- Same treatment as Clients: `neo-card` on cards, `neo-brutal-btn` on primary button
+- Consistent table styling
 
-### New Tailwind Keyframes
-```text
-blob-float: translates and scales blobs in a loop
-  0%   -> translate(0, 0) scale(1)
-  33%  -> translate(30px, -50px) scale(1.1)
-  66%  -> translate(-20px, 20px) scale(0.9)
-  100% -> translate(0, 0) scale(1)
-```
+### 6. Invoices Page
+**File:** `src/pages/Invoices.tsx`
 
-### Files Changed
-| File | Change |
-|------|--------|
-| `src/index.css` | Boost blue saturation, add noise overlay class, neobrutalism utility classes, blob animation keyframes |
-| `src/pages/Index.tsx` | Full redesign with neobrutalism cards/buttons, animated gradient blobs, noise background, Gen Z copy, staggered animations |
-| `tailwind.config.ts` | Add blob-float keyframe and float animation |
+- `neo-card` on cards
+- `neo-brutal-btn` on "New Invoice" button
+- Status badges get slightly bolder borders
 
-### What Stays the Same
-- All links and routes (privacy, terms, social links, auth navigation)
-- WhatsApp support button functionality
-- Overall page structure (nav, hero, features, testimonials, CTA, footer)
-- The existing `GradientButton` component (still used but supplemented with neo-brutal style buttons)
-- Dashboard and all other pages remain untouched
+### 7. Expenses Page
+**File:** `src/pages/Expenses.tsx`
+
+- Wrap in `DashboardLayout`
+- Apply `neo-card` to stat cards and expense list card
+- Style category breakdown items with colored left borders
+
+### 8. Recurring Invoices Page
+**File:** `src/pages/RecurringInvoices.tsx`
+
+- Wrap in `DashboardLayout` (move `SubscriptionGuard` inside)
+- Apply `neo-card` to recurring invoice cards
+- Style action buttons consistently
+
+### 9. Reports Page
+**File:** `src/pages/Reports.tsx`
+
+- `neo-card` on all cards
+- `neo-brutal-btn` on Export button
+- Colored stat values (green for paid, red for unpaid) with bolder weight
+
+### 10. Settings Page
+**File:** `src/pages/Settings.tsx`
+
+- `neo-card` on setting section cards
+- Style tab triggers with a bolder active state
+- `neo-brutal-btn` on primary Save/Update buttons
+
+### 11. Auth Page
+**File:** `src/components/AuthLayout.tsx`
+
+- Apply `neo-card` styling to the feature cards on the left panel
+- Add subtle noise texture to the gradient background (reuse `.landing-noise`)
+- Style the form card with a subtle neo-card border
+- Style the primary "Sign In" / "Create Account" button with `neo-brutal-btn`
+
+### 12. Update Neo-Card CSS for Dashboard Context
+**File:** `src/index.css`
+
+- Add a `.neo-card-subtle` variant with thinner border (1.5px) and smaller shadow offset (3px) -- better for data-heavy dashboard contexts vs. the landing page's bolder 2px/5px
+- Add `.neo-stat-card` with a colored left border utility
+- Add status-based left-border utilities (`.border-l-success`, `.border-l-info`, etc.)
+
+## What Does NOT Change
+- Landing page (Index.tsx) -- already done
+- All data fetching, form logic, and routing
+- Color palette (already updated in previous step)
+- Core component files (button.tsx, card.tsx, etc.) -- styling applied via className overrides
+
+## Summary Table
+
+| File | Changes |
+|------|---------|
+| `src/index.css` | Add `.neo-card-subtle`, `.neo-stat-card`, status border utilities |
+| `src/components/DashboardLayout.tsx` | Active nav accent, minor styling |
+| `src/components/AuthLayout.tsx` | Neo-card features, noise texture, button styling |
+| `src/pages/Dashboard.tsx` | Neo-card stats, status borders, neo-brutal buttons |
+| `src/pages/Clients.tsx` | Neo-card, neo-brutal primary button |
+| `src/pages/Products.tsx` | Neo-card, neo-brutal primary button |
+| `src/pages/Invoices.tsx` | Neo-card, neo-brutal primary button |
+| `src/pages/Expenses.tsx` | Add DashboardLayout, neo-card, status borders |
+| `src/pages/RecurringInvoices.tsx` | Add DashboardLayout, move guard inside, neo-card |
+| `src/pages/Reports.tsx` | Neo-card, neo-brutal export button |
+| `src/pages/Settings.tsx` | Neo-card sections, neo-brutal save buttons |
+
