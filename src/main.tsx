@@ -5,9 +5,10 @@ import "./index.css";
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
-// Hide splash screen once app is mounted (only in Capacitor)
-import("@capacitor/splash-screen")
-  .then(({ SplashScreen }) => SplashScreen.hide())
-  .catch(() => {
-    // Not running in Capacitor or module not available
-  });
+// Hide splash screen in Capacitor native app
+if ((window as any).Capacitor) {
+  const { SplashScreen } = (window as any).Capacitor.Plugins;
+  if (SplashScreen) {
+    SplashScreen.hide();
+  }
+}
