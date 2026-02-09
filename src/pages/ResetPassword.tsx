@@ -95,10 +95,18 @@ export default function ResetPassword() {
 
   if (!ready) {
     return (
-      <AuthLayout title="Reset Password" subtitle="Verifying your reset link...">
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+      <AuthLayout title="Reset Password" subtitle={error || "Verifying your reset link..."}>
+        {error ? (
+          <div className="text-center py-4">
+            <Button onClick={() => navigate("/auth")} className="mt-4">
+              Back to Login
+            </Button>
+          </div>
+        ) : (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
       </AuthLayout>
     );
   }
