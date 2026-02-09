@@ -127,6 +127,8 @@ export default {
         "scale-in": "scale-in 0.2s ease-out",
         "slide-in-right": "slide-in-right 0.3s ease-out",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "blob-float": "blob-float 8s ease-in-out infinite",
+        "blob-float-reverse": "blob-float-reverse 10s ease-in-out infinite",
       },
     },
   },
