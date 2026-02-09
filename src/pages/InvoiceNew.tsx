@@ -104,6 +104,7 @@ export default function InvoiceNew() {
   const [taxRate, setTaxRate] = useState(0);
   const [currency, setCurrency] = useState("USD");
   const [notes, setNotes] = useState("");
+  const [logoBgColor, setLogoBgColor] = useState("#ffffff");
   const [loading, setLoading] = useState(false);
   const [newClientDialog, setNewClientDialog] = useState(false);
   const [newClientData, setNewClientData] = useState({ name: "", email: "", phone: "", address: "" });
