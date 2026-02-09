@@ -61,7 +61,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background landing-noise">
+    <div className="min-h-screen bg-background landing-noise overflow-x-hidden">
       {/* Animated gradient blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px] animate-blob-float" />
@@ -70,7 +70,7 @@ const Index = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b-2 border-foreground/10 bg-background/90 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b-2 border-foreground/10 bg-background/90 backdrop-blur-md safe-top">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-primary rounded-lg p-1.5">
@@ -78,30 +78,31 @@ const Index = () => {
             </div>
             <span className="text-xl font-black tracking-tight">CushyInvoice</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate("/auth")}
-              className="neo-brutal-btn rounded-lg px-4 py-2 text-sm font-bold bg-background text-foreground"
+              className="neo-brutal-btn rounded-lg px-3 sm:px-4 py-2 text-sm font-bold bg-background text-foreground min-h-[44px]"
             >
               Sign In
             </button>
             <button
               onClick={() => navigate("/auth")}
-              className="neo-brutal-btn rounded-lg px-4 py-2 text-sm font-bold bg-primary text-primary-foreground"
+              className="neo-brutal-btn rounded-lg px-3 sm:px-4 py-2 text-sm font-bold bg-primary text-primary-foreground min-h-[44px]"
             >
-              Get Started →
+              <span className="hidden sm:inline">Get Started →</span>
+              <span className="sm:hidden">Start →</span>
             </button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 lg:py-32 relative">
-        <div className="text-center max-w-3xl mx-auto space-y-8 relative z-10">
+      <section className="container mx-auto px-4 py-12 sm:py-20 lg:py-32 relative">
+        <div className="text-center max-w-3xl mx-auto space-y-6 sm:space-y-8 relative z-10">
           <div className="inline-block neo-brutal-btn rounded-full px-4 py-1.5 text-sm font-bold bg-primary/10 text-foreground cursor-default" style={{ boxShadow: "3px 3px 0px hsl(var(--foreground) / 0.3)" }}>
             ✨ invoicing, but make it fun
           </div>
-          <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
             stop chasing payments.
             <br />
             <span className="relative inline-block">
@@ -121,13 +122,13 @@ const Index = () => {
           </svg>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
-            <GradientButton onClick={() => navigate("/auth")} className="text-lg px-10 py-5">
+            <GradientButton onClick={() => navigate("/auth")} className="text-lg px-10 py-5 w-full sm:w-auto">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </GradientButton>
             <button
               onClick={() => window.open("https://wa.me/2348129797793", "_blank")}
-              className="neo-brutal-btn rounded-xl px-8 py-4 text-base font-bold bg-emerald-400 text-foreground inline-flex items-center justify-center gap-2"
+              className="neo-brutal-btn rounded-xl px-8 py-4 text-base font-bold bg-emerald-400 text-foreground inline-flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px]"
             >
               <MessageCircle className="w-5 h-5" />
               WhatsApp Support
@@ -220,7 +221,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t-2 border-foreground/10 mt-16 relative z-10">
+      <footer className="border-t-2 border-foreground/10 mt-16 relative z-10 safe-bottom">
         <div className="container mx-auto px-4 py-10">
           <div className="flex flex-col items-center gap-6">
             <div className="flex items-center gap-2">
