@@ -125,7 +125,7 @@ export default function Reports() {
         </div>
 
         {/* Date Range Filter */}
-        <Card>
+        <Card className="neo-card-subtle">
           <CardHeader>
             <CardTitle>Filter by Date Range</CardTitle>
           </CardHeader>
