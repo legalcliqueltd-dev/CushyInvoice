@@ -1,99 +1,61 @@
 
 
-# Unlock All Features for Paid Users, Remove Popups, Fix Subscription Logic
+# Fix: "Invalid time value" Crash Preventing Paid Users From Being Recognized
 
-## Current User Breakdown
+## Root Cause
+Both the **stripe-webhook** and **check-subscription** edge functions are crashing with `"Invalid time value"` when calling `new Date(subscription.current_period_end * 1000).toISOString()`.
 
-| Status | Count | Details |
-|--------|-------|---------|
-| Free users | 3 | plan_type=free, not premium |
-| Active trial users | 2 | plan_type=trial, currently premium |
-| Expired trial (stuck) | 1 | plan_type=trial but is_premium=false |
-| Canceled but still "premium" | 1 | plan_type=premium, is_premium=true, status=canceled -- this is a bug |
-| Actively paying users | 0 | No active Stripe subscriptions found |
+The Stripe API returns `current_period_end` and `trial_end` as Unix timestamps (seconds), but the value being received may already be in a different format depending on the Stripe SDK version. The `* 1000` multiplication on an unexpected value produces an invalid Date, which crashes `.toISOString()`.
 
-## Issues Found
+This means:
+- The webhook received the user's `customer.subscription.created` event but **crashed before updating the database**
+- The check-subscription function also crashes every call, so even periodic checks fail
+- The user's profile remains: `is_premium: false`, `plan_type: free`, `stripe_customer_id: null`
 
-1. **Payment Reminder popup** still exists on InvoiceDetail -- needs removal
-2. **SubscriptionGuard** blocks Recurring Invoices, Templates (custom creation) for non-premium users
-3. **Expenses page** has its own premium gate using `usePlanLimits` -- blocks the entire page
-4. **Dashboard** shows TrialBanner, UpgradeBanner, PlanLimitsBanner, and AdSense ads to non-premium users
-5. **Sidebar** shows Crown badges on Recurring, Expenses, Templates nav items
-6. **Canceled user bug**: 1 user has subscription_status=canceled but is_premium=true -- the webhook should have fixed this
-7. **check-subscription edge function** correctly syncs Stripe status, but the webhook doesn't update `is_premium` and `plan_type` on cancellation
+## Fix
 
-## Plan
+### 1. Add safe date conversion helper to both edge functions
 
-### 1. Remove Payment Reminder Dialog from InvoiceDetail
-**File: `src/pages/InvoiceDetail.tsx`**
-- Remove the `import { AddPaymentReminderDialog }` line
-- Remove the `<AddPaymentReminderDialog>` component from the action buttons (line 282)
+Replace raw `new Date(value * 1000).toISOString()` calls with a safe helper:
 
-### 2. Remove All Premium Gates -- Make Every Feature Open to Paid Users
-**File: `src/pages/RecurringInvoices.tsx`**
-- Remove the `<SubscriptionGuard>` wrapper so recurring invoices page content renders for everyone
-- Keep the import cleanup
+```typescript
+const safeTimestampToISO = (timestamp: any): string | null => {
+  if (!timestamp) return null;
+  // If it's already a string (ISO date), return as-is
+  if (typeof timestamp === 'string') return timestamp;
+  // If it's a number, treat as Unix seconds
+  const ms = typeof timestamp === 'number' ? timestamp * 1000 : NaN;
+  const date = new Date(ms);
+  return isNaN(date.getTime()) ? null : date.toISOString();
+};
+```
 
-**File: `src/pages/Templates.tsx`**
-- Remove both `<SubscriptionGuard>` usages (lines 97-107 and 168-170)
-- Allow all users to create custom templates
+### 2. Update `supabase/functions/stripe-webhook/index.ts`
+- Add the `safeTimestampToISO` helper
+- Line 80: Change `new Date(subscription.current_period_end * 1000).toISOString()` to `safeTimestampToISO(subscription.current_period_end)`
+- Line 81: Change the `trial_end` conversion similarly
+- Also add `is_premium: true` and `plan_type: 'premium'` to the profile update for active/trialing subscriptions (currently missing from the created/updated handler)
 
-**File: `src/pages/Expenses.tsx`**
-- Remove the `usePlanLimits` import and the premium gate block (lines 108-129)
-- Always fetch expenses regardless of plan status
-- Remove the `limits.isPremium` check in useEffect (lines 42-47)
+### 3. Update `supabase/functions/check-subscription/index.ts`
+- Add the same `safeTimestampToISO` helper
+- Line 108: Change `new Date(subscription.current_period_end * 1000).toISOString()` to `safeTimestampToISO(subscription.current_period_end)`
+- Line 109: Change the `trial_end` conversion similarly
 
-### 3. Hide Banners and Ads for Paid Users on Dashboard
-**File: `src/pages/Dashboard.tsx`**
-- Wrap `<TrialBanner />`, `<UpgradeBanner />`, `<PlanLimitsBanner />`, and `<AdSenseAd />` in a condition: only show when `!subscription.subscribed`
-- The `useSubscription` hook is already imported
+### 4. Fix the user's profile data immediately
+Run a database update to set the correct subscription data for user `fe8ab737-d7e6-4885-b947-3b0ce1632589`:
+- `is_premium: true`
+- `plan_type: 'premium'`
+- `subscription_status: 'trialing'`
+- `stripe_customer_id: 'cus_TwpoCXUkxt68hw'`
+- `current_plan: 'monthly'` (based on the subscription's price ID)
 
-### 4. Remove Crown Badges from Sidebar for Paid Users
-**File: `src/components/DashboardLayout.tsx`**
-- Import `useSubscription` hook
-- When `subscription.subscribed` is true, hide the Crown badge on premium nav items
-- Alternatively, remove the `premium: true` flag rendering when subscribed
+### 5. Redeploy both edge functions
 
-### 5. Fix Webhook to Properly Update is_premium and plan_type on Cancellation
-**File: `supabase/functions/stripe-webhook/index.ts`**
-- In the `customer.subscription.deleted` handler, also set `is_premium: false` and `plan_type: 'free'` (currently it only sets `subscription_status: 'canceled'` but leaves `is_premium` and `plan_type` unchanged)
-
-### 6. Fix the Canceled User Data
-- Run a data update to fix the 1 user who has `plan_type=premium, is_premium=true` but `subscription_status=canceled` -- set them to `is_premium=false, plan_type='free'`
-
-### 7. Style Consistency for Remaining Dialogs
-**Files: `src/components/AddRecurringInvoiceDialog.tsx`, `src/components/AddTemplateDialog.tsx`, `src/components/ShareInvoiceDialog.tsx`, `src/components/AddExpenseDialog.tsx`**
-- Apply `neo-card-subtle` border styling to DialogContent
-- Apply `neo-btn-subtle` to primary action buttons
-- Ensures all dialogs match the subscription page's neobrutalism style
-
-### 8. Update SubscriptionGuard Styling (kept as fallback)
-**File: `src/components/SubscriptionGuard.tsx`**
-- Apply `neo-card-subtle` and `neo-btn-subtle` classes to the upgrade alert for visual consistency
-- This component stays in the codebase for any future use but won't block features currently
-
-## What Does NOT Change
-- Landing page
-- Subscription/Stripe integration logic (check-subscription, create-subscription-session, customer-portal)
-- Routing, data fetching, form submissions
-- The `usePlanLimits` hook file itself (stays for potential future use)
-- Background colors and core theme
-
-## Summary Table
+## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/InvoiceDetail.tsx` | Remove AddPaymentReminderDialog |
-| `src/pages/RecurringInvoices.tsx` | Remove SubscriptionGuard wrapper |
-| `src/pages/Templates.tsx` | Remove both SubscriptionGuard usages |
-| `src/pages/Expenses.tsx` | Remove premium gate, always load expenses |
-| `src/pages/Dashboard.tsx` | Conditionally hide banners/ads for paid users |
-| `src/components/DashboardLayout.tsx` | Hide Crown badges for subscribed users |
-| `src/components/SubscriptionGuard.tsx` | Neo styling update |
-| `src/components/AddRecurringInvoiceDialog.tsx` | Neo styling on dialog |
-| `src/components/AddTemplateDialog.tsx` | Neo styling on dialog |
-| `src/components/ShareInvoiceDialog.tsx` | Neo styling on dialog |
-| `src/components/AddExpenseDialog.tsx` | Neo styling on dialog |
-| `supabase/functions/stripe-webhook/index.ts` | Fix cancellation to set is_premium=false, plan_type='free' |
-| Database | Fix 1 canceled user's is_premium/plan_type |
+| `supabase/functions/stripe-webhook/index.ts` | Safe date conversion, add is_premium/plan_type on subscription create/update |
+| `supabase/functions/check-subscription/index.ts` | Safe date conversion |
+| Database | Fix gobeth.ltd@gmail.com profile to reflect active subscription |
 
