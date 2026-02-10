@@ -216,7 +216,6 @@ export default function Auth() {
     
     if (isCapacitor) {
       try {
-        // Get OAuth URL with skipBrowserRedirect so we can open it in system browser
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
@@ -227,27 +226,23 @@ export default function Auth() {
         if (error) throw error;
         if (!data?.url) throw new Error("No OAuth URL returned");
 
-        // Listen for the app URL open event (when redirect comes back)
+        // Dynamically import Capacitor plugins (only available in native context)
+        const { Browser } = await import("@capacitor/browser");
+        const { App: CapApp } = await import("@capacitor/app");
+
         const appUrlListener = await CapApp.addListener("appUrlOpen", async ({ url }) => {
-          // Extract tokens from the redirect URL hash
           if (url.includes("access_token") || url.includes("/auth")) {
             await Browser.close();
             appUrlListener.remove();
-            // The session will be picked up by onAuthStateChange
-            // Force a session refresh
             await supabase.auth.getSession();
           }
         });
 
-        // Open in system browser (SFSafariViewController / Chrome Custom Tabs)
-        // This is allowed by Google's "Use secure browsers" policy
         await Browser.open({ url: data.url, windowName: "_self" });
 
-        // Also listen for browser finished (user manually closes)
         Browser.addListener("browserFinished", () => {
           appUrlListener.remove();
           setLoading(false);
-          // Check if session was established while browser was open
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
               navigate("/dashboard");
