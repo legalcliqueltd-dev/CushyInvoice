@@ -126,10 +126,18 @@ export default function InvoiceNew() {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchClients();
-    fetchProducts();
-    fetchProfileDefaults();
-    fetchTemplates();
+    const loadData = async () => {
+      try {
+        setPageLoading(true);
+        setPageError(false);
+        await Promise.all([fetchClients(), fetchProducts(), fetchProfileDefaults(), fetchTemplates()]);
+      } catch {
+        setPageError(true);
+      } finally {
+        setPageLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const fetchProfileDefaults = async () => {
