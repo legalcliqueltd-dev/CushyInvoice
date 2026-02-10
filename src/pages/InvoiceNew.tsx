@@ -106,6 +106,8 @@ export default function InvoiceNew() {
   const [notes, setNotes] = useState("");
   const [logoBgColor, setLogoBgColor] = useState("#ffffff");
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [pageError, setPageError] = useState(false);
   const [newClientDialog, setNewClientDialog] = useState(false);
   const [newClientData, setNewClientData] = useState({ name: "", email: "", phone: "", address: "" });
   
