@@ -1,123 +1,75 @@
 
 
-# Mobile App Improvements Plan
+# Comprehensive Mobile App Fixes
 
-This plan covers 4 areas: removing the landing page for native apps, fixing mobile UI across all pages, diagnosing/fixing the Google sign-in redirect issue, and adding mobile UX utilities.
+This plan addresses 6 issues: blank invoice page, Google OAuth "restricted" error, dashboard banner clutter, branded splash screen, back button navigation, and template creation from invoice page.
 
 ---
 
-## 1. Skip Landing Page in Native App
+## 1. Fix Blank Invoice Detail Page
 
-**Problem:** The Capacitor app loads the full marketing landing page (Index.tsx) before users can sign in. It should go directly to the Auth page after the splash screen.
+**Root Cause:** Line 216 in `InvoiceDetail.tsx` calls `invoice?.payments.reduce(...)` -- if `payments` is `null` (Supabase returns `null` for empty relations), this crashes and the page goes blank. Also, line 111 uses `.single()` which throws a hard error if no row is found.
 
-**Solution:** Detect Capacitor at runtime and auto-redirect from `/` to `/auth` (or `/dashboard` if already logged in).
+**Fix in `src/pages/InvoiceDetail.tsx`:**
+- Change `.single()` (line 111) to `.maybeSingle()` to prevent hard crashes
+- Change `invoice?.payments.reduce(...)` (line 216) to `(invoice?.payments || []).reduce(...)`
+- Wrap `format(new Date(invoice.issue_date))` calls in try-catch with fallback text
+
+---
+
+## 2. Fix Google OAuth "Restricted" Error
+
+**Root Cause:** The "restricted" message comes from Google's OAuth consent screen. Your app is likely still in "Testing" mode in Google Cloud Console, which limits sign-in to only pre-approved test users.
+
+**What you need to do (outside of code):**
+1. Go to Google Cloud Console > APIs & Services > OAuth consent screen
+2. If the app is in "Testing" mode, click "Publish App" to move it to "In production"
+3. If the app requests only basic scopes (email, profile, openid), Google will approve it immediately without verification
+4. Alternatively, if keeping it in Testing mode, add any test user emails to the "Test users" list
+
+**Code fix in `src/pages/Auth.tsx`:**
+- Add a more helpful error message when Google sign-in fails, telling users to contact support if they see "restricted"
+
+---
+
+## 3. Replace Dashboard Banners with Compact Banner on Mobile
+
+**Problem:** Four stacked elements (TrialBanner, UpgradeBanner, PlanLimitsBanner, AdSenseAd) push dashboard content below the fold on mobile.
 
 **Changes:**
-- **`src/pages/Index.tsx`** -- Add a `useEffect` at the top that checks `(window as any).Capacitor`. If running in Capacitor, check for an existing session:
-  - If session exists -> navigate to `/dashboard`
-  - If no session -> navigate to `/auth`
-  - Return a loading spinner while checking, so no landing page content flashes
+- Create **`src/components/CompactUpgradeBanner.tsx`** -- a slim, single-line dismissible banner (~48px) that shows trial days remaining and a small "Upgrade" CTA button. Uses `sessionStorage` to remember dismissal within a session.
+- **`src/pages/Dashboard.tsx`** -- Detect Capacitor with `(window as any).Capacitor`. If native app, render only `CompactUpgradeBanner`. If web, keep the existing 4 banners as-is.
 
 ---
 
-## 2. Fix Mobile UI (Padding, Margins, Overflow)
+## 4. Branded Splash Screen with Logo
 
-**Problem:** Elements overflow screen edges, padding is inconsistent, and borders clip on mobile across dashboard, invoices, invoice creation, and other pages.
+**Changes in `src/main.tsx`:**
+- Before rendering the React app, show a full-screen branded overlay (blue background #1a56db with the CushyInvoice logo centered) for 1.5 seconds
+- The overlay fades out, then the app renders
+- This works in both Capacitor and web, giving a native feel
 
-### 2a. Global CSS Fixes (`src/index.css`)
-- Add `overflow-x: hidden` on the `body` and `#root` to prevent horizontal scroll
-- Reduce neo-card border/shadow sizes on small screens with a media query
-- Make `.neo-btn-subtle` shadows smaller on mobile
-
-### 2b. Dashboard Page (`src/pages/Dashboard.tsx`)
-- The top action buttons ("Add Client" / "Create Invoice") overflow on small screens. Wrap them in a responsive layout:
-  - Stack vertically on mobile, horizontal on desktop
-  - Hide button text on very small screens, show only icons
-- Stats grid: use `grid-cols-2` on mobile instead of single column for better use of space
-
-### 2c. Invoices Page (`src/pages/Invoices.tsx`)
-- The table already hides date columns on mobile -- good
-- Add horizontal scroll container with `-webkit-overflow-scrolling: touch` for the table
-- Ensure pagination buttons don't overflow
-
-### 2d. Invoice Creation Form (`src/pages/InvoiceNew.tsx`)
-- The company info section (logo + fields side-by-side) already stacks on mobile -- verify it works
-- Line items section: on mobile, stack description/quantity/price vertically instead of a horizontal row
-- Date pickers: ensure calendar popovers don't overflow the viewport
-- Action buttons at bottom: make full-width on mobile
-
-### 2e. Settings Page (`src/pages/Settings.tsx`)
-- The 5-column TabsList overflows on mobile. Change to a scrollable horizontal list or reduce to fewer visible tabs with a `ScrollArea`
-- Form inputs are already full-width -- good
-
-### 2f. DashboardLayout (`src/components/DashboardLayout.tsx`)
-- Add `safe-left` and `safe-right` classes to the main content area
-- Ensure bottom nav doesn't overlap content (already has `pb-24` -- verify this is sufficient)
-
-### 2g. AuthLayout (`src/components/AuthLayout.tsx`)
-- Add safe-area padding for mobile devices
-- Ensure the form doesn't overflow on small screens
+**For the native Capacitor splash:** The `capacitor.config.ts` already has splash screen config with the blue background. After building, you will need to place your logo image in the platform resource folders:
+- Android: `android/app/src/main/res/drawable/splash.png`
+- iOS: `ios/App/App/Assets.xcassets/Splash.imageset/`
 
 ---
 
-## 3. Fix Google OAuth Redirect in Native App
+## 5. Back Button on All Pages
 
-**Problem:** Google sign-in opens the browser but doesn't redirect back to the Capacitor app. This is a known Capacitor issue -- OAuth redirects to a web URL (`https://cushyinvoice.com/auth`) which the native WebView doesn't intercept.
-
-**Root Cause:** The `capacitor.config.ts` points to `https://cushyinvoice.com` as the server URL. When Google OAuth completes, it redirects to `https://cushyinvoice.com/auth`, but the external browser doesn't know to send the user back to the app.
-
-**Solution:** Use Capacitor's `@capacitor/browser` plugin or deep linking to handle OAuth redirects. The approach:
-
-- **`src/pages/Auth.tsx`** -- Detect Capacitor environment. When in Capacitor, use a different OAuth flow:
-  1. Open the OAuth URL in the system browser using Capacitor Browser plugin
-  2. Set up a deep link / app URL scheme to catch the redirect
-  3. Extract the auth tokens from the redirect URL and set the session manually
-
-- **Alternative (simpler) approach:** Since the app's WebView already points to `cushyinvoice.com`, configure the OAuth to redirect back to the same domain. The issue is likely that the OAuth opens an external browser (system browser) instead of staying in the WebView. Fix by:
-  1. Detecting Capacitor environment in `handleGoogleSignIn`
-  2. Using `window.location.href` to navigate to the OAuth URL directly in the WebView instead of letting Supabase open an external browser
-  3. The redirect will then happen within the same WebView context
-
-- **`capacitor.config.ts`** -- Add `allowNavigation` to allow the WebView to navigate to Google's OAuth and Supabase callback URLs:
-  ```
-  server: {
-    url: 'https://cushyinvoice.com',
-    cleartext: true,
-    allowNavigation: [
-      'accounts.google.com',
-      '*.google.com',
-      'figeuiotixafbnbwgvpi.supabase.co'
-    ]
-  }
-  ```
+**Changes in `src/components/DashboardLayout.tsx`:**
+- Add a back arrow (ArrowLeft icon) button in the top header bar, next to the hamburger menu
+- Only visible when the current route is NOT `/dashboard` (since dashboard is home)
+- Uses `navigate(-1)` to go to the previous page in history
+- Minimum 44x44px touch target for mobile
 
 ---
 
-## 4. Mobile UX Utilities
+## 6. "Create Template" Button on Invoice Creation Page
 
-Add native-feeling enhancements for the mobile app:
-
-### 4a. Pull-to-Refresh
-- Add a custom pull-to-refresh component for dashboard and invoices pages that triggers data reload
-
-### 4b. Haptic-style Feedback (CSS)
-- Add `:active` states with scale transforms on all tappable elements for tactile feel
-
-### 4c. Smooth Page Transitions
-- Add a subtle slide animation when navigating between pages
-
-### 4d. Better Touch Targets
-- Audit all interactive elements to ensure minimum 44x44px touch targets (many already have this via `min-h-[44px]`)
-
-### 4e. Floating Action Button (FAB)
-- Add a floating "+" button on the invoices list page for quick invoice creation on mobile (more thumb-friendly than the top bar button)
-
-### 4f. Swipe-to-go-back Gesture Support
-- Ensure no horizontal scroll conflicts with iOS swipe-back navigation
-
-### 4g. Status Bar Integration
-- Update `index.html` with proper `<meta name="theme-color">` for native status bar coloring
-- Add `viewport-fit=cover` to the viewport meta tag for full-screen experience on notch devices
+**Changes in `src/pages/InvoiceNew.tsx`:**
+- Add a "+" button next to the Template selector (lines 780-805), similar to the existing "Add Client" button pattern
+- Clicking it navigates to `/templates` where users can create custom templates
 
 ---
 
@@ -125,17 +77,16 @@ Add native-feeling enhancements for the mobile app:
 
 | File | Changes |
 |------|---------|
-| `src/pages/Index.tsx` | Add Capacitor detection to skip landing page |
-| `src/index.css` | Mobile-specific CSS fixes for overflow, shadows, touch feedback |
-| `src/pages/Dashboard.tsx` | Responsive button layout, stats grid fixes |
-| `src/pages/Invoices.tsx` | Table scroll, pagination fixes |
-| `src/pages/InvoiceNew.tsx` | Stacked line items on mobile, full-width buttons |
-| `src/pages/Settings.tsx` | Scrollable tabs on mobile |
-| `src/components/DashboardLayout.tsx` | Safe-area padding, layout tightening |
-| `src/components/AuthLayout.tsx` | Safe-area support for mobile |
-| `src/pages/Auth.tsx` | Fix Google OAuth for Capacitor WebView |
-| `capacitor.config.ts` | Add `allowNavigation` for OAuth domains |
-| `index.html` | Add viewport-fit=cover, theme-color meta tags |
+| `src/pages/InvoiceDetail.tsx` | `.single()` to `.maybeSingle()`, null-safe payments access, date formatting safety |
+| `src/pages/Auth.tsx` | Better error message for "restricted" Google OAuth error |
+| `src/components/CompactUpgradeBanner.tsx` | NEW - slim dismissible upgrade banner for native app |
+| `src/pages/Dashboard.tsx` | Use CompactUpgradeBanner in Capacitor, keep full banners on web |
+| `src/main.tsx` | Add branded splash overlay with logo on blue background |
+| `src/components/DashboardLayout.tsx` | Add back button in header for non-dashboard pages |
+| `src/pages/InvoiceNew.tsx` | Add "Create Template" navigation button next to template selector |
+| `capacitor.config.ts` | Broaden `allowNavigation` to `*.supabase.co` |
 
-After implementing, you will need to pull the latest code and rebuild the app with `npm install`, `npm run build`, and `npx cap sync` to test on your device.
+**Important note about the "restricted" Google OAuth error:** This is a Google Cloud Console configuration issue, not a code issue. You must publish your OAuth app from "Testing" to "In production" in the Google Cloud Console, or add test users to the allowed list. The code changes will only improve the error message shown to users.
+
+After implementing, rebuild with: `npm run build && npx cap sync ios && npx cap sync android`
 
