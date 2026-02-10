@@ -108,7 +108,7 @@ export default function InvoiceDetail() {
         )
         .eq("id", id)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setInvoice(data);
