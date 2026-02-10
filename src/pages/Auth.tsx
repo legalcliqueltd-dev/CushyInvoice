@@ -9,8 +9,6 @@ import { AuthLayout } from "@/components/AuthLayout";
 import { Loader2, Mail, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { z } from "zod";
-import { Browser } from "@capacitor/browser";
-import { App as CapApp } from "@capacitor/app";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
