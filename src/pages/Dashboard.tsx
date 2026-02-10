@@ -152,21 +152,21 @@ export default function Dashboard() {
           </>
         )}
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Overview of your invoicing activity
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate("/clients")} className="neo-btn-subtle">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Client
+            <Button onClick={() => navigate("/clients")} className="neo-btn-subtle" size="sm">
+              <UserPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add Client</span>
             </Button>
-            <Button onClick={() => navigate("/invoices/new")} className="neo-btn-subtle">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Invoice
+            <Button onClick={() => navigate("/invoices/new")} className="neo-btn-subtle" size="sm">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Create Invoice</span>
             </Button>
           </div>
         </div>
