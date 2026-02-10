@@ -226,36 +226,13 @@ export default function Auth() {
         if (error) throw error;
         if (!data?.url) throw new Error("No OAuth URL returned");
 
-        // Dynamically import Capacitor plugins (only available in native context)
-        const { Browser } = await import("@capacitor/browser");
-        const { App: CapApp } = await import("@capacitor/app");
-
-        const appUrlListener = await CapApp.addListener("appUrlOpen", async ({ url }) => {
-          if (url.includes("access_token") || url.includes("/auth")) {
-            await Browser.close();
-            appUrlListener.remove();
-            await supabase.auth.getSession();
-          }
-        });
-
-        await Browser.open({ url: data.url, windowName: "_self" });
-
-        Browser.addListener("browserFinished", () => {
-          appUrlListener.remove();
-          setLoading(false);
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-              navigate("/dashboard");
-            }
-          });
-        });
+        // Open in system browser via window.open; Capacitor's allowNavigation
+        // handles the redirect back and onAuthStateChange picks up the session.
+        window.open(data.url, "_blank");
       } catch (error: any) {
-        const msg = error.message?.toLowerCase().includes("disallowed_useragent")
-          ? "Google blocks sign-in from app WebViews. Please try again."
-          : error.message;
         toast({
           title: "Google Sign-In Error",
-          description: msg,
+          description: error.message || "Failed to start Google sign-in.",
           variant: "destructive",
         });
         setLoading(false);
