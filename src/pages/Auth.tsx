@@ -225,16 +225,18 @@ export default function Auth() {
         },
       });
       if (error) {
+        const msg = error.message?.toLowerCase().includes("restricted")
+          ? "Google sign-in is restricted. Please publish your OAuth app in Google Cloud Console or add your email as a test user."
+          : error.message;
         toast({
-          title: "Error",
-          description: error.message,
+          title: "Google Sign-In Error",
+          description: msg,
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
       if (data?.url) {
-        // Navigate in the WebView directly instead of opening external browser
         window.location.href = data.url;
       }
     } else {
