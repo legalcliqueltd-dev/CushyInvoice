@@ -1,57 +1,51 @@
 
 
-# Fix Google OAuth for Native App (Capacitor Only)
+# Fix Overlapping UI and Blank Create Invoice Page
 
-The landing page and web app are working fine -- no changes needed there. This plan focuses solely on fixing the Google sign-in "restricted" / "disallowed_useragent" error that happens **only in the native mobile app**.
+## Issues Identified
 
----
+### 1. Blank "Create Invoice" Page
+The page renders completely white. Two likely causes:
+- The `App.css` file contains `#root { max-width: 1280px; padding: 2rem; text-align: center; }` -- this constrains the root container and adds padding that can interfere with the full-width dashboard layout. This is leftover boilerplate CSS that should be cleaned up.
+- If any of the four data-fetching calls (`fetchClients`, `fetchProducts`, `fetchProfileDefaults`, `fetchTemplates`) throw an unhandled error, the component crashes to a white screen with no error boundary catching it. Adding a global error boundary and wrapping these calls more defensively will prevent this.
 
-## Problem
+### 2. Buttons Overlapping in Header
+The header bar has the menu button, back button, and "Create Invoice" button. On narrow screens, the back button and menu button crowd together (only `gap-1` spacing), and the "Create Invoice" button on the right can overlap since there's no responsive spacing.
 
-Google blocks OAuth sign-in from WebViews (showing "restricted" or "disallowed_useragent"). The current code already attempts to use `@capacitor/browser` to open a system browser, but the dynamic imports cause Vite/Rollup build failures in the Lovable environment, even with `rollupOptions.external`.
+### 3. Sign-Out Button Overlapped
+The sidebar's user section at the bottom gets hidden behind the mobile bottom navigation bar (which is ~60px tall). The sidebar needs bottom padding to account for this.
 
-## Solution
-
-Remove the Capacitor plugin imports entirely from `Auth.tsx` and instead use a **plain `window.open()` approach** for the native app OAuth flow. This avoids all build issues while still working correctly in Capacitor.
+### 4. Back Button Placement
+The back button appears right next to the hamburger menu with minimal spacing, making it feel misplaced. It should have clearer visual separation.
 
 ---
 
 ## Changes
 
-### 1. `src/pages/Auth.tsx` -- Simplify native Google OAuth
+### File: `src/App.css`
+- Remove the `#root` styling block that sets `max-width: 1280px`, `padding: 2rem`, and `text-align: center`. This boilerplate CSS conflicts with the full-width dashboard layout and can cause the Create Invoice page (and other pages) to render incorrectly.
 
-**What changes:** Replace the `@capacitor/browser` and `@capacitor/app` dynamic imports with a simpler approach:
+### File: `src/App.tsx`
+- Add a React Error Boundary component that catches rendering errors and shows a fallback UI with a "Retry" button instead of a white screen. This prevents any component crash from resulting in a completely blank page.
 
-- For **web**: Keep the current `supabase.auth.signInWithOAuth()` as-is (no changes).
-- For **native app (Capacitor)**: Use `skipBrowserRedirect: true` to get the OAuth URL, then open it with `window.open()`. The Capacitor WebView will handle the redirect back to the app via the `allowNavigation` config. The existing `onAuthStateChange` listener in the `useEffect` will detect the session and redirect to dashboard.
+### File: `src/components/DashboardLayout.tsx`
+- **Header**: Increase spacing between the menu button and back button from `gap-1` to `gap-2`, and add a subtle visual separator between them so the back button reads as a distinct navigation element.
+- **Sidebar bottom**: Add `pb-20 lg:pb-4` to the sidebar's user section so the Sign Out button is not hidden behind the mobile bottom navigation bar.
+- **Header buttons**: Ensure the "Create Invoice" button doesn't overlap with navigation buttons by using `flex-shrink-0` on it.
 
-This completely eliminates the need for `@capacitor/browser` and `@capacitor/app` imports.
-
-### 2. `vite.config.ts` -- Remove unnecessary externals
-
-Remove `@capacitor/browser` and `@capacitor/app` from `rollupOptions.external` since they are no longer imported anywhere.
-
----
-
-## What stays the same (no changes)
-
-- Landing page (`Index.tsx`) -- untouched
-- Web Google OAuth flow -- unchanged
-- Dashboard banners on web -- unchanged
-- Splash screen -- already implemented
-- Back button -- already implemented
-- Invoice detail fixes -- already implemented
-- Template button on invoice creation -- already implemented
-- `CompactUpgradeBanner` on native -- already implemented
+### File: `src/pages/InvoiceNew.tsx`
+- Add a top-level `try/catch` wrapper around the component's initial data fetching in the `useEffect`. If all four fetch calls fail, show a user-friendly error state with a "Retry" button instead of crashing to white.
+- Add a component-level `loading` state that's `true` until initial data loads, showing a spinner.
 
 ---
 
-## Technical Details
+## Technical Summary
 
 | File | Change |
 |------|--------|
-| `src/pages/Auth.tsx` | Replace Capacitor plugin imports with `window.open()` for native OAuth |
-| `vite.config.ts` | Remove `@capacitor/browser` and `@capacitor/app` from external |
+| `src/App.css` | Remove conflicting `#root` boilerplate styles |
+| `src/App.tsx` | Add ErrorBoundary wrapper around Routes |
+| `src/components/DashboardLayout.tsx` | Fix header spacing, sidebar bottom padding for mobile nav |
+| `src/pages/InvoiceNew.tsx` | Add loading/error states for initial data fetch |
 
-The key insight: Capacitor's WebView already handles navigation via `allowNavigation: ['*.supabase.co', '*.google.com']` in `capacitor.config.ts`. When the OAuth redirect completes back to `https://cushyinvoice.com/auth`, the WebView loads it, the `onAuthStateChange` listener fires, and the user is redirected to the dashboard. No special plugins needed.
-
+These changes affect both web and native app since the issues appear on both platforms.
