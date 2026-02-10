@@ -500,7 +500,7 @@ export default function InvoiceNew() {
         .insert({
           user_id: user.id,
           client_id: selectedClientId,
-          template_id: selectedTemplateId && selectedTemplateId !== "none" ? selectedTemplateId : null,
+          template_id: selectedTemplateId && selectedTemplateId !== "none" && !selectedTemplateId.startsWith("builtin-") ? selectedTemplateId : null,
           invoice_number: invoiceNumber,
           issue_date: format(issueDate, "yyyy-MM-dd"),
           due_date: format(dueDate, "yyyy-MM-dd"),
