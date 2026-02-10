@@ -11,8 +11,8 @@ export const CompactUpgradeBanner = () => {
 
   if (dismissed || subscription.subscribed) return null;
 
-  const trialDays = subscription.trialEndDate
-    ? Math.max(0, Math.ceil((new Date(subscription.trialEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+  const trialDays = subscription.trial_end
+    ? Math.max(0, Math.ceil((new Date(subscription.trial_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
 
   const handleDismiss = () => {
