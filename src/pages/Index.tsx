@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { GradientButton } from "@/components/ui/gradient-button";
-import { Receipt, FileText, Users, TrendingUp, Zap, Twitter, Linkedin, Facebook, Instagram, MessageCircle, ArrowRight, Star } from "lucide-react";
+import { Receipt, FileText, Users, TrendingUp, Zap, Twitter, Linkedin, Facebook, Instagram, MessageCircle, ArrowRight, Star, Loader2 } from "lucide-react";
 
 const features = [
   {
