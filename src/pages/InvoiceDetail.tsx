@@ -213,10 +213,10 @@ export default function InvoiceDetail() {
     }
   };
 
-  const totalPaid = invoice?.payments.reduce(
+  const totalPaid = (invoice?.payments || []).reduce(
     (sum, payment) => sum + Number(payment.amount),
     0
-  ) || 0;
+  );
   const amountDue = invoice ? Number(invoice.total) - totalPaid : 0;
 
   if (loading) {
