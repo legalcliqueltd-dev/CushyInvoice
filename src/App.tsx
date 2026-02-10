@@ -31,20 +31,22 @@ const queryClient = new QueryClient();
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean; errorInfo: string }
+  { hasError: boolean; errorInfo: string; componentStack: string }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, errorInfo: "" };
+    this.state = { hasError: false, errorInfo: "", componentStack: "" };
   }
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, errorInfo: `${error.name}: ${error.message}` };
   }
   componentDidCatch(error: Error, info: React.ErrorInfo) {
+    const stack = info.componentStack || "";
+    this.setState({ componentStack: stack });
     console.error("=== ErrorBoundary caught ===");
     console.error("Error:", error.name, error.message);
     console.error("Stack:", error.stack);
-    console.error("Component stack:", info.componentStack);
+    console.error("Component stack:", stack);
   }
   render() {
     if (this.state.hasError) {
@@ -56,7 +58,12 @@ class ErrorBoundary extends React.Component<
             <pre className="text-xs text-left bg-muted p-3 rounded-lg overflow-auto max-h-40 whitespace-pre-wrap break-all">
               {this.state.errorInfo}
             </pre>
-            <Button onClick={() => { this.setState({ hasError: false, errorInfo: "" }); window.location.reload(); }}>
+            {this.state.componentStack && (
+              <pre className="text-xs text-left bg-muted p-3 rounded-lg overflow-auto max-h-40 whitespace-pre-wrap break-all">
+                {this.state.componentStack}
+              </pre>
+            )}
+            <Button onClick={() => { this.setState({ hasError: false, errorInfo: "", componentStack: "" }); window.location.reload(); }}>
               Retry
             </Button>
           </div>
