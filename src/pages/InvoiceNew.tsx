@@ -106,6 +106,8 @@ export default function InvoiceNew() {
   const [notes, setNotes] = useState("");
   const [logoBgColor, setLogoBgColor] = useState("#ffffff");
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [pageError, setPageError] = useState(false);
   const [newClientDialog, setNewClientDialog] = useState(false);
   const [newClientData, setNewClientData] = useState({ name: "", email: "", phone: "", address: "" });
   
@@ -124,10 +126,18 @@ export default function InvoiceNew() {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchClients();
-    fetchProducts();
-    fetchProfileDefaults();
-    fetchTemplates();
+    const loadData = async () => {
+      try {
+        setPageLoading(true);
+        setPageError(false);
+        await Promise.all([fetchClients(), fetchProducts(), fetchProfileDefaults(), fetchTemplates()]);
+      } catch {
+        setPageError(true);
+      } finally {
+        setPageLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const fetchProfileDefaults = async () => {
@@ -542,6 +552,33 @@ export default function InvoiceNew() {
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading invoice form...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <h2 className="text-xl font-semibold">Failed to load data</h2>
+            <p className="text-muted-foreground text-sm">Could not load clients, products, or settings.</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

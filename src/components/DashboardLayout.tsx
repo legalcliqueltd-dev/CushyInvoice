@@ -161,7 +161,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t border-border safe-bottom">
+          <div className="p-4 pb-20 lg:pb-4 border-t border-border safe-bottom">
             <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-muted/50 rounded-xl">
               <Avatar className="h-10 w-10 border-2 border-primary/20">
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
@@ -192,7 +192,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {/* Top bar */}
         <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border safe-top">
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -200,21 +200,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <Menu className="h-5 w-5" />
               </button>
               {location.pathname !== "/dashboard" && (
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-                  aria-label="Go back"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
+                <>
+                  <div className="h-5 w-px bg-border lg:hidden" />
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    aria-label="Go back"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </button>
+                </>
               )}
             </div>
 
-            <div className="flex-1"></div>
+            <div className="flex-1 min-w-0"></div>
 
             <Button
               onClick={() => navigate("/invoices/new")}
-              className="gap-2 shadow-sm min-h-[44px]"
+              className="gap-2 shadow-sm min-h-[44px] flex-shrink-0"
               size="default"
             >
               <Plus className="h-4 w-4" />
