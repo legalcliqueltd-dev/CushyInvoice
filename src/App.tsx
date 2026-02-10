@@ -31,23 +31,32 @@ const queryClient = new QueryClient();
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean }
+  { hasError: boolean; errorInfo: string }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, errorInfo: "" };
   }
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, errorInfo: `${error.name}: ${error.message}` };
+  }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("=== ErrorBoundary caught ===");
+    console.error("Error:", error.name, error.message);
+    console.error("Stack:", error.stack);
+    console.error("Component stack:", info.componentStack);
   }
   render() {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-background p-4">
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 max-w-md">
             <h2 className="text-xl font-semibold">Something went wrong</h2>
             <p className="text-muted-foreground text-sm">An unexpected error occurred.</p>
-            <Button onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}>
+            <pre className="text-xs text-left bg-muted p-3 rounded-lg overflow-auto max-h-40 whitespace-pre-wrap break-all">
+              {this.state.errorInfo}
+            </pre>
+            <Button onClick={() => { this.setState({ hasError: false, errorInfo: "" }); window.location.reload(); }}>
               Retry
             </Button>
           </div>
