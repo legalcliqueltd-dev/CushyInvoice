@@ -238,19 +238,45 @@ export default function Auth() {
         setLoading(false);
       }
     } else {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${APP_DOMAIN}/auth`,
-        },
-      });
-      if (error) {
-        toast({
-          title: "Google Sign-In Error",
-          description: error.message,
-          variant: "destructive",
+      const isCustomDomain =
+        !window.location.hostname.includes("lovable.app") &&
+        !window.location.hostname.includes("lovableproject.com");
+
+      if (isCustomDomain) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/auth`,
+            skipBrowserRedirect: true,
+          },
         });
-        setLoading(false);
+        if (error) {
+          toast({
+            title: "Google Sign-In Error",
+            description: error.message,
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${APP_DOMAIN}/auth`,
+          },
+        });
+        if (error) {
+          toast({
+            title: "Google Sign-In Error",
+            description: error.message,
+            variant: "destructive",
+          });
+          setLoading(false);
+        }
       }
     }
   };
