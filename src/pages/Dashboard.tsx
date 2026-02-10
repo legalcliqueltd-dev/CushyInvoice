@@ -141,16 +141,20 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-8">
         {!subscription.subscribed && (
-          <>
-            <TrialBanner />
-            <UpgradeBanner />
-            <PlanLimitsBanner />
-            <AdSenseAd 
-              slot="1234567890" 
-              format="horizontal"
-              className="my-4"
-            />
-          </>
+          (window as any).Capacitor ? (
+            <CompactUpgradeBanner />
+          ) : (
+            <>
+              <TrialBanner />
+              <UpgradeBanner />
+              <PlanLimitsBanner />
+              <AdSenseAd 
+                slot="1234567890" 
+                format="horizontal"
+                className="my-4"
+              />
+            </>
+          )
         )}
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
