@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'cushyinvoice',
   webDir: 'dist',
   server: {
-    url: 'https://cushyinvoice.lovable.app',
+    url: 'https://cushyinvoice.com',
     cleartext: true,
     allowNavigation: [
       'accounts.google.com',
