@@ -217,18 +217,48 @@ export default function Auth() {
     const isCapacitor = !!(window as any).Capacitor;
     
     if (isCapacitor) {
-      // In Capacitor WebView, use skipBrowserRedirect to get the URL
-      // then navigate within the WebView so the redirect stays in-app
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${APP_DOMAIN}/auth`,
-          skipBrowserRedirect: true,
-        },
-      });
-      if (error) {
-        const msg = error.message?.toLowerCase().includes("restricted")
-          ? "Google sign-in is restricted. Please publish your OAuth app in Google Cloud Console or add your email as a test user."
+      try {
+        // Get OAuth URL with skipBrowserRedirect so we can open it in system browser
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${APP_DOMAIN}/auth`,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (!data?.url) throw new Error("No OAuth URL returned");
+
+        // Listen for the app URL open event (when redirect comes back)
+        const appUrlListener = await CapApp.addListener("appUrlOpen", async ({ url }) => {
+          // Extract tokens from the redirect URL hash
+          if (url.includes("access_token") || url.includes("/auth")) {
+            await Browser.close();
+            appUrlListener.remove();
+            // The session will be picked up by onAuthStateChange
+            // Force a session refresh
+            await supabase.auth.getSession();
+          }
+        });
+
+        // Open in system browser (SFSafariViewController / Chrome Custom Tabs)
+        // This is allowed by Google's "Use secure browsers" policy
+        await Browser.open({ url: data.url, windowName: "_self" });
+
+        // Also listen for browser finished (user manually closes)
+        Browser.addListener("browserFinished", () => {
+          appUrlListener.remove();
+          setLoading(false);
+          // Check if session was established while browser was open
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+              navigate("/dashboard");
+            }
+          });
+        });
+      } catch (error: any) {
+        const msg = error.message?.toLowerCase().includes("disallowed_useragent")
+          ? "Google blocks sign-in from app WebViews. Please try again."
           : error.message;
         toast({
           title: "Google Sign-In Error",
@@ -236,10 +266,6 @@ export default function Auth() {
           variant: "destructive",
         });
         setLoading(false);
-        return;
-      }
-      if (data?.url) {
-        window.location.href = data.url;
       }
     } else {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -249,12 +275,9 @@ export default function Auth() {
         },
       });
       if (error) {
-        const msg = error.message?.toLowerCase().includes("restricted")
-          ? "Google sign-in is restricted. Please publish your OAuth app in Google Cloud Console or add your email as a test user."
-          : error.message;
         toast({
           title: "Google Sign-In Error",
-          description: msg,
+          description: error.message,
           variant: "destructive",
         });
         setLoading(false);
