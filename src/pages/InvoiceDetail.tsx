@@ -108,7 +108,7 @@ export default function InvoiceDetail() {
         )
         .eq("id", id)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setInvoice(data);
@@ -213,10 +213,10 @@ export default function InvoiceDetail() {
     }
   };
 
-  const totalPaid = invoice?.payments.reduce(
+  const totalPaid = (invoice?.payments || []).reduce(
     (sum, payment) => sum + Number(payment.amount),
     0
-  ) || 0;
+  );
   const amountDue = invoice ? Number(invoice.total) - totalPaid : 0;
 
   if (loading) {
@@ -259,7 +259,7 @@ export default function InvoiceDetail() {
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Created {format(new Date(invoice.issue_date), "MMM d, yyyy")}
+                Created {(() => { try { return format(new Date(invoice.issue_date), "MMM d, yyyy"); } catch { return invoice.issue_date; } })()}
               </p>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function InvoiceDetail() {
             <CardContent className="pt-4 pb-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
               <p className="text-lg sm:text-xl font-semibold mt-1">
-                {format(new Date(invoice.due_date), "MMM d")}
+                {(() => { try { return format(new Date(invoice.due_date), "MMM d"); } catch { return invoice.due_date; } })()}
               </p>
             </CardContent>
           </Card>

@@ -4,6 +4,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { PlanLimitsBanner } from "@/components/PlanLimitsBanner";
 import { UpgradeBanner } from "@/components/UpgradeBanner";
 import { AdSenseAd } from "@/components/AdSenseAd";
+import { CompactUpgradeBanner } from "@/components/CompactUpgradeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -140,16 +141,20 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-8">
         {!subscription.subscribed && (
-          <>
-            <TrialBanner />
-            <UpgradeBanner />
-            <PlanLimitsBanner />
-            <AdSenseAd 
-              slot="1234567890" 
-              format="horizontal"
-              className="my-4"
-            />
-          </>
+          (window as any).Capacitor ? (
+            <CompactUpgradeBanner />
+          ) : (
+            <>
+              <TrialBanner />
+              <UpgradeBanner />
+              <PlanLimitsBanner />
+              <AdSenseAd 
+                slot="1234567890" 
+                format="horizontal"
+                className="my-4"
+              />
+            </>
+          )
         )}
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -315,7 +320,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        {!subscription.subscribed && (
+        {!subscription.subscribed && !(window as any).Capacitor && (
           <AdSenseAd 
             slot="0987654321" 
             format="rectangle"

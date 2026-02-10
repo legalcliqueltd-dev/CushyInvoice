@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     allowNavigation: [
       'accounts.google.com',
       '*.google.com',
-      'figeuiotixafbnbwgvpi.supabase.co',
+      '*.supabase.co',
     ],
   },
   plugins: {

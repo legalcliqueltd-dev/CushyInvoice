@@ -20,6 +20,7 @@ import {
   Wallet,
   Palette,
   MoreHorizontal,
+  ArrowLeft,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -191,12 +192,23 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {/* Top bar */}
         <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border safe-top">
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              {location.pathname !== "/dashboard" && (
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+              )}
+            </div>
 
             <div className="flex-1"></div>
 
