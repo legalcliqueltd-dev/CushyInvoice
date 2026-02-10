@@ -1,25 +1,35 @@
 
 
-# Fix: Select.Item Empty Value Crash
+# Fix: React Error #310 - Hook Called Inside JSX
 
-## Problem
+## Root Cause
 
-The native app crashes with the error: **"A Select.Item must have a value prop that is not an empty string."**
-
-This is caused by line 837 in `src/pages/InvoiceNew.tsx`:
+In `src/pages/Invoices.tsx` at line 243, the `useIsMobile()` hook is called **inside JSX** (inside a conditional render expression):
 
 ```tsx
-<SelectItem value="">None</SelectItem>
+{useIsMobile() && (
+  <button ...>
 ```
 
-Radix UI's Select component does not allow empty strings as values because empty string is reserved for clearing the selection.
+React hooks must be called at the **top level** of a component function, never inside JSX, conditionals, or loops. This causes the number of hooks to change between renders, triggering React Error #310: "Rendered more hooks than during the previous render."
 
 ## Fix
 
-Change the empty string value to a meaningful placeholder like `"none"`, and update the logic that reads this value to treat `"none"` the same as no selection.
+Move the `useIsMobile()` call to the top of the component alongside the other hooks:
 
-### File: `src/pages/InvoiceNew.tsx`
+```tsx
+export default function Invoices() {
+  const isMobile = useIsMobile();       // <-- add here
+  const [invoices, setInvoices] = ...
+  ...
+```
 
-- Change `<SelectItem value="">None</SelectItem>` to `<SelectItem value="none">None</SelectItem>`
-- Update any code that checks for the template selection value to treat `"none"` the same as empty/no template selected
+Then update line 243 to use the variable instead of calling the hook:
+
+```tsx
+{isMobile && (
+  <button ...>
+```
+
+This is a one-file, two-line fix in `src/pages/Invoices.tsx`. After this change, push to GitHub so the Hostinger deployment picks it up and the native app will work.
 
