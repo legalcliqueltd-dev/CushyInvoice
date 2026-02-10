@@ -320,7 +320,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        {!subscription.subscribed && (
+        {!subscription.subscribed && !(window as any).Capacitor && (
           <AdSenseAd 
             slot="0987654321" 
             format="rectangle"

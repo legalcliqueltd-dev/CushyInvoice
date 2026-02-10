@@ -778,7 +778,19 @@ export default function InvoiceNew() {
             </div>
 
             <div className="space-y-2">
-              <Label>Template (Optional)</Label>
+              <div className="flex items-center justify-between">
+                <Label>Template (Optional)</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1 text-primary"
+                  onClick={() => navigate("/templates")}
+                >
+                  <Plus className="h-3 w-3" />
+                  Create Template
+                </Button>
+              </div>
               <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a template" />

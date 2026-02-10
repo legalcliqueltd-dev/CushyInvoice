@@ -315,7 +315,7 @@ export default function InvoiceDetail() {
             <CardContent className="pt-4 pb-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
               <p className="text-lg sm:text-xl font-semibold mt-1">
-                {format(new Date(invoice.due_date), "MMM d")}
+                {(() => { try { return format(new Date(invoice.due_date), "MMM d"); } catch { return invoice.due_date; } })()}
               </p>
             </CardContent>
           </Card>
