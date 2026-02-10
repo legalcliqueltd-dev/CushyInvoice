@@ -553,6 +553,33 @@ export default function InvoiceNew() {
     }
   };
 
+  if (pageLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading invoice form...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <h2 className="text-xl font-semibold">Failed to load data</h2>
+            <p className="text-muted-foreground text-sm">Could not load clients, products, or settings.</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto space-y-6">
