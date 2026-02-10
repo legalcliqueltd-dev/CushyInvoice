@@ -834,7 +834,7 @@ export default function InvoiceNew() {
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Default Templates</div>
                   <SelectItem value="builtin-modern">Modern</SelectItem>
                   <SelectItem value="builtin-classic">Classic</SelectItem>
