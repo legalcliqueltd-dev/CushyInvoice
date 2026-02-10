@@ -238,6 +238,17 @@ export default function Invoices() {
             )}
           </>
         )}
+
+        {/* Floating Action Button for mobile */}
+        {useIsMobile() && (
+          <button
+            onClick={() => navigate("/invoices/new")}
+            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+            aria-label="Create new invoice"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
+        )}
       </div>
     </DashboardLayout>
   );
