@@ -4,6 +4,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { PlanLimitsBanner } from "@/components/PlanLimitsBanner";
 import { UpgradeBanner } from "@/components/UpgradeBanner";
 import { AdSenseAd } from "@/components/AdSenseAd";
+import { CompactUpgradeBanner } from "@/components/CompactUpgradeBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 
 import { supabase } from "@/integrations/supabase/client";
