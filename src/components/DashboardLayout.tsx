@@ -20,6 +20,7 @@ import {
   Wallet,
   Palette,
   MoreHorizontal,
+  ArrowLeft,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
