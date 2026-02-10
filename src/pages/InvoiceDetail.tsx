@@ -259,7 +259,7 @@ export default function InvoiceDetail() {
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Created {format(new Date(invoice.issue_date), "MMM d, yyyy")}
+                Created {(() => { try { return format(new Date(invoice.issue_date), "MMM d, yyyy"); } catch { return invoice.issue_date; } })()}
               </p>
             </div>
           </div>
