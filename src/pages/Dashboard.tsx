@@ -172,7 +172,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="neo-stat-card border-l-success">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">

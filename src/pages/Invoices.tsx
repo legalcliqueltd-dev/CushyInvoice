@@ -211,9 +211,9 @@ export default function Invoices() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredInvoices.length)} of {filteredInvoices.length} invoices
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredInvoices.length)} of {filteredInvoices.length}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -222,7 +222,7 @@ export default function Invoices() {
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
-                    Previous
+                    Prev
                   </Button>
                   <Button
                     variant="outline"

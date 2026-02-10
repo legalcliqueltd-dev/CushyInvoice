@@ -61,6 +61,29 @@ const testimonials = [
 
 const Index = () => {
   const navigate = useNavigate();
+  const [checkingNative, setCheckingNative] = useState(() => !!(window as any).Capacitor);
+
+  useEffect(() => {
+    if (!(window as any).Capacitor) return;
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/auth", { replace: true });
+      }
+    }).catch(() => {
+      navigate("/auth", { replace: true });
+    });
+  }, [navigate]);
+
+  if (checkingNative) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background landing-noise overflow-x-hidden">

@@ -213,7 +213,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </header>
 
         {/* Page content - add bottom padding for mobile nav */}
-        <main className="p-4 lg:p-8 pb-24 lg:pb-8 animate-fade-in">{children}</main>
+        <main className="p-3 sm:p-4 lg:p-8 pb-24 lg:pb-8 safe-left safe-right animate-fade-in">{children}</main>
       </div>
 
       {/* Mobile Bottom Navigation */}
