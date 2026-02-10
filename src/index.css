@@ -220,6 +220,11 @@ All colors MUST be HSL.
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-tap-highlight-color: transparent;
     -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+
+  #root {
+    overflow-x: hidden;
   }
 
   /* Safe area insets for notch/home indicator */
@@ -244,6 +249,12 @@ All colors MUST be HSL.
   /* Touch-friendly buttons */
   button, a, [role="button"] {
     touch-action: manipulation;
+  }
+
+  /* Haptic-style active feedback for tappable elements */
+  button:active, a:active, [role="button"]:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
   }
 }
 
