@@ -351,7 +351,6 @@ export default function Settings() {
               <TabsTrigger value="security" className="whitespace-nowrap">Security</TabsTrigger>
             </TabsList>
           </div>
-          </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
             <Card className="neo-card-subtle">
