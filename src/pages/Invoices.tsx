@@ -31,6 +31,7 @@ interface Invoice {
 }
 
 export default function Invoices() {
+  const isMobile = useIsMobile();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
