@@ -131,7 +131,8 @@ export default function InvoiceNew() {
         setPageLoading(true);
         setPageError(false);
         await Promise.all([fetchClients(), fetchProducts(), fetchProfileDefaults(), fetchTemplates()]);
-      } catch {
+      } catch (err) {
+        console.error("InvoiceNew loadData error:", err);
         setPageError(true);
       } finally {
         setPageLoading(false);
