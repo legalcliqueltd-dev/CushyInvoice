@@ -1,31 +1,55 @@
 
 
-# Fix: Native App "Something went wrong" Error
+# Fix: Restore Hostinger Domain and Ensure Deployment
 
-## Root Cause
+## Problem
 
-The native app (iPhone/Android) loads from the **published production URL** (`https://cushyinvoice.com`), NOT the preview. The latest code changes (CSS cleanup, ErrorBoundary, layout fixes, InvoiceNew loading states) have **not been published yet**.
+The Capacitor config currently points to `cushyinvoice.lovable.app`, but you want to use your Hostinger domain `cushyinvoice.com`. The native app error persists because the code on Hostinger hasn't been updated with the latest fixes.
 
-The ErrorBoundary we added is now catching a crash that previously showed as a completely blank white screen -- so the error boundary is actually working correctly. The underlying crash exists in the **currently published** version of the code.
+## Changes
 
-## What Needs to Happen
+### 1. Revert `capacitor.config.ts` back to Hostinger domain
 
-### Step 1: Publish the latest changes
-You need to **publish** the project so the native app picks up all the fixes we've made:
-- Removed conflicting `#root` CSS styles that constrained layout
-- Added the ErrorBoundary for graceful error handling
-- Fixed header button spacing and sidebar bottom padding
-- Added loading/error states to the Create Invoice page
+Change `server.url` from `https://cushyinvoice.lovable.app` back to `https://cushyinvoice.com`.
 
-### Step 2: Rebuild the native app
-After publishing, on your local machine:
-1. `git pull` the latest changes
-2. `npm run build`
-3. `npx cap sync ios` (or `android`)
-4. Run the app again in the simulator
+### 2. Add environment variables to GitHub Actions workflow
 
-## Important Note
+The build step in `.github/workflows/deploy.yml` is missing the required Supabase environment variables. Without them, the app builds but crashes at runtime with a "supabaseUrl is required" error. We need to pass them during the build step:
 
-No code changes are needed -- the fixes are already in place in the current codebase. The web preview is working correctly (verified via browser testing). The native app just needs the published version to be updated.
+```yaml
+- name: Build project
+  env:
+    VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+    VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+    VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+  run: |
+    npm install
+    npm run build
+    cp .htaccess dist/.htaccess
+```
 
-If the error persists **after publishing and rebuilding**, we will need to add more detailed error logging to the ErrorBoundary to capture exactly which component is crashing.
+### 3. Verify GitHub secrets are set
+
+You must confirm that these secrets exist in your GitHub repository settings (Settings > Secrets and variables > Actions):
+
+- `FTP_SERVER` -- your Hostinger FTP server
+- `FTP_USERNAME` -- your Hostinger FTP username
+- `FTP_PASSWORD` -- your Hostinger FTP password
+- `VITE_SUPABASE_URL` -- `https://figeuiotixafbnbwgvpi.supabase.co`
+- `VITE_SUPABASE_PUBLISHABLE_KEY` -- the anon key
+- `VITE_SUPABASE_PROJECT_ID` -- `figeuiotixafbnbwgvpi`
+
+## After Implementation
+
+Once these changes are pushed to the `main` branch on GitHub:
+1. GitHub Actions will build with the correct environment variables and deploy to Hostinger
+2. `cushyinvoice.com` will serve the latest code with all fixes
+3. Rebuild the native app locally: `git pull` then `npm run build` then `npx cap sync ios`
+
+## Technical Summary
+
+| File | Change |
+|------|--------|
+| `capacitor.config.ts` | Restore `server.url` to `https://cushyinvoice.com` |
+| `.github/workflows/deploy.yml` | Add Supabase env vars to the build step |
+
