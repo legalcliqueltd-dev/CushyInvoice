@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -211,9 +212,9 @@ export default function Invoices() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredInvoices.length)} of {filteredInvoices.length} invoices
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredInvoices.length)} of {filteredInvoices.length}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -222,7 +223,7 @@ export default function Invoices() {
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
-                    Previous
+                    Prev
                   </Button>
                   <Button
                     variant="outline"
@@ -236,6 +237,17 @@ export default function Invoices() {
               </div>
             )}
           </>
+        )}
+
+        {/* Floating Action Button for mobile */}
+        {useIsMobile() && (
+          <button
+            onClick={() => navigate("/invoices/new")}
+            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+            aria-label="Create new invoice"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
         )}
       </div>
     </DashboardLayout>

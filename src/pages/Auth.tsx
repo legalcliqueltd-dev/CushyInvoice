@@ -212,19 +212,46 @@ export default function Auth() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${APP_DOMAIN}/auth`,
-      },
-    });
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    const isCapacitor = !!(window as any).Capacitor;
+    
+    if (isCapacitor) {
+      // In Capacitor WebView, use skipBrowserRedirect to get the URL
+      // then navigate within the WebView so the redirect stays in-app
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${APP_DOMAIN}/auth`,
+          skipBrowserRedirect: true,
+        },
       });
-      setLoading(false);
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      if (data?.url) {
+        // Navigate in the WebView directly instead of opening external browser
+        window.location.href = data.url;
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${APP_DOMAIN}/auth`,
+        },
+      });
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
     }
   };
 

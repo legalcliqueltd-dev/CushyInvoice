@@ -220,6 +220,11 @@ All colors MUST be HSL.
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-tap-highlight-color: transparent;
     -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+
+  #root {
+    overflow-x: hidden;
   }
 
   /* Safe area insets for notch/home indicator */
@@ -244,6 +249,12 @@ All colors MUST be HSL.
   /* Touch-friendly buttons */
   button, a, [role="button"] {
     touch-action: manipulation;
+  }
+
+  /* Haptic-style active feedback for tappable elements */
+  button:active, a:active, [role="button"]:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
   }
 }
 
@@ -390,8 +401,30 @@ All colors MUST be HSL.
     box-shadow: 2px 2px 0px hsl(var(--foreground));
   }
   .neo-brutal-btn:active {
-    transform: translate(4px, 4px);
+    transform: translate(4px, 4px) scale(1) !important;
     box-shadow: 0px 0px 0px hsl(var(--foreground));
+  }
+
+  /* Mobile: reduce neo-brutal borders/shadows */
+  @media (max-width: 640px) {
+    .neo-brutal-btn {
+      border-width: 2px;
+      box-shadow: 3px 3px 0px hsl(var(--foreground));
+    }
+    .neo-card {
+      border-width: 1.5px;
+      box-shadow: 3px 3px 0px hsl(var(--foreground) / 0.1);
+    }
+    .neo-card-subtle {
+      box-shadow: 2px 2px 0px hsl(var(--foreground) / 0.06);
+    }
+    .neo-stat-card {
+      box-shadow: 2px 2px 0px hsl(var(--foreground) / 0.04);
+    }
+    .neo-btn-subtle {
+      border-width: 1.5px;
+      box-shadow: 2px 2px 0px hsl(var(--foreground));
+    }
   }
 
   /* Neobrutalism card */

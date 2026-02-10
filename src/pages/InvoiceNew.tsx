@@ -805,7 +805,7 @@ export default function InvoiceNew() {
             </div>
 
             {/* Dates */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Issue Date *</Label>
                 <Popover>
@@ -882,7 +882,7 @@ export default function InvoiceNew() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Product (Optional)</Label>
                     <Select
@@ -914,7 +914,7 @@ export default function InvoiceNew() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Quantity *</Label>
                     <Input
@@ -1006,15 +1006,15 @@ export default function InvoiceNew() {
         </Card>
 
         {/* Actions */}
-        <div className="flex gap-4 justify-end">
-          <Button variant="outline" onClick={() => navigate("/invoices")} disabled={loading}>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
+          <Button variant="outline" onClick={() => navigate("/invoices")} disabled={loading} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button variant="outline" onClick={() => handleSave("draft")} disabled={loading}>
+          <Button variant="outline" onClick={() => handleSave("draft")} disabled={loading} className="w-full sm:w-auto">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save as Draft
           </Button>
-          <Button onClick={() => handleSave("sent")} disabled={loading}>
+          <Button onClick={() => handleSave("sent")} disabled={loading} className="w-full sm:w-auto">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save & Send
           </Button>

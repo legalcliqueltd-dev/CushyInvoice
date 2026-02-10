@@ -7,6 +7,11 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://cushyinvoice.com',
     cleartext: true,
+    allowNavigation: [
+      'accounts.google.com',
+      '*.google.com',
+      'figeuiotixafbnbwgvpi.supabase.co',
+    ],
   },
   plugins: {
     SplashScreen: {
