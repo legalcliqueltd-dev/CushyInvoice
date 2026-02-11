@@ -6,20 +6,59 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const sanitizeForPrompt = (text: string): string => {
+  if (!text) return "";
+  return text
+    .replace(/ignore\s+(all\s+)?previous\s+instructions/gi, "")
+    .replace(/ignore\s+(all\s+)?above/gi, "")
+    .replace(/system\s*:/gi, "")
+    .replace(/\n{2,}/g, " ")
+    .slice(0, 200)
+    .trim();
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+  // Authentication: accept either user JWT or service role key
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  const isServiceRole = token === serviceRoleKey;
+
+  // Create client with service role for DB operations
+  const supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+
+  let authenticatedUserId: string | null = null;
+
+  if (!isServiceRole) {
+    // Validate user JWT
+    const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
+    if (authError || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    authenticatedUserId = userData.user.id;
+  }
 
   try {
     const { invoiceId, pdfBase64, isReminder = false } = await req.json();
-    
+
     if (!invoiceId) {
       throw new Error("Invoice ID is required");
     }
@@ -50,6 +89,14 @@ serve(async (req) => {
       throw new Error("Invoice not found");
     }
 
+    // If called by a user (not service role), verify ownership
+    if (authenticatedUserId && invoice.user_id !== authenticatedUserId) {
+      return new Response(JSON.stringify({ error: "Forbidden - you do not own this invoice" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const client = invoice.clients as any;
     if (!client?.email) {
       throw new Error("Client email not found");
@@ -61,28 +108,19 @@ serve(async (req) => {
       .eq("id", invoice.user_id)
       .single();
 
-    const companyName = profile?.company_name || "Your Company";
+    const companyName = sanitizeForPrompt(profile?.company_name || "Your Company");
     const fromEmail = profile?.email || "noreply@example.com";
+    const clientName = sanitizeForPrompt(client.name);
+    const invoiceNumber = sanitizeForPrompt(invoice.invoice_number);
+    const amount = `${sanitizeForPrompt(invoice.currency)} ${Number(invoice.total).toFixed(2)}`;
+    const dueDate = new Date(invoice.due_date).toLocaleDateString();
 
-    // Generate email content using AI
-    const emailPrompt = isReminder 
-      ? `Generate a professional payment reminder email with the following details:
-- Company: ${companyName}
-- Client: ${client.name}
-- Invoice Number: ${invoice.invoice_number}
-- Amount: ${invoice.currency} ${invoice.total}
-- Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
-- Status: ${invoice.status}
+    // Generate email content using AI with structured prompts
+    const systemPrompt = "You are a professional email writer for invoices. Generate polite, professional invoice emails. Never include threatening language, legal threats, or demands. Output only the email body text. Keep it concise (under 150 words).";
 
-The email should be polite but clear that payment is due. Include a gentle reminder about the due date. The PDF invoice is attached. Format as plain text, keep it concise (under 150 words).`
-      : `Generate a professional invoice email with the following details:
-- Company: ${companyName}
-- Client: ${client.name}
-- Invoice Number: ${invoice.invoice_number}
-- Amount: ${invoice.currency} ${invoice.total}
-- Due Date: ${new Date(invoice.due_date).toLocaleDateString()}
-
-The email should be polite, professional, and mention that the PDF invoice is attached. Include a call to action to review and pay the invoice. Format as plain text, keep it concise (under 150 words).`;
+    const userPrompt = isReminder
+      ? `Write a payment reminder email. Company: ${companyName}. Client: ${clientName}. Invoice: ${invoiceNumber}. Amount: ${amount}. Due date: ${dueDate}. Status: ${sanitizeForPrompt(invoice.status)}. The PDF invoice is attached. Be polite but clear that payment is due.`
+      : `Write an invoice email. Company: ${companyName}. Client: ${clientName}. Invoice: ${invoiceNumber}. Amount: ${amount}. Due date: ${dueDate}. The PDF invoice is attached. Include a call to action to review and pay.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -93,10 +131,8 @@ The email should be polite, professional, and mention that the PDF invoice is at
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          {
-            role: "user",
-            content: emailPrompt,
-          },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
         ],
         max_tokens: 500,
       }),
@@ -108,10 +144,10 @@ The email should be polite, professional, and mention that the PDF invoice is at
     console.log("Email content generated successfully");
 
     // Build email data
-    const subject = isReminder 
-      ? `Payment Reminder: Invoice ${invoice.invoice_number} from ${companyName}`
-      : `Invoice ${invoice.invoice_number} from ${companyName}`;
-    
+    const subject = isReminder
+      ? `Payment Reminder: Invoice ${invoiceNumber} from ${companyName}`
+      : `Invoice ${invoiceNumber} from ${companyName}`;
+
     const emailData = {
       to: client.email,
       from: fromEmail,
@@ -137,20 +173,6 @@ The email should be polite, professional, and mention that the PDF invoice is at
       });
 
     console.log("Email logged:", emailData);
-
-    // In production, you would send the email here using Resend or SendGrid
-    // Example with Resend (would require RESEND_API_KEY secret):
-    // const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-    // await resend.emails.send({
-    //   from: 'onboarding@resend.dev',
-    //   to: client.email,
-    //   subject: subject,
-    //   text: emailBody,
-    //   attachments: pdfBase64 ? [{
-    //     filename: `Invoice-${invoice.invoice_number}.pdf`,
-    //     content: pdfBase64,
-    //   }] : [],
-    // });
 
     return new Response(
       JSON.stringify({

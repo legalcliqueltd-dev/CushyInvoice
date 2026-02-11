@@ -11,9 +11,25 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only allow calls with service role key (from cron/internal)
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.replace("Bearer ", "") ?? "";
+  
+  if (!token || token !== serviceRoleKey) {
+    // Also accept anon key for backward compat with existing cron, but validate it
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    if (token !== anonKey) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    serviceRoleKey,
     { auth: { persistSession: false } }
   );
 
@@ -140,20 +156,15 @@ serve(async (req) => {
 
         if (updateError) throw updateError;
 
-        // Send email notification asynchronously (don't await)
+        // Send email notification with service role key for auth
         fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-invoice-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            "Authorization": `Bearer ${serviceRoleKey}`,
           },
           body: JSON.stringify({
-            invoice_id: newInvoice.id,
-            client_email: recurring.clients.email,
-            client_name: recurring.clients.name,
-            invoice_number: invoiceNumber,
-            total: newInvoice.total,
-            currency: newInvoice.currency,
+            invoiceId: newInvoice.id,
           }),
         }).catch((err) => console.error("Failed to send email notification:", err));
 

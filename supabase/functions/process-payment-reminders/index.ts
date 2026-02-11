@@ -16,12 +16,26 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only allow calls with service role key (from cron/internal)
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.replace("Bearer ", "") ?? "";
+
+  if (!token || token !== serviceRoleKey) {
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    if (token !== anonKey) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   try {
     logStep("Starting payment reminders processing");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -78,12 +92,12 @@ serve(async (req) => {
       if (shouldSend) {
         logStep("Sending reminder", { reminderId: reminder.id, invoiceNumber: invoice.invoice_number });
 
-        // Call send-invoice-email function
+        // Call send-invoice-email function with service role key
         const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-invoice-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseKey}`,
+            "Authorization": `Bearer ${serviceRoleKey}`,
           },
           body: JSON.stringify({
             invoiceId: invoice.id,
