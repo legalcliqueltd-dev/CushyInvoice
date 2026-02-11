@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -259,7 +260,10 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const isCapacitor = !!(window as any).Capacitor;
-    
+    const isCustomDomain =
+      !window.location.hostname.includes("lovable.app") &&
+      !window.location.hostname.includes("lovableproject.com");
+
     if (isCapacitor) {
       try {
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -293,38 +297,30 @@ export default function Auth() {
         toast({ title: "Google Sign-In Error", description: error.message || "Failed to start Google sign-in.", variant: "destructive" });
         setLoading(false);
       }
+    } else if (isCustomDomain) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) {
+        toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } else {
-      const isCustomDomain =
-        !window.location.hostname.includes("lovable.app") &&
-        !window.location.hostname.includes("lovableproject.com");
-
-      if (isCustomDomain) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/auth`,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (error) {
-          toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
-          setLoading(false);
-          return;
-        }
-        if (data?.url) {
-          window.location.href = data.url;
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${APP_DOMAIN}/auth`,
-          },
-        });
-        if (error) {
-          toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
-          setLoading(false);
-        }
+      // Lovable domain - use managed OAuth
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (error) {
+        toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
+        setLoading(false);
       }
     }
   };
