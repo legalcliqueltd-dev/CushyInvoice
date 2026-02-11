@@ -173,10 +173,10 @@ export default function Invoices() {
                     <TableBody>
                       {paginatedInvoices.map((invoice) => (
                         <TableRow key={invoice.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${invoice.id}`)}>
-                          <TableCell className="font-medium">
+                          <TableCell className="font-medium break-all min-w-0">
                             {invoice.invoice_number}
                           </TableCell>
-                          <TableCell>{invoice.clients.name}</TableCell>
+                          <TableCell className="break-words min-w-0 max-w-[120px]">{invoice.clients.name}</TableCell>
                           <TableCell className="hidden md:table-cell">
                             {new Date(invoice.issue_date).toLocaleDateString()}
                           </TableCell>

@@ -384,8 +384,8 @@ export default function Clients() {
                     <TableBody>
                       {paginatedClients.map((client) => (
                         <TableRow key={client.id}>
-                          <TableCell className="font-medium">{client.name}</TableCell>
-                          <TableCell>{client.email}</TableCell>
+                          <TableCell className="font-medium break-words min-w-0 max-w-[120px]">{client.name}</TableCell>
+                          <TableCell className="break-all min-w-0 max-w-[150px]">{client.email}</TableCell>
                           <TableCell className="hidden md:table-cell">
                             {client.phone || "-"}
                           </TableCell>

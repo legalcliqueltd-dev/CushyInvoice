@@ -318,7 +318,7 @@ export default function Products() {
                     <TableBody>
                       {paginatedProducts.map((product) => (
                         <TableRow key={product.id}>
-                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell className="font-medium break-words min-w-0 max-w-[150px]">{product.name}</TableCell>
                           <TableCell className="hidden md:table-cell max-w-md">
                             {product.description ? (
                               <span className="line-clamp-2 text-muted-foreground">

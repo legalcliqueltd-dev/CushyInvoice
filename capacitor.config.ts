@@ -11,6 +11,8 @@ const config: CapacitorConfig = {
       'accounts.google.com',
       '*.google.com',
       '*.supabase.co',
+      'cushyinvoice.com',
+      '*.cushyinvoice.com',
     ],
   },
   plugins: {

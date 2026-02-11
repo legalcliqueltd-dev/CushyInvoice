@@ -432,7 +432,7 @@ export default function InvoiceDetail() {
                     <TableBody>
                       {invoice.invoice_items.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="font-medium">{item.description}</TableCell>
+                          <TableCell className="font-medium break-words min-w-0">{item.description}</TableCell>
                           <TableCell className="text-right text-muted-foreground">{Number(item.quantity)}</TableCell>
                           <TableCell className="text-right text-muted-foreground">
                             {getCurrencySymbol(displayCurrency)}{Number(item.unit_price).toFixed(2)}
