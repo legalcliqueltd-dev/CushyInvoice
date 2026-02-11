@@ -152,16 +152,23 @@ export default function RecurringInvoices() {
   return (
     <DashboardLayout>
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Recurring Invoices</h1>
-              <p className="text-muted-foreground">
-                Automate your regular billing with recurring invoices
-              </p>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <RefreshCw className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Recurring Invoices</h1>
+                <p className="text-sm text-muted-foreground">
+                  Automate your regular billing with recurring invoices
+                </p>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={handleGenerateInvoices}
                 disabled={generating}
               >
@@ -177,52 +184,66 @@ export default function RecurringInvoices() {
           </div>
 
           {invoices.length === 0 ? (
-            <Card className="p-12 text-center neo-card-subtle">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No Recurring Invoices Yet</h3>
-              <p className="text-muted-foreground mb-6">
-                Set up recurring invoices to automatically bill your clients
-              </p>
-              <AddRecurringInvoiceDialog onInvoiceAdded={fetchRecurringInvoices} />
+            <Card className="neo-card-subtle">
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                  <Calendar className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">No Recurring Invoices Yet</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm">
+                  Set up recurring invoices to automatically bill your clients on a schedule
+                </p>
+                <AddRecurringInvoiceDialog onInvoiceAdded={fetchRecurringInvoices} />
+              </div>
             </Card>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               {invoices.map((invoice) => (
-                <Card key={invoice.id} className="p-6 neo-card-subtle">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <RefreshCw className="h-8 w-8 text-primary" />
-                      <div>
-                        <h3 className="font-semibold text-lg">{invoice.clients.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {invoice.frequency.charAt(0).toUpperCase() + invoice.frequency.slice(1)} billing
-                        </p>
+                <Card key={invoice.id} className="neo-card-subtle overflow-hidden">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-5">
+                    {/* Client info */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${invoice.is_active ? 'bg-primary/10' : 'bg-muted'}`}>
+                        <RefreshCw className={`h-5 w-5 ${invoice.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold truncate">{invoice.clients.name}</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground">
+                            {invoice.frequency.charAt(0).toUpperCase() + invoice.frequency.slice(1)}
+                          </span>
+                          <Badge variant={invoice.is_active ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                            {invoice.is_active ? "Active" : "Paused"}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Next Invoice</p>
-                        <p className="font-semibold">
+
+                    {/* Next date + actions */}
+                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Next:</span>
+                        <span className="font-medium">
                           {new Date(invoice.next_invoice_date).toLocaleDateString()}
-                        </p>
+                        </span>
                       </div>
-                      <Badge variant={invoice.is_active ? "default" : "secondary"}>
-                        {invoice.is_active ? "Active" : "Paused"}
-                      </Badge>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <Button
                           variant="outline"
                           size="icon"
+                          className="h-8 w-8"
                           onClick={() => toggleActive(invoice.id, invoice.is_active)}
                         >
-                          {invoice.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          {invoice.is_active ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => setDeleteId(invoice.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
