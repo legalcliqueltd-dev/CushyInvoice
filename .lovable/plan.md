@@ -1,42 +1,41 @@
 
 
-# Settings Page and Navigation UI Fixes
+## Fix Google OAuth Redirect Issue
 
-## Issues Identified
+### Problem
+After signing in with Google, users are not redirected to the dashboard. This happens because:
 
-1. **Settings tabs require horizontal scrolling** -- the 6 tabs overflow on mobile, forcing the user to slide to see "Appearance" and "Security"
-2. **Header obstructed by phone status bar** -- the `safe-top` padding isn't applying correctly on the sticky header
-3. **Buttons too large** -- the "New" button and theme toggle in the header have oversized touch targets (44px min)
-4. **Bottom nav bar needs rounded corners, larger size, and "Settings" instead of "More"**
+1. On the Lovable preview domain, `redirectTo` points to `https://cushyinvoice.com/auth` (a different origin), so the OAuth callback tokens never reach the preview app.
+2. The project uses Lovable Cloud but isn't using the managed `lovable.auth.signInWithOAuth()` function for the Lovable domain flow, which properly handles the auth-bridge.
 
-## Changes
+### Solution
 
-### 1. Settings Tabs: Vertical List on Mobile (Settings.tsx)
+**Step 1: Configure Lovable Cloud Google OAuth**
+- Run the `configure-social-auth` tool for Google to generate the `src/integrations/lovable/` module.
 
-Replace the horizontal scrolling `TabsList` with a vertical stack on small screens that switches to the current horizontal grid on larger screens. This eliminates the need to slide sideways entirely.
+**Step 2: Update `src/pages/Auth.tsx`**
+- Import the `lovable` module from `@/integrations/lovable/index`.
+- Restructure `handleGoogleSignIn` into three branches:
+  1. **Capacitor (native app):** Keep existing logic with `@capacitor/browser` and `skipBrowserRedirect: true`, redirecting to `APP_DOMAIN/auth`.
+  2. **Custom domain (cushyinvoice.com):** Keep existing logic using `supabase.auth.signInWithOAuth` with `skipBrowserRedirect: true` and `window.location.origin/auth`.
+  3. **Lovable domain (preview/published):** Use `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })` instead of `supabase.auth.signInWithOAuth`. This properly integrates with Lovable's auth-bridge and ensures tokens return to the correct origin.
 
-- On mobile: render tabs as a 2-column grid so all 6 tabs are visible without scrolling
-- On desktop: keep the current 6-column horizontal layout
+### Technical Details
 
-### 2. Fix Header Safe Area (DashboardLayout.tsx)
+The updated `handleGoogleSignIn` function will look like:
 
-Move `safe-top` from inside the sidebar to the `header` element's padding so the sticky top bar accounts for the phone notch/status bar. Add `pt-[env(safe-area-inset-top)]` directly to the header.
+```text
+if (isCapacitor) {
+  // Native app flow - unchanged
+  supabase.auth.signInWithOAuth with skipBrowserRedirect + Browser.open()
+} else if (isCustomDomain) {
+  // Custom domain (cushyinvoice.com) - unchanged
+  supabase.auth.signInWithOAuth with skipBrowserRedirect + window.location.href
+} else {
+  // Lovable domain - NEW: use managed OAuth
+  lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })
+}
+```
 
-### 3. Reduce Button Sizes (DashboardLayout.tsx)
+No other files need changes. The `onAuthStateChange` listener already handles navigation to `/dashboard` once the session is detected.
 
-- Shrink the "New" / "Create Invoice" button from `min-h-[44px]` to `h-9` (standard small)
-- Shrink the theme toggle from `min-h-[44px] min-w-[44px]` to `h-9 w-9`
-- Reduce icon sizes from `h-5 w-5` to `h-4 w-4` in the header buttons
-
-### 4. Bottom Nav: Rounded Corners, Larger, "Settings" Label (index.css + DashboardLayout.tsx)
-
-- Add `rounded-t-2xl` and increase padding/height on `.mobile-bottom-nav`
-- Change the last bottom nav item from "More" (MoreHorizontal icon) to "Settings" (Settings icon) that navigates to `/settings` instead of opening the sidebar
-- Mark the Settings bottom nav item as active when on `/settings`
-
-## Technical Details
-
-**Files modified:**
-- `src/pages/Settings.tsx` (lines 346-356) -- change TabsList layout to 2-col grid on mobile
-- `src/components/DashboardLayout.tsx` -- header safe area, smaller buttons, bottom nav "Settings" replacement
-- `src/index.css` (lines 517-527) -- bottom nav rounded corners and increased size
