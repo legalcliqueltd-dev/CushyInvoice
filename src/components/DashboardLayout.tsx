@@ -21,9 +21,13 @@ import {
   Palette,
   MoreHorizontal,
   ArrowLeft,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useTheme } from "@/hooks/useTheme";
 import { Session } from "@supabase/supabase-js";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -59,6 +63,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   const { toast } = useToast();
   const { subscription: sub } = useSubscription();
+  const { theme, setTheme } = useTheme();
+
+  const cycleTheme = () => {
+    const order = ["light", "dark", "system"] as const;
+    const idx = order.indexOf(theme);
+    setTheme(order[(idx + 1) % 3]);
+  };
+
+  const ThemeIcon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -214,6 +227,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
 
             <div className="flex-1 min-w-0"></div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={cycleTheme}
+              className="min-h-[44px] min-w-[44px] flex-shrink-0"
+              title={`Theme: ${theme}`}
+            >
+              <ThemeIcon className="h-5 w-5" />
+            </Button>
 
             <Button
               onClick={() => navigate("/invoices/new")}

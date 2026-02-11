@@ -17,10 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2, Crown, RefreshCw, Trash2 } from "lucide-react";
+import { Upload, Loader2, Crown, RefreshCw, Trash2, Sun, Moon, Monitor } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSubscription } from "@/hooks/useSubscription";
 import { LogoUploadDialog } from "@/components/LogoUploadDialog";
+import { useTheme } from "@/hooks/useTheme";
 
 interface ProfileData {
   company_name: string;
@@ -67,6 +68,7 @@ export default function Settings() {
     openCustomerPortal 
   } = useSubscription();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     fetchProfile();
@@ -343,11 +345,12 @@ export default function Settings() {
 
         <Tabs defaultValue="profile" className="w-full">
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5 neo-card-subtle">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-6 neo-card-subtle">
               <TabsTrigger value="profile" className="whitespace-nowrap">My Profile</TabsTrigger>
               <TabsTrigger value="company" className="whitespace-nowrap">Company</TabsTrigger>
               <TabsTrigger value="billing" className="whitespace-nowrap">Billing</TabsTrigger>
               <TabsTrigger value="defaults" className="whitespace-nowrap">Defaults</TabsTrigger>
+              <TabsTrigger value="appearance" className="whitespace-nowrap">Appearance</TabsTrigger>
               <TabsTrigger value="security" className="whitespace-nowrap">Security</TabsTrigger>
             </TabsList>
           </div>
@@ -756,6 +759,39 @@ export default function Settings() {
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Defaults
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="appearance" className="space-y-4">
+            <Card className="neo-card-subtle">
+              <CardHeader>
+                <CardTitle>Theme</CardTitle>
+                <CardDescription>Choose your preferred appearance</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-3">
+                  {([
+                    { value: "light" as const, icon: Sun, label: "Light" },
+                    { value: "dark" as const, icon: Moon, label: "Dark" },
+                    { value: "system" as const, icon: Monitor, label: "System" },
+                  ]).map(({ value, icon: Icon, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => setTheme(value)}
+                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
+                        theme === value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <Icon className={`h-6 w-6 ${theme === value ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={`text-sm font-medium ${theme === value ? "text-primary" : "text-muted-foreground"}`}>
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -23,12 +23,13 @@ import {
   Building2,
   FileText,
   DollarSign,
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShareInvoiceDialog } from "@/components/ShareInvoiceDialog";
-import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
+import { generateInvoicePdf, downloadPdf, savePdfToDevice } from "@/lib/generateInvoicePdf";
 
 interface InvoiceData {
   id: string;
@@ -181,11 +182,22 @@ export default function InvoiceDetail() {
     setDownloadingPdf(true);
     try {
       const blob = await generateInvoicePdf(invoice, profile || {});
-      downloadPdf(blob, `Invoice-${invoice.invoice_number}.pdf`);
-      toast({
-        title: "PDF Downloaded",
-        description: "Invoice PDF has been downloaded successfully.",
-      });
+      const filename = `Invoice-${invoice.invoice_number}.pdf`;
+      
+      // Try native save first
+      const saved = await savePdfToDevice(blob, filename);
+      if (saved) {
+        toast({
+          title: "PDF Saved",
+          description: "Invoice saved to your device storage.",
+        });
+      } else {
+        downloadPdf(blob, filename);
+        toast({
+          title: "PDF Downloaded",
+          description: "Invoice PDF has been downloaded successfully.",
+        });
+      }
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
@@ -265,6 +277,14 @@ export default function InvoiceDetail() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/invoices/${id}/edit`)}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
             <Button 
               variant="outline" 
               size="sm" 
