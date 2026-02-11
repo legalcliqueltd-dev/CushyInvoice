@@ -677,6 +677,17 @@ export default function InvoiceNew() {
   }
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
+  
+  // Resolve template color
+  const builtinColors: Record<string, string> = {
+    "builtin-modern": "#6366f1",
+    "builtin-classic": "#059669",
+    "builtin-minimal": "#64748b",
+    "builtin-bold": "#dc2626",
+  };
+  const selectedTemplateColor = selectedTemplateId?.startsWith("builtin-")
+    ? builtinColors[selectedTemplateId] || "#4f46e5"
+    : templates.find(t => t.id === selectedTemplateId)?.primary_color || "#4f46e5";
 
   return (
     <DashboardLayout>
@@ -716,6 +727,7 @@ export default function InvoiceNew() {
               currency={currency}
               notes={notes}
               logoBgColor={logoBgColor}
+              templateColor={selectedTemplateColor}
             />
           </TabsContent>
 
