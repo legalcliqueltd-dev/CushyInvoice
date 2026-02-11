@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   LayoutDashboard,
   ArrowRight,
+  Crown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -173,20 +174,21 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-6">
         {!subscription.subscribed && (
-          (window as any).Capacitor ? (
-            <CompactUpgradeBanner />
-          ) : (
-            <>
+          <>
+            {/* Mobile: single compact banner */}
+            <div className="block sm:hidden">
+              <CompactUpgradeBanner />
+            </div>
+            {/* Desktop: full banners */}
+            <div className="hidden sm:block space-y-4">
               <TrialBanner />
               <UpgradeBanner />
               <PlanLimitsBanner />
-              <AdSenseAd 
-                slot="1234567890" 
-                format="horizontal"
-                className="my-4"
-              />
-            </>
-          )
+              {!(window as any).Capacitor && (
+                <AdSenseAd slot="1234567890" format="horizontal" className="my-2" />
+              )}
+            </div>
+          </>
         )}
         
         {/* Header */}
