@@ -74,6 +74,8 @@ const Index = () => {
       }
     }).catch(() => {
       navigate("/auth", { replace: true });
+    }).finally(() => {
+      setCheckingNative(false);
     });
   }, [navigate]);
 
