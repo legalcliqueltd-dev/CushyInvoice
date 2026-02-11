@@ -226,9 +226,25 @@ export default function Auth() {
         if (error) throw error;
         if (!data?.url) throw new Error("No OAuth URL returned");
 
-        // Open in system browser via window.open; Capacitor's allowNavigation
-        // handles the redirect back and onAuthStateChange picks up the session.
-        window.open(data.url, "_blank");
+        // Use Capacitor Browser plugin for in-app browser that returns to the app
+        const { Browser } = await import("@capacitor/browser");
+        
+        // Listen for browser finished event to check session
+        const sessionCheckHandler = async () => {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData.session) {
+            await ensureProfileExists(
+              sessionData.session.user.id,
+              sessionData.session.user.email || "",
+              sessionData.session.user.user_metadata?.full_name
+            );
+            navigate("/dashboard");
+          }
+          setLoading(false);
+        };
+
+        await Browser.addListener("browserFinished", sessionCheckHandler);
+        await Browser.open({ url: data.url, windowName: "_self" });
       } catch (error: any) {
         toast({
           title: "Google Sign-In Error",

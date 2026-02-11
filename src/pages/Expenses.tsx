@@ -178,21 +178,21 @@ export default function Expenses() {
               <h2 className="text-xl font-semibold mb-4">Recent Expenses</h2>
               <div className="space-y-4">
                 {expenses.map((expense) => (
-                  <div
+                    <div
                     key={expense.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors gap-2"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
                       <Receipt className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{expense.description || expense.category}</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{expense.description || expense.category}</p>
+                        <p className="text-sm text-muted-foreground truncate">
                           {new Date(expense.expense_date).toLocaleDateString()} • {expense.category}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <p className="font-semibold text-destructive">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <p className="font-semibold text-destructive whitespace-nowrap">
                         -{expense.currency} {Number(expense.amount).toFixed(2)}
                       </p>
                       <Button

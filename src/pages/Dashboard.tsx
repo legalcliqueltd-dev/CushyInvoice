@@ -185,8 +185,8 @@ export default function Dashboard() {
               </CardTitle>
               <DollarSign className="h-4 w-4 text-success" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="min-w-0">
+              <div className="text-2xl font-bold truncate">
                 ${stats.totalPaid.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -202,8 +202,8 @@ export default function Dashboard() {
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="min-w-0">
+              <div className="text-2xl font-bold truncate">
                 ${stats.totalOutstanding.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -277,16 +277,16 @@ export default function Dashboard() {
                 {recentInvoices.map((invoice) => (
                   <div
                     key={invoice.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-2"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <p className="font-medium">{invoice.invoice_number}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <p className="font-medium truncate">{invoice.invoice_number}</p>
                         <Badge className={getStatusColor(invoice.status)}>
                           {invoice.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-sm text-muted-foreground mt-1 truncate">
                         {invoice.clients.name}
                       </p>
                     </div>

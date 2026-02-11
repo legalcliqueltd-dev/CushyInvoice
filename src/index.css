@@ -251,10 +251,24 @@ All colors MUST be HSL.
     touch-action: manipulation;
   }
 
-  /* Haptic-style active feedback for tappable elements */
-  button:active, a:active, [role="button"]:active {
+  /* Haptic-style active feedback for tappable elements — exclude dialog internals */
+  button:active:not([data-radix-collection-item]):not([role="combobox"]):not([data-state]),
+  a:active,
+  [role="button"]:active:not([data-radix-collection-item]) {
     transform: scale(0.97);
     transition: transform 0.1s ease;
+  }
+
+  /* Prevent dialog content from inheriting active transforms */
+  [data-radix-dialog-content] button:active,
+  [data-radix-dialog-content] [role="button"]:active {
+    transform: none !important;
+  }
+
+  /* Global text overflow prevention */
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 }
 
