@@ -203,24 +203,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Main content */}
       <div className="lg:pl-[280px]">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border safe-top">
-          <div className="flex items-center justify-between h-full px-4 lg:px-6">
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="flex items-center justify-between h-14 px-4 lg:px-6">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="lg:hidden p-1.5 -ml-1.5 rounded-lg hover:bg-muted transition-colors"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4" />
               </button>
               {location.pathname !== "/dashboard" && (
                 <>
-                  <div className="h-5 w-px bg-border lg:hidden" />
+                  <div className="h-4 w-px bg-border lg:hidden" />
                   <button
                     onClick={() => navigate(-1)}
-                    className="p-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                     aria-label="Go back"
                   >
-                    <ArrowLeft className="h-5 w-5" />
+                    <ArrowLeft className="h-4 w-4" />
                   </button>
                 </>
               )}
@@ -232,16 +232,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               variant="ghost"
               size="icon"
               onClick={cycleTheme}
-              className="min-h-[44px] min-w-[44px] flex-shrink-0"
+              className="h-9 w-9 flex-shrink-0"
               title={`Theme: ${theme}`}
             >
-              <ThemeIcon className="h-5 w-5" />
+              <ThemeIcon className="h-4 w-4" />
             </Button>
 
             <Button
               onClick={() => navigate("/invoices/new")}
-              className="gap-2 shadow-sm min-h-[44px] flex-shrink-0"
-              size="default"
+              className="gap-2 shadow-sm flex-shrink-0"
+              size="sm"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Create Invoice</span>
@@ -268,11 +268,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </button>
           ))}
           <button
-            onClick={() => setSidebarOpen(true)}
-            className={`mobile-bottom-nav-item`}
+            onClick={() => navigate("/settings")}
+            className={`mobile-bottom-nav-item ${isActiveRoute("/settings") ? "active" : ""}`}
           >
-            <MoreHorizontal className="h-5 w-5" />
-            <span className="text-[10px]">More</span>
+            <Settings className="h-5 w-5" />
+            <span className="text-[10px]">Settings</span>
           </button>
         </div>
       </nav>
