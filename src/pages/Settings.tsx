@@ -344,16 +344,14 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-6 neo-card-subtle">
-              <TabsTrigger value="profile" className="whitespace-nowrap">My Profile</TabsTrigger>
-              <TabsTrigger value="company" className="whitespace-nowrap">Company</TabsTrigger>
-              <TabsTrigger value="billing" className="whitespace-nowrap">Billing</TabsTrigger>
-              <TabsTrigger value="defaults" className="whitespace-nowrap">Defaults</TabsTrigger>
-              <TabsTrigger value="appearance" className="whitespace-nowrap">Appearance</TabsTrigger>
-              <TabsTrigger value="security" className="whitespace-nowrap">Security</TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 neo-card-subtle h-auto">
+            <TabsTrigger value="profile">My Profile</TabsTrigger>
+            <TabsTrigger value="company">Company</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
+            <TabsTrigger value="defaults">Defaults</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
             <Card className="neo-card-subtle">
