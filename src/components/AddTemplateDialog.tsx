@@ -23,6 +23,10 @@ export const AddTemplateDialog = ({ onTemplateAdded }: AddTemplateDialogProps) =
     font_family: "Inter",
     layout_style: "modern",
     is_default: false,
+    gradient_start_color: "",
+    gradient_end_color: "",
+    gradient_direction: "to bottom right",
+    watermark_text: "",
   });
   const { toast } = useToast();
 
@@ -34,7 +38,6 @@ export const AddTemplateDialog = ({ onTemplateAdded }: AddTemplateDialogProps) =
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // If setting as default, unset other defaults first
       if (formData.is_default) {
         await supabase
           .from("invoice_templates")
@@ -51,6 +54,10 @@ export const AddTemplateDialog = ({ onTemplateAdded }: AddTemplateDialogProps) =
         font_family: formData.font_family,
         layout_style: formData.layout_style,
         is_default: formData.is_default,
+        gradient_start_color: formData.gradient_start_color || null,
+        gradient_end_color: formData.gradient_end_color || null,
+        gradient_direction: formData.gradient_direction,
+        watermark_text: formData.watermark_text || null,
       });
 
       if (error) throw error;
@@ -68,6 +75,10 @@ export const AddTemplateDialog = ({ onTemplateAdded }: AddTemplateDialogProps) =
         font_family: "Inter",
         layout_style: "modern",
         is_default: false,
+        gradient_start_color: "",
+        gradient_end_color: "",
+        gradient_direction: "to bottom right",
+        watermark_text: "",
       });
       onTemplateAdded();
     } catch (error: any) {
@@ -89,7 +100,7 @@ export const AddTemplateDialog = ({ onTemplateAdded }: AddTemplateDialogProps) =
           Create Template
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] neo-card-subtle" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[500px] neo-card-subtle max-h-[85vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Create Custom Template</DialogTitle>
           <DialogDescription className="sr-only">
@@ -145,6 +156,88 @@ export const AddTemplateDialog = ({ onTemplateAdded }: AddTemplateDialogProps) =
                 />
               </div>
             </div>
+          </div>
+
+          {/* Gradient Section */}
+          <div className="space-y-3 p-3 rounded-lg border bg-muted/30">
+            <Label className="text-sm font-semibold">Header Gradient (optional)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="gradient_start" className="text-xs">Start Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="gradient_start"
+                    type="color"
+                    value={formData.gradient_start_color || "#6366f1"}
+                    onChange={(e) => setFormData({ ...formData, gradient_start_color: e.target.value })}
+                    className="w-12 h-9"
+                  />
+                  <Input
+                    type="text"
+                    value={formData.gradient_start_color}
+                    onChange={(e) => setFormData({ ...formData, gradient_start_color: e.target.value })}
+                    placeholder="None"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="gradient_end" className="text-xs">End Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="gradient_end"
+                    type="color"
+                    value={formData.gradient_end_color || "#4f46e5"}
+                    onChange={(e) => setFormData({ ...formData, gradient_end_color: e.target.value })}
+                    className="w-12 h-9"
+                  />
+                  <Input
+                    type="text"
+                    value={formData.gradient_end_color}
+                    onChange={(e) => setFormData({ ...formData, gradient_end_color: e.target.value })}
+                    placeholder="None"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="gradient_direction" className="text-xs">Direction</Label>
+              <Select
+                value={formData.gradient_direction}
+                onValueChange={(value) => setFormData({ ...formData, gradient_direction: value })}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="to right">Left → Right</SelectItem>
+                  <SelectItem value="to bottom">Top → Bottom</SelectItem>
+                  <SelectItem value="to bottom right">Diagonal ↘</SelectItem>
+                  <SelectItem value="to bottom left">Diagonal ↙</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {formData.gradient_start_color && formData.gradient_end_color && (
+              <div
+                className="h-8 rounded-md border"
+                style={{
+                  background: `linear-gradient(${formData.gradient_direction}, ${formData.gradient_start_color}, ${formData.gradient_end_color})`,
+                }}
+              />
+            )}
+          </div>
+
+          {/* Watermark */}
+          <div>
+            <Label htmlFor="watermark_text">Watermark Text (optional)</Label>
+            <Input
+              id="watermark_text"
+              value={formData.watermark_text}
+              onChange={(e) => setFormData({ ...formData, watermark_text: e.target.value })}
+              placeholder="e.g. DRAFT, CONFIDENTIAL"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Displays faintly across the invoice body</p>
           </div>
 
           <div>

@@ -197,6 +197,9 @@ export type Database = {
         Row: {
           created_at: string | null
           font_family: string | null
+          gradient_direction: string | null
+          gradient_end_color: string | null
+          gradient_start_color: string | null
           id: string
           is_default: boolean | null
           layout_style: string | null
@@ -206,10 +209,14 @@ export type Database = {
           template_name: string
           updated_at: string | null
           user_id: string
+          watermark_text: string | null
         }
         Insert: {
           created_at?: string | null
           font_family?: string | null
+          gradient_direction?: string | null
+          gradient_end_color?: string | null
+          gradient_start_color?: string | null
           id?: string
           is_default?: boolean | null
           layout_style?: string | null
@@ -219,10 +226,14 @@ export type Database = {
           template_name: string
           updated_at?: string | null
           user_id: string
+          watermark_text?: string | null
         }
         Update: {
           created_at?: string | null
           font_family?: string | null
+          gradient_direction?: string | null
+          gradient_end_color?: string | null
+          gradient_start_color?: string | null
           id?: string
           is_default?: boolean | null
           layout_style?: string | null
@@ -232,6 +243,7 @@ export type Database = {
           template_name?: string
           updated_at?: string | null
           user_id?: string
+          watermark_text?: string | null
         }
         Relationships: []
       }
@@ -431,6 +443,9 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          bank_routing_code: string | null
           clients_count: number | null
           company_logo: string | null
           company_name: string | null
@@ -456,6 +471,9 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          bank_routing_code?: string | null
           clients_count?: number | null
           company_logo?: string | null
           company_name?: string | null
@@ -481,6 +499,9 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          bank_routing_code?: string | null
           clients_count?: number | null
           company_logo?: string | null
           company_name?: string | null

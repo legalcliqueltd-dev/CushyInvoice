@@ -15,6 +15,9 @@ interface CompanyInfo {
   email: string;
   phone: string;
   address: string;
+  bank_name?: string;
+  bank_account_number?: string;
+  bank_routing_code?: string;
 }
 
 interface ClientInfo {
@@ -187,6 +190,18 @@ export function InvoicePreview({
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Notes</p>
             <p className="text-xs text-gray-600 whitespace-pre-wrap">{notes}</p>
+          </div>
+        )}
+
+        {/* Bank Details */}
+        {(companyInfo.bank_name || companyInfo.bank_account_number || companyInfo.bank_routing_code) && (
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Payment Details</p>
+            <div className="text-xs text-gray-600 space-y-0.5">
+              {companyInfo.bank_name && <p><span className="font-medium">Bank:</span> {companyInfo.bank_name}</p>}
+              {companyInfo.bank_account_number && <p><span className="font-medium">Account:</span> {companyInfo.bank_account_number}</p>}
+              {companyInfo.bank_routing_code && <p><span className="font-medium">Routing/Sort Code:</span> {companyInfo.bank_routing_code}</p>}
+            </div>
           </div>
         )}
       </div>
