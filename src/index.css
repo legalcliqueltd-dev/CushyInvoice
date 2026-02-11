@@ -474,7 +474,7 @@ All colors MUST be HSL.
     box-shadow: 3px 3px 0px hsl(var(--foreground) / 0.08);
     transition: all 0.2s ease;
   }
-  .neo-card-subtle:hover {
+  .neo-card-subtle:hover:not([role="dialog"]) {
     box-shadow: 4px 4px 0px hsl(var(--foreground) / 0.12);
     transform: translate(-0.5px, -0.5px);
   }
