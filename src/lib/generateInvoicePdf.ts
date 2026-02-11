@@ -42,6 +42,9 @@ interface CompanyData {
   address?: string;
   email?: string;
   phone?: string;
+  bank_name?: string;
+  bank_account_number?: string;
+  bank_routing_code?: string;
 }
 
 // Helper function to load image as base64 using fetch (better for Supabase Storage)
@@ -336,6 +339,37 @@ export async function generateInvoicePdf(
     
     const splitNotes = doc.splitTextToSize(invoice.notes, pageWidth - margin * 2);
     doc.text(splitNotes, margin, summaryY);
+    summaryY += splitNotes.length * 5 + 5;
+  }
+
+  // Bank Details section
+  const hasBankDetails = company.bank_name || company.bank_account_number || company.bank_routing_code;
+  if (hasBankDetails) {
+    summaryY = Math.max(summaryY, (invoice.notes ? summaryY : summaryY + 25));
+    if (!invoice.notes) summaryY += 25;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...mutedColor);
+    doc.text('PAYMENT DETAILS', margin, summaryY);
+    
+    summaryY += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...textColor);
+    doc.setFontSize(9);
+
+    if (company.bank_name) {
+      doc.text(`Bank: ${company.bank_name}`, margin, summaryY);
+      summaryY += 5;
+    }
+    if (company.bank_account_number) {
+      doc.text(`Account: ${company.bank_account_number}`, margin, summaryY);
+      summaryY += 5;
+    }
+    if (company.bank_routing_code) {
+      doc.text(`Routing/Sort Code: ${company.bank_routing_code}`, margin, summaryY);
+      summaryY += 5;
+    }
   }
 
   // Footer

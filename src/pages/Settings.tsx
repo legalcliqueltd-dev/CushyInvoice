@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2, Crown, RefreshCw, Trash2, Sun, Moon, Monitor } from "lucide-react";
+import { Upload, Loader2, Crown, RefreshCw, Trash2, Sun, Moon, Monitor, Landmark } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSubscription } from "@/hooks/useSubscription";
 import { LogoUploadDialog } from "@/components/LogoUploadDialog";
@@ -32,6 +32,9 @@ interface ProfileData {
   company_logo: string;
   default_tax_rate: number;
   default_currency: string;
+  bank_name: string;
+  bank_account_number: string;
+  bank_routing_code: string;
 }
 
 interface SubscriptionData {
@@ -52,6 +55,9 @@ export default function Settings() {
     company_logo: "",
     default_tax_rate: 0,
     default_currency: "USD",
+    bank_name: "",
+    bank_account_number: "",
+    bank_routing_code: "",
   });
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -97,6 +103,9 @@ export default function Settings() {
           company_logo: data.company_logo || "",
           default_tax_rate: Number(data.default_tax_rate) || 0,
           default_currency: data.default_currency || "USD",
+          bank_name: (data as any).bank_name || "",
+          bank_account_number: (data as any).bank_account_number || "",
+          bank_routing_code: (data as any).bank_routing_code || "",
         });
       }
     } catch (error: any) {
@@ -113,7 +122,6 @@ export default function Settings() {
     }
   };
 
-
   const handleProfileUpdate = async () => {
     setSaving(true);
     try {
@@ -129,7 +137,10 @@ export default function Settings() {
           address: profile.address,
           default_tax_rate: profile.default_tax_rate,
           default_currency: profile.default_currency,
-        })
+          bank_name: profile.bank_name || null,
+          bank_account_number: profile.bank_account_number || null,
+          bank_routing_code: profile.bank_routing_code || null,
+        } as any)
         .eq("id", user.id);
 
       if (error) throw error;
@@ -158,7 +169,6 @@ export default function Settings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Delete old logo if exists
       if (profile.company_logo) {
         const oldPath = profile.company_logo.split("/").pop();
         if (oldPath) {
@@ -168,7 +178,6 @@ export default function Settings() {
         }
       }
 
-      // Upload new logo
       const fileName = `${Date.now()}.png`;
       const filePath = `${user.id}/${fileName}`;
 
@@ -178,12 +187,10 @@ export default function Settings() {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from("company-logos")
         .getPublicUrl(filePath);
 
-      // Update profile with new logo URL
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ company_logo: publicUrl })
@@ -192,19 +199,12 @@ export default function Settings() {
       if (updateError) throw updateError;
 
       setProfile({ ...profile, company_logo: publicUrl });
-      toast({
-        title: "Success",
-        description: "Logo uploaded successfully",
-      });
+      toast({ title: "Success", description: "Logo uploaded successfully" });
     } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error("Error uploading logo:", error);
       }
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload logo",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message || "Failed to upload logo", variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -232,54 +232,30 @@ export default function Settings() {
       if (error) throw error;
 
       setProfile({ ...profile, company_logo: "" });
-      toast({
-        title: "Success",
-        description: "Logo removed",
-      });
+      toast({ title: "Success", description: "Logo removed" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to remove logo",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message || "Failed to remove logo", variant: "destructive" });
     }
   };
 
   const handlePasswordChange = async () => {
     if (!currentPassword) {
-      toast({
-        title: "Error",
-        description: "Please enter your current password",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Please enter your current password", variant: "destructive" });
       return;
     }
-
     if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
       return;
     }
-
     if (newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Password must be at least 6 characters", variant: "destructive" });
       return;
     }
 
     setSaving(true);
     try {
-      // First, verify current password by attempting to sign in
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) {
-        throw new Error("User email not found");
-      }
+      if (!user?.email) throw new Error("User email not found");
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
@@ -287,25 +263,14 @@ export default function Settings() {
       });
 
       if (signInError) {
-        toast({
-          title: "Error",
-          description: "Current password is incorrect",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Current password is incorrect", variant: "destructive" });
         return;
       }
 
-      // If verification succeeds, update to new password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Password updated successfully",
-      });
+      toast({ title: "Success", description: "Password updated successfully" });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -313,11 +278,7 @@ export default function Settings() {
       if (import.meta.env.DEV) {
         console.error("Error updating password:", error);
       }
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update password",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message || "Failed to update password", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -756,6 +717,64 @@ export default function Settings() {
                 <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Save Defaults
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="neo-card-subtle">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Landmark className="h-5 w-5 text-primary" />
+                  Bank Details
+                </CardTitle>
+                <CardDescription>
+                  Add your bank details to display on invoices for direct payments
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bank_name">Bank Name</Label>
+                  <Input
+                    id="bank_name"
+                    value={profile.bank_name}
+                    onChange={(e) =>
+                      setProfile({ ...profile, bank_name: e.target.value })
+                    }
+                    placeholder="e.g. Chase Bank, Barclays"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bank_account_number">Account Number</Label>
+                  <Input
+                    id="bank_account_number"
+                    value={profile.bank_account_number}
+                    onChange={(e) =>
+                      setProfile({ ...profile, bank_account_number: e.target.value })
+                    }
+                    placeholder="e.g. 1234567890"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bank_routing_code">Routing / Sort Code</Label>
+                  <Input
+                    id="bank_routing_code"
+                    value={profile.bank_routing_code}
+                    onChange={(e) =>
+                      setProfile({ ...profile, bank_routing_code: e.target.value })
+                    }
+                    placeholder="e.g. 021000021"
+                  />
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  These details will appear at the bottom of your invoices when set.
+                </p>
+
+                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Save Bank Details
                 </Button>
               </CardContent>
             </Card>

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AuthLayout } from "@/components/AuthLayout";
 import { Loader2, Mail, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -21,6 +22,12 @@ const APP_DOMAIN = "https://cushyinvoice.com";
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingUserId, setPendingUserId] = useState("");
+  const [pendingFullName, setPendingFullName] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -30,7 +37,6 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         ensureProfileExists(session.user.id, session.user.email || "");
@@ -52,6 +58,14 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   const ensureProfileExists = async (userId: string, email: string, fullName?: string) => {
     try {
       const { data: existingProfile } = await supabase
@@ -72,10 +86,6 @@ export default function Auth() {
           is_premium: true,
           trial_end_date: trialEndDate.toISOString(),
         });
-        
-        if (import.meta.env.DEV) {
-          console.log("Profile created for OAuth user:", userId);
-        }
       }
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -87,11 +97,7 @@ export default function Auth() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      toast({
-        title: "Email required",
-        description: "Please enter your email address.",
-        variant: "destructive",
-      });
+      toast({ title: "Email required", description: "Please enter your email address.", variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -101,16 +107,9 @@ export default function Auth() {
       });
       if (error) throw error;
       setResetSent(true);
-      toast({
-        title: "Check your email",
-        description: "A password reset link has been sent to your email.",
-      });
+      toast({ title: "Check your email", description: "A password reset link has been sent to your email." });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send reset email.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message || "Failed to send reset email.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -128,11 +127,7 @@ export default function Auth() {
       });
 
       if (!validation.success) {
-        toast({
-          title: "Validation Error",
-          description: validation.error.errors[0].message,
-          variant: "destructive",
-        });
+        toast({ title: "Validation Error", description: validation.error.errors[0].message, variant: "destructive" });
         setLoading(false);
         return;
       }
@@ -147,19 +142,25 @@ export default function Auth() {
           if (error.message.includes("Invalid login credentials")) {
             throw new Error("Invalid email or password. Please check your credentials.");
           }
+          if (error.message.includes("Email not confirmed")) {
+            // User hasn't verified email yet — show OTP screen
+            setPendingEmail(validation.data.email);
+            setShowOtpVerification(true);
+            await supabase.auth.resend({ type: 'signup', email: validation.data.email });
+            setResendCooldown(60);
+            toast({ title: "Email not verified", description: "We've sent a new verification code to your email." });
+            setLoading(false);
+            return;
+          }
           throw error;
         }
 
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
+        toast({ title: "Welcome back!", description: "You've successfully logged in." });
       } else {
         const { data, error } = await supabase.auth.signUp({
           email: validation.data.email,
           password: validation.data.password,
           options: {
-            emailRedirectTo: `${APP_DOMAIN}/dashboard`,
             data: {
               full_name: validation.data.fullName,
             },
@@ -174,37 +175,82 @@ export default function Auth() {
         }
 
         if (data.user) {
-          const trialEndDate = new Date();
-          trialEndDate.setDate(trialEndDate.getDate() + 7);
-          
-          const { error: profileError } = await supabase.from("profiles").insert({
-            id: data.user.id,
-            email: validation.data.email,
-            full_name: validation.data.fullName || null,
-            plan_type: 'trial',
-            is_premium: true,
-            trial_end_date: trialEndDate.toISOString(),
+          // Store pending info for after OTP verification
+          setPendingEmail(validation.data.email);
+          setPendingUserId(data.user.id);
+          setPendingFullName(validation.data.fullName || "");
+          setShowOtpVerification(true);
+          setResendCooldown(60);
+
+          toast({
+            title: "Verification code sent!",
+            description: "Please check your email for the 6-digit code.",
           });
-
-          if (profileError && import.meta.env.DEV) {
-            console.error("Profile creation error:", profileError);
-          }
         }
-
-        toast({
-          title: "Account created!",
-          description: "Welcome to CushyInvoice. Your 7-day free trial has started.",
-        });
       }
     } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error("Auth error:", error);
       }
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred. Please try again.",
-        variant: "destructive",
+      toast({ title: "Error", description: error.message || "An error occurred. Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otpValue.length !== 6) {
+      toast({ title: "Invalid code", description: "Please enter the full 6-digit code.", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: pendingEmail,
+        token: otpValue,
+        type: 'signup',
       });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Create profile after successful verification
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 7);
+
+        await supabase.from("profiles").upsert({
+          id: data.user.id,
+          email: pendingEmail,
+          full_name: pendingFullName || null,
+          plan_type: 'trial',
+          is_premium: true,
+          trial_end_date: trialEndDate.toISOString(),
+        });
+
+        toast({ title: "Account verified!", description: "Welcome to CushyInvoice. Your 7-day free trial has started." });
+        // Auth state change listener will handle navigation
+      }
+    } catch (error: any) {
+      toast({ title: "Verification failed", description: error.message || "Invalid or expired code. Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: pendingEmail,
+      });
+      if (error) throw error;
+      setResendCooldown(60);
+      toast({ title: "Code resent", description: "A new verification code has been sent to your email." });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to resend code.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -226,10 +272,8 @@ export default function Auth() {
         if (error) throw error;
         if (!data?.url) throw new Error("No OAuth URL returned");
 
-        // Use Capacitor Browser plugin for in-app browser that returns to the app
         const { Browser } = await import("@capacitor/browser");
         
-        // Listen for browser finished event to check session
         const sessionCheckHandler = async () => {
           const { data: sessionData } = await supabase.auth.getSession();
           if (sessionData.session) {
@@ -246,11 +290,7 @@ export default function Auth() {
         await Browser.addListener("browserFinished", sessionCheckHandler);
         await Browser.open({ url: data.url, windowName: "_self" });
       } catch (error: any) {
-        toast({
-          title: "Google Sign-In Error",
-          description: error.message || "Failed to start Google sign-in.",
-          variant: "destructive",
-        });
+        toast({ title: "Google Sign-In Error", description: error.message || "Failed to start Google sign-in.", variant: "destructive" });
         setLoading(false);
       }
     } else {
@@ -267,11 +307,7 @@ export default function Auth() {
           },
         });
         if (error) {
-          toast({
-            title: "Google Sign-In Error",
-            description: error.message,
-            variant: "destructive",
-          });
+          toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
           setLoading(false);
           return;
         }
@@ -286,16 +322,73 @@ export default function Auth() {
           },
         });
         if (error) {
-          toast({
-            title: "Google Sign-In Error",
-            description: error.message,
-            variant: "destructive",
-          });
+          toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
           setLoading(false);
         }
       }
     }
   };
+
+  // OTP Verification view
+  if (showOtpVerification) {
+    return (
+      <AuthLayout
+        title="Verify your email"
+        subtitle={`Enter the 6-digit code sent to ${pendingEmail}`}
+      >
+        <div className="space-y-6">
+          <div className="flex justify-center">
+            <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
+
+          <Button
+            onClick={handleVerifyOtp}
+            className="w-full h-11 font-medium"
+            disabled={loading || otpValue.length !== 6}
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Verify Email
+            {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+          </Button>
+
+          <div className="text-center space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Didn't receive the code?
+            </p>
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resendCooldown > 0 || loading}
+              className="text-sm text-primary hover:underline disabled:opacity-50 disabled:no-underline"
+            >
+              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowOtpVerification(false);
+              setOtpValue("");
+            }}
+            className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="inline mr-1 h-3 w-3" />
+            Back to Sign Up
+          </button>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   // Forgot password view
   if (isForgotPassword) {
