@@ -251,7 +251,7 @@ All colors MUST be HSL.
     touch-action: manipulation;
   }
 
-  /* Haptic-style active feedback for tappable elements — exclude dialog internals */
+  /* Haptic-style active feedback for tappable elements — exclude dialog/popover internals */
   button:active:not([data-radix-collection-item]):not([role="combobox"]):not([data-state]),
   a:active,
   [role="button"]:active:not([data-radix-collection-item]) {
@@ -259,10 +259,19 @@ All colors MUST be HSL.
     transition: transform 0.1s ease;
   }
 
-  /* Prevent dialog content from inheriting active transforms */
-  [data-radix-dialog-content] button:active,
-  [data-radix-dialog-content] [role="button"]:active {
+  /* Prevent ALL transforms inside dialogs, popovers, selects */
+  [data-radix-dialog-content] *,
+  [data-radix-popper-content-wrapper] * {
     transform: none !important;
+    transition: none !important;
+  }
+  /* Re-enable transitions for specific interactive elements inside dialogs */
+  [data-radix-dialog-content] button,
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] select,
+  [data-radix-dialog-content] textarea,
+  [data-radix-dialog-content] [role="tab"] {
+    transition: colors 0.15s ease !important;
   }
 
   /* Global text overflow prevention */
