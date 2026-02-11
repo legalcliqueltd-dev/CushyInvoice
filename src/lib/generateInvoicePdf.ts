@@ -357,3 +357,36 @@ export function downloadPdf(blob: Blob, filename: string) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+export async function savePdfToDevice(blob: Blob, filename: string): Promise<boolean> {
+  try {
+    const { Capacitor } = await import('@capacitor/core');
+    if (!Capacitor.isNativePlatform()) return false;
+
+    const { Filesystem, Directory } = await import('@capacitor/filesystem');
+
+    // Convert blob to base64
+    const base64 = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]); // strip data:...;base64, prefix
+      };
+      reader.readAsDataURL(blob);
+    });
+
+    const platform = Capacitor.getPlatform();
+    const directory = platform === 'ios' ? Directory.Documents : Directory.Documents;
+
+    await Filesystem.writeFile({
+      path: filename,
+      data: base64,
+      directory,
+    });
+
+    return true;
+  } catch (e) {
+    console.error('savePdfToDevice error:', e);
+    return false;
+  }
+}

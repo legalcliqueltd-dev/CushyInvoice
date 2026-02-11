@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,12 +29,14 @@ import {
 } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, CalendarIcon, Loader2, Building2, Upload, X } from "lucide-react";
+import { Plus, Trash2, CalendarIcon, Loader2, Building2, Upload, X, Eye, Edit3 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
 import { LogoUploadDialog } from "@/components/LogoUploadDialog";
+import { InvoicePreview } from "@/components/InvoicePreview";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Client {
   id: string;
@@ -83,6 +86,9 @@ const clientSchema = z.object({
 });
 
 export default function InvoiceNew() {
+  const { id: editId } = useParams<{ id: string }>();
+  const isEditMode = !!editId;
+  const [activeTab, setActiveTab] = useState<string>("edit");
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -110,6 +116,7 @@ export default function InvoiceNew() {
   const [pageError, setPageError] = useState(false);
   const [newClientDialog, setNewClientDialog] = useState(false);
   const [newClientData, setNewClientData] = useState({ name: "", email: "", phone: "", address: "" });
+  const [invoiceNumber, setInvoiceNumber] = useState("");
   
   // Company info state
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
@@ -131,6 +138,9 @@ export default function InvoiceNew() {
         setPageLoading(true);
         setPageError(false);
         await Promise.all([fetchClients(), fetchProducts(), fetchProfileDefaults(), fetchTemplates()]);
+        if (isEditMode) {
+          await loadExistingInvoice();
+        }
       } catch (err) {
         console.error("InvoiceNew loadData error:", err);
         setPageError(true);
@@ -139,7 +149,49 @@ export default function InvoiceNew() {
       }
     };
     loadData();
-  }, []);
+  }, [editId]);
+
+  const loadExistingInvoice = async () => {
+    if (!editId) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("invoices")
+      .select(`*, invoice_items(*)`)
+      .eq("id", editId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error || !data) {
+      toast({ title: "Error", description: "Invoice not found", variant: "destructive" });
+      navigate("/invoices");
+      return;
+    }
+
+    setSelectedClientId(data.client_id);
+    setIssueDate(new Date(data.issue_date));
+    setDueDate(new Date(data.due_date));
+    setCurrency(data.currency);
+    setTaxRate(Number(data.tax_rate) || 0);
+    setNotes(data.notes || "");
+    setLogoBgColor(data.logo_bg_color || "#ffffff");
+    setInvoiceNumber(data.invoice_number);
+    if (data.template_id) setSelectedTemplateId(data.template_id);
+
+    if (data.invoice_items && data.invoice_items.length > 0) {
+      setLineItems(
+        data.invoice_items.map((item: any) => ({
+          id: item.id,
+          product_id: item.product_id || undefined,
+          description: item.description,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.unit_price),
+          amount: Number(item.amount),
+        }))
+      );
+    }
+  };
 
   const fetchProfileDefaults = async () => {
     try {
@@ -492,54 +544,97 @@ export default function InvoiceNew() {
         console.error("Error saving company info:", profileError);
       }
 
-      const invoiceNumber = await generateInvoiceNumber();
+      if (isEditMode && editId) {
+        // Update existing invoice
+        const { error: invoiceError } = await supabase
+          .from("invoices")
+          .update({
+            client_id: selectedClientId,
+            template_id: selectedTemplateId && selectedTemplateId !== "none" && !selectedTemplateId.startsWith("builtin-") ? selectedTemplateId : null,
+            issue_date: format(issueDate, "yyyy-MM-dd"),
+            due_date: format(dueDate, "yyyy-MM-dd"),
+            status,
+            currency,
+            subtotal,
+            tax_rate: taxRate,
+            tax_amount: tax,
+            total,
+            notes,
+            logo_bg_color: logoBgColor,
+          })
+          .eq("id", editId)
+          .eq("user_id", user.id);
 
-      // Create invoice
-      const { data: invoice, error: invoiceError } = await supabase
-        .from("invoices")
-        .insert({
-          user_id: user.id,
-          client_id: selectedClientId,
-          template_id: selectedTemplateId && selectedTemplateId !== "none" && !selectedTemplateId.startsWith("builtin-") ? selectedTemplateId : null,
-          invoice_number: invoiceNumber,
-          issue_date: format(issueDate, "yyyy-MM-dd"),
-          due_date: format(dueDate, "yyyy-MM-dd"),
-          status,
-          currency,
-          subtotal,
-          tax_rate: taxRate,
-          tax_amount: tax,
-          total,
-          notes,
-          logo_bg_color: logoBgColor,
-        } as any)
-        .select()
-        .single();
+        if (invoiceError) throw invoiceError;
 
-      if (invoiceError) throw invoiceError;
+        // Delete old items, insert new
+        await supabase.from("invoice_items").delete().eq("invoice_id", editId);
+        const { error: itemsError } = await supabase
+          .from("invoice_items")
+          .insert(
+            lineItems.map((item) => ({
+              invoice_id: editId,
+              product_id: item.product_id || null,
+              description: item.description,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              amount: item.amount,
+            }))
+          );
 
-      // Create invoice items
-      const { error: itemsError } = await supabase
-        .from("invoice_items")
-        .insert(
-          lineItems.map((item) => ({
-            invoice_id: invoice.id,
-            product_id: item.product_id || null,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            amount: item.amount,
-          }))
-        );
+        if (itemsError) throw itemsError;
 
-      if (itemsError) throw itemsError;
+        toast({ title: "Success", description: "Invoice updated successfully" });
+        navigate(`/invoices/${editId}`);
+      } else {
+        // Create new invoice
+        const newInvoiceNumber = await generateInvoiceNumber();
 
-      toast({
-        title: "Success",
-        description: `Invoice ${status === "draft" ? "saved as draft" : "sent"}`,
-      });
+        const { data: invoice, error: invoiceError } = await supabase
+          .from("invoices")
+          .insert({
+            user_id: user.id,
+            client_id: selectedClientId,
+            template_id: selectedTemplateId && selectedTemplateId !== "none" && !selectedTemplateId.startsWith("builtin-") ? selectedTemplateId : null,
+            invoice_number: newInvoiceNumber,
+            issue_date: format(issueDate, "yyyy-MM-dd"),
+            due_date: format(dueDate, "yyyy-MM-dd"),
+            status,
+            currency,
+            subtotal,
+            tax_rate: taxRate,
+            tax_amount: tax,
+            total,
+            notes,
+            logo_bg_color: logoBgColor,
+          } as any)
+          .select()
+          .single();
 
-      navigate(`/invoices/${invoice.id}`);
+        if (invoiceError) throw invoiceError;
+
+        const { error: itemsError } = await supabase
+          .from("invoice_items")
+          .insert(
+            lineItems.map((item) => ({
+              invoice_id: invoice.id,
+              product_id: item.product_id || null,
+              description: item.description,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              amount: item.amount,
+            }))
+          );
+
+        if (itemsError) throw itemsError;
+
+        toast({
+          title: "Success",
+          description: `Invoice ${status === "draft" ? "saved as draft" : "sent"}`,
+        });
+
+        navigate(`/invoices/${invoice.id}`);
+      }
     } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error("Error saving invoice:", error);
@@ -581,13 +676,50 @@ export default function InvoiceNew() {
     );
   }
 
+  const selectedClient = clients.find((c) => c.id === selectedClientId);
+
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Invoice</h1>
-          <p className="text-muted-foreground">Fill in the details below</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {isEditMode ? "Edit Invoice" : "Create Invoice"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isEditMode ? `Editing ${invoiceNumber}` : "Fill in the details below"}
+            </p>
+          </div>
         </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 max-w-xs">
+            <TabsTrigger value="edit" className="gap-2">
+              <Edit3 className="h-4 w-4" />
+              Edit
+            </TabsTrigger>
+            <TabsTrigger value="preview" className="gap-2">
+              <Eye className="h-4 w-4" />
+              Preview
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="preview" className="mt-6">
+            <InvoicePreview
+              companyInfo={companyInfo}
+              client={selectedClient ? { name: selectedClient.name, email: selectedClient.email } : undefined}
+              invoiceNumber={isEditMode ? invoiceNumber : undefined}
+              issueDate={issueDate}
+              dueDate={dueDate}
+              lineItems={lineItems}
+              taxRate={taxRate}
+              currency={currency}
+              notes={notes}
+              logoBgColor={logoBgColor}
+            />
+          </TabsContent>
+
+          <TabsContent value="edit" className="mt-6 space-y-6">
 
         {/* Company Info - appears on invoice PDF */}
         <Card>
@@ -1062,13 +1194,15 @@ export default function InvoiceNew() {
           </Button>
           <Button variant="outline" onClick={() => handleSave("draft")} disabled={loading} className="w-full sm:w-auto">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save as Draft
+            {isEditMode ? "Update Draft" : "Save as Draft"}
           </Button>
           <Button onClick={() => handleSave("sent")} disabled={loading} className="w-full sm:w-auto">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save & Send
+            {isEditMode ? "Update & Send" : "Save & Send"}
           </Button>
         </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
