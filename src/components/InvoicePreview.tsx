@@ -42,6 +42,7 @@ interface InvoicePreviewProps {
   notes: string;
   logoBgColor: string;
   status?: string;
+  templateColor?: string;
 }
 
 export function InvoicePreview({
@@ -56,6 +57,7 @@ export function InvoicePreview({
   notes,
   logoBgColor,
   status = "draft",
+  templateColor = "#4f46e5",
 }: InvoicePreviewProps) {
   const subtotal = lineItems.reduce((sum, item) => sum + Number(item.amount), 0);
   const tax = subtotal * (Number(taxRate) / 100);
@@ -65,7 +67,7 @@ export function InvoicePreview({
   return (
     <div className="bg-white text-gray-900 shadow-lg rounded-lg overflow-hidden max-w-[210mm] mx-auto" style={{ fontFamily: "Helvetica, Arial, sans-serif" }}>
       {/* Header */}
-      <div className="bg-[#4f46e5] text-white px-8 py-6 flex items-center justify-between">
+      <div className="text-white px-8 py-6 flex items-center justify-between" style={{ backgroundColor: templateColor }}>
         <div className="flex items-center gap-4">
           {companyInfo.company_logo && (
             <div
@@ -142,7 +144,7 @@ export function InvoicePreview({
         {/* Items Table */}
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#4f46e5] text-white">
+            <tr className="text-white" style={{ backgroundColor: templateColor }}>
               <th className="text-left py-2 px-3 font-semibold text-xs rounded-tl-lg">Description</th>
               <th className="text-center py-2 px-3 font-semibold text-xs w-16">Qty</th>
               <th className="text-right py-2 px-3 font-semibold text-xs w-24">Unit Price</th>
@@ -177,8 +179,8 @@ export function InvoicePreview({
               <span>Tax ({taxRate}%)</span>
               <span>{sym}{tax.toFixed(2)}</span>
             </div>
-            <div className="border-t border-[#4f46e5] my-1" />
-            <div className="flex justify-between font-bold text-[#4f46e5]">
+            <div className="my-1" style={{ borderTopWidth: 1, borderTopStyle: 'solid', borderTopColor: templateColor }} />
+            <div className="flex justify-between font-bold" style={{ color: templateColor }}>
               <span>Total</span>
               <span>{sym}{total.toFixed(2)}</span>
             </div>
