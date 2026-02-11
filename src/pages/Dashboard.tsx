@@ -20,6 +20,9 @@ import {
   Eye,
   Plus,
   UserPlus,
+  AlertTriangle,
+  LayoutDashboard,
+  ArrowRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -66,7 +69,6 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch all invoices
       const { data: invoices, error: invoicesError } = await supabase
         .from("invoices")
         .select("*, clients(name)")
@@ -75,7 +77,6 @@ export default function Dashboard() {
 
       if (invoicesError) throw invoicesError;
 
-      // Calculate stats
       const totalInvoices = invoices?.length || 0;
       const draftInvoices = invoices?.filter((inv) => inv.status === "draft").length || 0;
       const today = new Date().toISOString().split("T")[0];
@@ -137,9 +138,40 @@ export default function Dashboard() {
     );
   }
 
+  const statCards = [
+    {
+      label: "Total Paid",
+      value: `$${stats.totalPaid.toFixed(2)}`,
+      icon: DollarSign,
+      iconColor: "text-success",
+      bgColor: "bg-success/10",
+    },
+    {
+      label: "Outstanding",
+      value: `$${stats.totalOutstanding.toFixed(2)}`,
+      icon: Clock,
+      iconColor: "text-info",
+      bgColor: "bg-info/10",
+    },
+    {
+      label: "Invoices",
+      value: stats.totalInvoices,
+      icon: FileText,
+      iconColor: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+    {
+      label: "Overdue",
+      value: stats.overdueInvoices,
+      icon: AlertTriangle,
+      iconColor: "text-destructive",
+      bgColor: "bg-destructive/10",
+    },
+  ];
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {!subscription.subscribed && (
           (window as any).Capacitor ? (
             <CompactUpgradeBanner />
@@ -157,164 +189,114 @@ export default function Dashboard() {
           )
         )}
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Overview of your invoicing activity
-            </p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <LayoutDashboard className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Overview of your invoicing activity
+              </p>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate("/clients")} className="neo-btn-subtle" size="sm">
-              <UserPlus className="h-4 w-4 sm:mr-2" />
+          <div className="flex gap-2 shrink-0">
+            <Button onClick={() => navigate("/clients")} variant="outline" size="sm">
+              <UserPlus className="h-4 w-4 sm:mr-1.5" />
               <span className="hidden sm:inline">Add Client</span>
             </Button>
-            <Button onClick={() => navigate("/invoices/new")} className="neo-btn-subtle" size="sm">
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Create Invoice</span>
+            <Button onClick={() => navigate("/invoices/new")} size="sm">
+              <Plus className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">New Invoice</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="neo-stat-card border-l-success">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Paid
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent className="min-w-0">
-              <div className="text-2xl font-bold truncate">
-                ${stats.totalPaid.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Total received
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="neo-stat-card border-l-info">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Outstanding Balance
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="min-w-0">
-              <div className="text-2xl font-bold truncate">
-                ${stats.totalOutstanding.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Total unpaid invoices
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="neo-stat-card border-l-primary">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Invoices
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalInvoices}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                All time invoices
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="neo-stat-card border-l-muted">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Draft Invoices
-              </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.draftInvoices}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Pending completion
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="neo-stat-card border-l-destructive">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Overdue
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.overdueInvoices}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Require attention
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {statCards.map((stat) => (
+            <Card key={stat.label} className="neo-card-subtle">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-lg ${stat.bgColor} flex items-center justify-center shrink-0`}>
+                    <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <p className="text-lg font-bold truncate">{stat.value}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+
+        {/* Drafts callout */}
+        {stats.draftInvoices > 0 && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50 border border-border">
+            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+            <p className="text-sm flex-1">
+              You have <span className="font-semibold">{stats.draftInvoices} draft{stats.draftInvoices > 1 ? 's' : ''}</span> pending completion
+            </p>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => navigate("/invoices")}>
+              View
+            </Button>
+          </div>
+        )}
 
         {/* Recent Invoices */}
         <Card className="neo-card-subtle">
-          <CardHeader>
-            <CardTitle>Recent Invoices</CardTitle>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold">Recent Invoices</CardTitle>
+              {recentInvoices.length > 0 && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => navigate("/invoices")}>
+                  View All <ArrowRight className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {recentInvoices.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">No invoices yet</p>
-                <Button onClick={() => navigate("/invoices/new")}>
-                  Create Your First Invoice
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <FileText className="h-7 w-7 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-1">No invoices yet</h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-xs">
+                  Create your first invoice to start tracking payments
+                </p>
+                <Button size="sm" onClick={() => navigate("/invoices/new")}>
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Create Invoice
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="divide-y divide-border">
                 {recentInvoices.map((invoice) => (
                   <div
                     key={invoice.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-2"
+                    className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 cursor-pointer hover:bg-muted/30 -mx-2 px-2 rounded-md transition-colors"
+                    onClick={() => navigate(`/invoices/${invoice.id}`)}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <p className="font-medium truncate">{invoice.invoice_number}</p>
-                        <Badge className={getStatusColor(invoice.status)}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm truncate">{invoice.clients.name}</span>
+                        <Badge className={`${getStatusColor(invoice.status)} text-[10px] px-1.5 py-0`}>
                           {invoice.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1 truncate">
-                        {invoice.clients.name}
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {invoice.invoice_number} · Due {new Date(invoice.due_date).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold">
-                        ${Number(invoice.total).toFixed(2)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Due: {new Date(invoice.due_date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/invoices/${invoice.id}`)}
-                      className="ml-4"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <span className="font-semibold text-sm shrink-0">
+                      ${Number(invoice.total).toFixed(2)}
+                    </span>
                   </div>
                 ))}
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate("/invoices")}
-                >
-                  View All Invoices
-                </Button>
               </div>
             )}
           </CardContent>
