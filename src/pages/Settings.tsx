@@ -17,8 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2, Crown, RefreshCw, Trash2, Sun, Moon, Monitor, Landmark } from "lucide-react";
+import { Upload, Loader2, Crown, RefreshCw, Trash2, Sun, Moon, Monitor, Landmark, User, Building2, CreditCard, SlidersHorizontal, Palette, Shield, Lock, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useSubscription } from "@/hooks/useSubscription";
 import { LogoUploadDialog } from "@/components/LogoUploadDialog";
 import { useTheme } from "@/hooks/useTheme";
@@ -296,69 +297,96 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 max-w-4xl">
+      <div className="space-y-6 max-w-4xl">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Manage your account and invoice preferences
           </p>
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 neo-card-subtle h-auto">
-            <TabsTrigger value="profile">My Profile</TabsTrigger>
-            <TabsTrigger value="company">Company</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="defaults">Defaults</TabsTrigger>
-            <TabsTrigger value="appearance">Appearance</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 neo-card-subtle h-auto gap-1 p-1.5">
+            <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <User className="h-3.5 w-3.5" />
+              <span>Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="company" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Building2 className="h-3.5 w-3.5" />
+              <span>Company</span>
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <CreditCard className="h-3.5 w-3.5" />
+              <span>Billing</span>
+            </TabsTrigger>
+            <TabsTrigger value="defaults" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <span>Defaults</span>
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Palette className="h-3.5 w-3.5" />
+              <span>Theme</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Shield className="h-3.5 w-3.5" />
+              <span>Security</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile" className="space-y-4">
+          <TabsContent value="profile" className="space-y-4 mt-6">
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                  Manage your personal profile and contact details
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Personal Information</CardTitle>
+                    <CardDescription>
+                      Your profile and contact details
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="profile_full_name">Full Name</Label>
-                  <Input
-                    id="profile_full_name"
-                    value={profile.full_name}
-                    onChange={(e) =>
-                      setProfile({ ...profile, full_name: e.target.value })
-                    }
-                    placeholder="John Doe"
-                  />
+              <Separator />
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="profile_full_name">Full Name</Label>
+                    <Input
+                      id="profile_full_name"
+                      value={profile.full_name}
+                      onChange={(e) =>
+                        setProfile({ ...profile, full_name: e.target.value })
+                      }
+                      placeholder="John Doe"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="profile_email">Email</Label>
+                    <Input
+                      id="profile_email"
+                      type="email"
+                      value={profile.email}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="profile_email">Email</Label>
-                  <Input
-                    id="profile_email"
-                    type="email"
-                    value={profile.email}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email is managed through your account authentication
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="profile_phone">Phone Number</Label>
-                  <Input
-                    id="profile_phone"
-                    value={profile.phone}
-                    onChange={(e) =>
-                      setProfile({ ...profile, phone: e.target.value })
-                    }
-                    placeholder="+1 (555) 123-4567"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="profile_phone">Phone Number</Label>
+                    <Input
+                      id="profile_phone"
+                      value={profile.phone}
+                      onChange={(e) =>
+                        setProfile({ ...profile, phone: e.target.value })
+                      }
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -374,91 +402,112 @@ export default function Settings() {
                   />
                 </div>
 
-                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Save Profile
-                </Button>
+                <div className="flex justify-end pt-2">
+                  <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Profile
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle>Account Security</CardTitle>
-                <CardDescription>
-                  Manage your password and security settings
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Lock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Account Security</CardTitle>
+                    <CardDescription>
+                      Password and security settings
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  To change your password, please visit the Security tab.
-                </p>
-                <Button variant="outline" onClick={() => {
-                  const securityTab = document.querySelector('[value="security"]') as HTMLButtonElement;
-                  securityTab?.click();
-                }}>
-                  Change Password
-                </Button>
+              <Separator />
+              <CardContent className="pt-6">
+                <button
+                  onClick={() => {
+                    const securityTab = document.querySelector('[value="security"]') as HTMLButtonElement;
+                    securityTab?.click();
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Change Password</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                </button>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="company" className="space-y-4">
+          <TabsContent value="company" className="space-y-4 mt-6">
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle>Company Information</CardTitle>
-                <CardDescription>
-                  Update your company details that appear on invoices
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Building2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Company Information</CardTitle>
+                    <CardDescription>
+                      Details that appear on your invoices
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company_name">Company Name</Label>
-                  <Input
-                    id="company_name"
-                    value={profile.company_name}
-                    onChange={(e) =>
-                      setProfile({ ...profile, company_name: e.target.value })
-                    }
-                    placeholder="Acme Corporation"
-                  />
+              <Separator />
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company_name">Company Name</Label>
+                    <Input
+                      id="company_name"
+                      value={profile.company_name}
+                      onChange={(e) =>
+                        setProfile({ ...profile, company_name: e.target.value })
+                      }
+                      placeholder="Acme Corporation"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Contact Name</Label>
+                    <Input
+                      id="full_name"
+                      value={profile.full_name}
+                      onChange={(e) =>
+                        setProfile({ ...profile, full_name: e.target.value })
+                      }
+                      placeholder="John Doe"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Full Name</Label>
-                  <Input
-                    id="full_name"
-                    value={profile.full_name}
-                    onChange={(e) =>
-                      setProfile({ ...profile, full_name: e.target.value })
-                    }
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profile.email}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email cannot be changed here
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={profile.phone}
-                    onChange={(e) =>
-                      setProfile({ ...profile, phone: e.target.value })
-                    }
-                    placeholder="+1 (555) 123-4567"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={profile.email}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={profile.phone}
+                      onChange={(e) =>
+                        setProfile({ ...profile, phone: e.target.value })
+                      }
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -481,7 +530,7 @@ export default function Settings() {
                       <img
                         src={profile.company_logo}
                         alt="Company logo"
-                        className="h-16 w-16 object-contain border rounded bg-white"
+                        className="h-16 w-16 object-contain border rounded-lg bg-white"
                       />
                     )}
                     <div className="flex flex-col gap-2">
@@ -518,23 +567,33 @@ export default function Settings() {
                   onUpload={handleLogoUpload}
                 />
 
-                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Save Changes
-                </Button>
+                <div className="flex justify-end pt-2">
+                  <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Changes
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="billing" className="space-y-4">
+          <TabsContent value="billing" className="space-y-4 mt-6">
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle>Subscription & Billing</CardTitle>
-                <CardDescription>
-                  Manage your subscription plan and payment method
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Subscription & Billing</CardTitle>
+                    <CardDescription>
+                      Manage your plan and payment method
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <Separator />
+              <CardContent className="pt-6 space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
                     <div>
@@ -667,81 +726,111 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="defaults" className="space-y-4">
+          <TabsContent value="defaults" className="space-y-4 mt-6">
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle>Invoice Defaults</CardTitle>
-                <CardDescription>
-                  Set default values for new invoices
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <SlidersHorizontal className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Invoice Defaults</CardTitle>
+                    <CardDescription>
+                      Default values for new invoices
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="default_tax_rate">Default Tax Rate (%)</Label>
-                  <Input
-                    id="default_tax_rate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={profile.default_tax_rate}
-                    onChange={(e) =>
-                      setProfile({
-                        ...profile,
-                        default_tax_rate: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    placeholder="0.00"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    This rate will be applied to new invoices by default
-                  </p>
+              <Separator />
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="default_tax_rate">Default Tax Rate (%)</Label>
+                    <Input
+                      id="default_tax_rate"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={profile.default_tax_rate}
+                      onChange={(e) =>
+                        setProfile({
+                          ...profile,
+                          default_tax_rate: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      placeholder="0.00"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Applied to new invoices by default
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="default_currency">Default Currency</Label>
+                    <Input
+                      id="default_currency"
+                      value={profile.default_currency}
+                      onChange={(e) =>
+                        setProfile({ ...profile, default_currency: e.target.value })
+                      }
+                      placeholder="USD"
+                      maxLength={3}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      3-letter code (e.g., USD, EUR, GBP)
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="default_currency">Default Currency</Label>
-                  <Input
-                    id="default_currency"
-                    value={profile.default_currency}
-                    onChange={(e) =>
-                      setProfile({ ...profile, default_currency: e.target.value })
-                    }
-                    placeholder="USD"
-                    maxLength={3}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter 3-letter currency code (e.g., USD, EUR, GBP)
-                  </p>
+                <div className="flex justify-end pt-2">
+                  <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Defaults
+                  </Button>
                 </div>
-
-                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Save Defaults
-                </Button>
               </CardContent>
             </Card>
 
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Landmark className="h-5 w-5 text-primary" />
-                  Bank Details
-                </CardTitle>
-                <CardDescription>
-                  Add your bank details to display on invoices for direct payments
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Landmark className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Bank Details</CardTitle>
+                    <CardDescription>
+                      Displayed on invoices for direct payments
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bank_name">Bank Name</Label>
-                  <Input
-                    id="bank_name"
-                    value={profile.bank_name}
-                    onChange={(e) =>
-                      setProfile({ ...profile, bank_name: e.target.value })
-                    }
-                    placeholder="e.g. Chase Bank, Barclays"
-                  />
+              <Separator />
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="bank_name">Bank Name</Label>
+                    <Input
+                      id="bank_name"
+                      value={profile.bank_name}
+                      onChange={(e) =>
+                        setProfile({ ...profile, bank_name: e.target.value })
+                      }
+                      placeholder="e.g. Chase Bank, Barclays"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bank_routing_code">Routing / Sort Code</Label>
+                    <Input
+                      id="bank_routing_code"
+                      value={profile.bank_routing_code}
+                      onChange={(e) =>
+                        setProfile({ ...profile, bank_routing_code: e.target.value })
+                      }
+                      placeholder="e.g. 021000021"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -756,38 +845,32 @@ export default function Settings() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bank_routing_code">Routing / Sort Code</Label>
-                  <Input
-                    id="bank_routing_code"
-                    value={profile.bank_routing_code}
-                    onChange={(e) =>
-                      setProfile({ ...profile, bank_routing_code: e.target.value })
-                    }
-                    placeholder="e.g. 021000021"
-                  />
+                <div className="flex justify-end pt-2">
+                  <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Bank Details
+                  </Button>
                 </div>
-
-                <p className="text-xs text-muted-foreground">
-                  These details will appear at the bottom of your invoices when set.
-                </p>
-
-                <Button onClick={handleProfileUpdate} disabled={saving} className="neo-btn-subtle">
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Save Bank Details
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="appearance" className="space-y-4">
+          <TabsContent value="appearance" className="space-y-4 mt-6">
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle>Theme</CardTitle>
-                <CardDescription>Choose your preferred appearance</CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Palette className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Theme</CardTitle>
+                    <CardDescription>Choose your preferred appearance</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-3">
+              <Separator />
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-3 gap-4">
                   {([
                     { value: "light" as const, icon: Sun, label: "Light" },
                     { value: "dark" as const, icon: Moon, label: "Dark" },
@@ -796,13 +879,17 @@ export default function Settings() {
                     <button
                       key={value}
                       onClick={() => setTheme(value)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
+                      className={`flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-colors ${
                         theme === value
-                          ? "border-primary bg-primary/5"
+                          ? "border-primary bg-primary/5 shadow-sm"
                           : "border-border hover:border-primary/40"
                       }`}
                     >
-                      <Icon className={`h-6 w-6 ${theme === value ? "text-primary" : "text-muted-foreground"}`} />
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                        theme === value ? "bg-primary/10" : "bg-muted"
+                      }`}>
+                        <Icon className={`h-5 w-5 ${theme === value ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
                       <span className={`text-sm font-medium ${theme === value ? "text-primary" : "text-muted-foreground"}`}>
                         {label}
                       </span>
@@ -813,15 +900,23 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-4">
+          <TabsContent value="security" className="space-y-4 mt-6">
             <Card className="neo-card-subtle">
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>
-                  Update your account password
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Lock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Change Password</CardTitle>
+                    <CardDescription>
+                      Update your account password
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <Separator />
+              <CardContent className="pt-6 space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="current_password">Current Password</Label>
                   <Input
@@ -833,32 +928,36 @@ export default function Settings() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="new_password">New Password</Label>
-                  <Input
-                    id="new_password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new_password">New Password</Label>
+                    <Input
+                      id="new_password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm_password">Confirm Password</Label>
+                    <Input
+                      id="confirm_password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirm_password">Confirm Password</Label>
-                  <Input
-                    id="confirm_password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
-                  />
+                <div className="flex justify-end pt-2">
+                  <Button onClick={handlePasswordChange} disabled={saving} className="neo-btn-subtle">
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Update Password
+                  </Button>
                 </div>
-
-                <Button onClick={handlePasswordChange} disabled={saving} className="neo-btn-subtle">
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Update Password
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
