@@ -10,9 +10,11 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const invoiceId = searchParams.get("invoice_id");
   const sessionId = searchParams.get("session_id");
+  const paystackProvider = searchParams.get("provider");
+  const paystackRef = searchParams.get("reference") || searchParams.get("trxref");
 
   // Determine if this is a subscription or invoice payment
-  const isSubscription = sessionId && !invoiceId;
+  const isSubscription = (sessionId || paystackProvider === "paystack" || paystackRef) && !invoiceId;
 
   return (
     <DashboardLayout>

@@ -1,19 +1,27 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Zap, Star, Shield } from "lucide-react";
+import { CheckCircle, Zap, Star, Shield, CreditCard, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+
+type PaymentProvider = "stripe" | "paystack";
 
 const PLANS = [
   {
     id: "monthly",
     name: "Monthly Plan",
     subtitle: "Perfect for freelancers",
-    description: "7-day free trial, then $2.99/month",
-    price: "$2.99",
-    period: "/month",
-    priceId: "price_1SSKe7RWxKms6a9XPEoka2SG",
+    stripe: {
+      price: "$2.99",
+      period: "/month",
+      priceId: "price_1SSKe7RWxKms6a9XPEoka2SG",
+    },
+    paystack: {
+      price: "₦4,500",
+      period: "/month",
+      planCode: "PLN_monthly_placeholder", // Replace with actual Paystack plan code
+    },
     icon: Zap,
     features: [
       "7-day free trial",
@@ -29,10 +37,16 @@ const PLANS = [
     id: "yearly",
     name: "Yearly Plan",
     subtitle: "Best value for growing businesses",
-    description: "7-day free trial, then $23.88/year (Save 33%)",
-    price: "$23.88",
-    period: "/year",
-    priceId: "price_1SSKeIRWxKms6a9XncKq0Ixm",
+    stripe: {
+      price: "$23.88",
+      period: "/year",
+      priceId: "price_1SSKeIRWxKms6a9XncKq0Ixm",
+    },
+    paystack: {
+      price: "₦36,000",
+      period: "/year",
+      planCode: "PLN_yearly_placeholder", // Replace with actual Paystack plan code
+    },
     icon: Star,
     features: [
       "7-day free trial",
@@ -41,7 +55,7 @@ const PLANS = [
       "Advanced reporting",
       "Custom branding",
       "API access",
-      "Save $11.88/year",
+      "Save 33%",
     ],
     popular: true,
   },
@@ -49,21 +63,28 @@ const PLANS = [
 
 const Subscribe = () => {
   const [loading, setLoading] = useState<string | null>(null);
+  const [provider, setProvider] = useState<PaymentProvider>("stripe");
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubscribe = async (priceId: string, planId: string) => {
+  const handleSubscribe = async (planId: string) => {
     try {
       setLoading(planId);
+      const plan = PLANS.find((p) => p.id === planId);
+      if (!plan) throw new Error("Plan not found");
 
-      const { data, error } = await supabase.functions.invoke("create-subscription-session", {
-        body: { priceId },
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, "_blank");
+      if (provider === "stripe") {
+        const { data, error } = await supabase.functions.invoke("create-subscription-session", {
+          body: { priceId: plan.stripe.priceId },
+        });
+        if (error) throw error;
+        if (data?.url) window.open(data.url, "_blank");
+      } else {
+        const { data, error } = await supabase.functions.invoke("create-paystack-subscription", {
+          body: { planCode: plan.paystack.planCode },
+        });
+        if (error) throw error;
+        if (data?.url) window.open(data.url, "_blank");
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
@@ -103,8 +124,36 @@ const Subscribe = () => {
             </div>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-success" />
-              <span>Secure payments via Stripe</span>
+              <span>Secure payments</span>
             </div>
+          </div>
+        </div>
+
+        {/* Payment Provider Toggle */}
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-1 p-1 rounded-full bg-muted neo-card-subtle">
+            <button
+              onClick={() => setProvider("stripe")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                provider === "stripe"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>Stripe (International)</span>
+            </button>
+            <button
+              onClick={() => setProvider("paystack")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                provider === "paystack"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Globe className="h-4 w-4" />
+              <span>Paystack (Africa)</span>
+            </button>
           </div>
         </div>
 
@@ -112,6 +161,7 @@ const Subscribe = () => {
         <div className="grid md:grid-cols-2 gap-6">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
+            const pricing = provider === "stripe" ? plan.stripe : plan.paystack;
             return (
               <div
                 key={plan.id}
@@ -141,8 +191,8 @@ const Subscribe = () => {
 
                 {/* Price */}
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-muted-foreground text-lg">{plan.period}</span>
+                  <span className="text-4xl font-bold text-foreground">{pricing.price}</span>
+                  <span className="text-muted-foreground text-lg">{pricing.period}</span>
                 </div>
 
                 {/* Trial bar */}
@@ -165,7 +215,7 @@ const Subscribe = () => {
                   <Button
                     className="w-full neo-btn-subtle bg-foreground text-background hover:bg-foreground/90 font-semibold"
                     size="lg"
-                    onClick={() => handleSubscribe(plan.priceId, plan.id)}
+                    onClick={() => handleSubscribe(plan.id)}
                     disabled={loading !== null}
                   >
                     {loading === plan.id ? "Processing..." : "Start 7-Day Free Trial"}
