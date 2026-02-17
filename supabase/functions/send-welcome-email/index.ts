@@ -87,7 +87,7 @@ serve(async (req) => {
     <div style="padding:32px 24px;">
       <p style="font-size:16px;color:#1e293b;margin:0 0 16px;">Hi ${userName},</p>
       <p style="font-size:14px;color:#475569;line-height:1.6;margin:0 0 24px;">
-        Thanks for signing up! You're on a <strong>7-day free trial</strong> with full access to all premium features. Here's how to get started:
+        Thanks for signing up! You're on a <strong>7-day free trial</strong> — create, download, share, and send invoices with no limits. After your trial ends, you'll need to subscribe to keep downloading and sharing invoices. Here's how to get started:
       </p>
       
       <div style="background:#f8fafc;border-radius:8px;padding:20px;margin:0 0 24px;">

@@ -64,16 +64,21 @@ const Index = () => {
   const [checkingNative, setCheckingNative] = useState(() => !!(window as any).Capacitor);
 
   useEffect(() => {
-    if (!(window as any).Capacitor) return;
-    
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if ((window as any).Capacitor) {
+        if (session) {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/auth", { replace: true });
+        }
+      } else if (session) {
+        // Non-native: redirect authenticated users to dashboard
         navigate("/dashboard", { replace: true });
-      } else {
-        navigate("/auth", { replace: true });
       }
     }).catch(() => {
-      navigate("/auth", { replace: true });
+      if ((window as any).Capacitor) {
+        navigate("/auth", { replace: true });
+      }
     }).finally(() => {
       setCheckingNative(false);
     });
