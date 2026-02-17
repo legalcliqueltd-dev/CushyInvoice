@@ -5,6 +5,7 @@ import { PlanLimitsBanner } from "@/components/PlanLimitsBanner";
 import { UpgradeBanner } from "@/components/UpgradeBanner";
 import { AdSenseAd } from "@/components/AdSenseAd";
 import { CompactUpgradeBanner } from "@/components/CompactUpgradeBanner";
+import { WelcomeTutorial } from "@/components/WelcomeTutorial";
 import { useSubscription } from "@/hooks/useSubscription";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,8 @@ interface DashboardStats {
   totalInvoices: number;
   draftInvoices: number;
   overdueInvoices: number;
+  hasClients: boolean;
+  hasProfile: boolean;
 }
 
 export default function Dashboard() {
@@ -54,6 +57,8 @@ export default function Dashboard() {
     totalInvoices: 0,
     draftInvoices: 0,
     overdueInvoices: 0,
+    hasClients: false,
+    hasProfile: false,
   });
   const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,11 +75,22 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: invoices, error: invoicesError } = await supabase
-        .from("invoices")
-        .select("*, clients(name)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+      const [{ data: invoices, error: invoicesError }, { count: clientsCount }, { data: profileData }] = await Promise.all([
+        supabase
+          .from("invoices")
+          .select("*, clients(name)")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("clients")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabase
+          .from("profiles")
+          .select("company_name")
+          .eq("id", user.id)
+          .single(),
+      ]);
 
       if (invoicesError) throw invoicesError;
 
@@ -97,6 +113,8 @@ export default function Dashboard() {
         totalInvoices,
         draftInvoices,
         overdueInvoices,
+        hasClients: (clientsCount || 0) > 0,
+        hasProfile: !!profileData?.company_name,
       });
 
       setRecentInvoices(invoices?.slice(0, 5) || []);
@@ -189,6 +207,15 @@ export default function Dashboard() {
               )}
             </div>
           </>
+        )}
+
+        {/* Welcome tutorial for new users */}
+        {stats.totalInvoices === 0 && (
+          <WelcomeTutorial
+            hasProfile={stats.hasProfile}
+            hasClients={stats.hasClients}
+            hasInvoices={stats.totalInvoices > 0}
+          />
         )}
         
         {/* Header */}
