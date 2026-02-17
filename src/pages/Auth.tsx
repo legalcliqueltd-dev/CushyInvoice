@@ -323,13 +323,21 @@ export default function Auth() {
         window.location.href = data.url;
       }
     } else {
-      // Lovable domain - use managed OAuth
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: APP_DOMAIN + '/auth',
+      // Lovable domain - redirect to custom domain via direct OAuth
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${APP_DOMAIN}/auth`,
+          skipBrowserRedirect: true,
+        },
       });
       if (error) {
         toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
         setLoading(false);
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
       }
     }
   };
