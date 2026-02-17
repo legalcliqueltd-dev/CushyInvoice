@@ -1,107 +1,72 @@
 
 
-## New Monetization Model: Trial-to-Paid with Feature Gating
+## Fix OAuth Redirect, Welcome Email, and Remove Lovable/Ad References
 
-### What's Changing
+### Problem Summary
 
-The business model is shifting from an ad-supported freemium to a **7-day free trial then paid** model:
-
-- **No more ads** -- all AdSense code will be removed
-- **During trial (7 days):** Full access to everything
-- **After trial expires (no payment):** Users can still browse the dashboard and sign in, but **cannot download, share, or screenshot invoices**
-- **After payment:** Everything unlocks again
-
----
-
-### 1. Remove All Ad-Related Code
-
-**Delete file:**
-- `src/components/AdSenseAd.tsx`
-
-**Clean up from Dashboard (`src/pages/Dashboard.tsx`):**
-- Remove all `AdSenseAd` imports and usages (2 instances)
-- Remove the `PlanLimitsBanner` component (no longer relevant -- no free tier limits)
-- Remove `UpgradeBanner` and `CompactUpgradeBanner` from the dashboard (replace with a simpler expired-trial banner)
-
-**Files to potentially delete (no longer needed with this model):**
-- `src/components/PlanLimitsBanner.tsx` -- free-tier usage limits don't apply
-- `src/hooks/usePlanLimits.ts` -- invoice/client count limits removed
+1. Google OAuth on the lovable.app domain redirects users to `/` (landing page) instead of `/auth`, so `ensureProfileExists` never runs -- meaning no profile is created and no welcome email is sent.
+2. The welcome email copy still says "full access to all premium features" instead of reflecting the new trial model.
+3. The trial banner says "Your subscription will automatically start" which is misleading -- payment is manual.
+4. `index.html` still contains the Google AdSense script tag (ads are removed now).
+5. The landing page (Index) has no fallback to redirect authenticated users to the dashboard.
 
 ---
 
-### 2. Update Subscription Logic
+### Fix 1: OAuth Redirect URI
 
-**Simplify the model to 3 states:**
-1. **Trial active** (within 7 days) -- full access
-2. **Trial expired, not paid** -- restricted (no download/share/screenshot)
-3. **Paid subscriber** -- full access
+**File:** `src/pages/Auth.tsx` (line 328)
 
-**Update `src/hooks/useSubscription.ts`:**
-- Add a computed `isActive` boolean: `true` if subscribed OR trial hasn't expired
-- Expose `trialExpired` flag for easy gating
+Change the Lovable-managed OAuth `redirect_uri` from `window.location.origin` to `window.location.origin + '/auth'`. This ensures users land on the Auth page where the `onAuthStateChange` listener picks up the session, runs `ensureProfileExists`, and redirects to `/dashboard`.
 
 ---
 
-### 3. Gate Download, Share, and Screenshot on Invoice Detail
+### Fix 2: Landing Page Session Guard
 
-**Update `src/pages/InvoiceDetail.tsx`:**
-- Import `useSubscription` hook
-- If trial expired and not subscribed:
-  - **Download button**: Disabled, shows upgrade prompt on click
-  - **Share button (ShareInvoiceDialog)**: Disabled or shows upgrade prompt
-  - The invoice preview tab with screenshot capability will show a blur overlay with upgrade CTA
-- Edit, view details, and delete remain available
+**File:** `src/pages/Index.tsx`
 
-**Update `src/components/ShareInvoiceDialog.tsx`:**
-- Accept a `disabled` or `locked` prop
-- When locked, clicking the trigger shows a toast/dialog prompting upgrade instead of opening the share options
+Add a `useEffect` that checks for an existing session on mount. If a session exists, redirect immediately to `/dashboard`. This acts as a safety net so no authenticated user gets stuck on the landing page.
 
 ---
 
-### 4. Add an Expired Trial Banner
+### Fix 3: Update Welcome Email Copy
 
-**Update `src/components/TrialBanner.tsx`:**
-- When trial days > 0: Show "X days left in your trial"
-- When trial has expired and user is not subscribed: Show "Your trial has expired. Subscribe to continue downloading and sharing invoices." with an Upgrade button
+**File:** `supabase/functions/send-welcome-email/index.ts` (line 89-91)
 
-**Update `src/pages/Dashboard.tsx`:**
-- Show only the `TrialBanner` (which now handles both active trial and expired states)
-- Remove all ad and limit-related banners
+Change:
+> "You're on a 7-day free trial with full access to all premium features."
 
----
-
-### 5. Update Subscribe Page Messaging
-
-**Update `src/pages/Subscribe.tsx`:**
-- Remove references to "no ads" in feature lists
-- Update features to emphasize: unlimited invoice downloads, sharing, PDF export, email delivery
-- Keep the 7-day free trial and pricing as-is
+To:
+> "You're on a 7-day free trial -- create, download, share, and send invoices with no limits. After your trial ends, you'll need to subscribe to keep downloading and sharing invoices."
 
 ---
 
-### 6. Update PaymentSuccess Page
+### Fix 4: Fix Trial Banner Copy
 
-**Update `src/pages/PaymentSuccess.tsx`:**
-- Remove "ad-free experience" from the success message
-- Replace with "full access to download, share, and send invoices"
+**File:** `src/components/TrialBanner.tsx` (line 44)
+
+Change:
+> "Your subscription will automatically start after the trial period."
+
+To:
+> "Subscribe before it ends to keep downloading and sharing invoices."
 
 ---
 
-### Technical Summary
+### Fix 5: Remove AdSense Script from HTML
 
-| File | Action |
-|------|--------|
-| `src/components/AdSenseAd.tsx` | Delete |
-| `src/components/PlanLimitsBanner.tsx` | Delete |
-| `src/hooks/usePlanLimits.ts` | Delete (or keep if used elsewhere, but likely unused) |
-| `src/hooks/useSubscription.ts` | Add `isActive` and `trialExpired` computed fields |
-| `src/pages/Dashboard.tsx` | Remove ads, limit banners; keep simplified TrialBanner |
-| `src/components/TrialBanner.tsx` | Handle both active trial and expired trial states |
-| `src/components/UpgradeBanner.tsx` | Delete (merged into TrialBanner) |
-| `src/components/CompactUpgradeBanner.tsx` | Delete (merged into TrialBanner) |
-| `src/pages/InvoiceDetail.tsx` | Gate download/share buttons behind active subscription/trial |
-| `src/components/ShareInvoiceDialog.tsx` | Add locked state prop |
-| `src/pages/Subscribe.tsx` | Update feature copy |
-| `src/pages/PaymentSuccess.tsx` | Update success message |
-| `src/components/SubscriptionGuard.tsx` | Keep as-is (may be useful for future gating) |
+**File:** `index.html`
+
+Remove the Google AdSense `<script>` tag (lines with `pagead2.googlesyndication.com`). Ads are no longer part of the business model.
+
+---
+
+### Summary of Changes
+
+| File | What Changes |
+|------|-------------|
+| `src/pages/Auth.tsx` | Change `redirect_uri` to include `/auth` path |
+| `src/pages/Index.tsx` | Add session check to redirect authenticated users to dashboard |
+| `supabase/functions/send-welcome-email/index.ts` | Update email body for trial-to-paid messaging |
+| `src/components/TrialBanner.tsx` | Fix misleading "auto-start" subscription text |
+| `index.html` | Remove AdSense script tag |
 
