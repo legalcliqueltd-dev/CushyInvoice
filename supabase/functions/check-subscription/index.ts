@@ -52,15 +52,33 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found");
+      logStep("No Stripe customer found, checking Paystack");
       
-      // Check if user is in trial
+      // Check profile for Paystack subscription or trial
       const { data: profile } = await supabaseClient
         .from('profiles')
-        .select('plan_type, trial_end_date')
+        .select('plan_type, trial_end_date, paystack_customer_code, is_premium, subscription_status, current_plan, subscription_expiry')
         .eq('id', user.id)
         .single();
       
+      // If user has a Paystack subscription that's active, return that
+      if (profile?.paystack_customer_code && profile?.is_premium) {
+        logStep("Active Paystack subscription found");
+        return new Response(JSON.stringify({
+          subscribed: true,
+          status: profile.subscription_status || 'active',
+          current_plan: profile.current_plan,
+          subscription_end: profile.subscription_expiry,
+          trial_end: profile.trial_end_date,
+          plan_type: 'premium',
+          is_premium: true,
+          provider: 'paystack'
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       let planType = profile?.plan_type || 'trial';
       let isPremium = false;
       
@@ -78,7 +96,7 @@ serve(async (req) => {
             })
             .eq('id', user.id);
         } else {
-          isPremium = true; // Trial users get premium features
+          isPremium = true;
         }
       }
 
