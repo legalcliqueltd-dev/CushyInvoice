@@ -1,87 +1,107 @@
 
 
-## Resend Email Integration + Welcome Onboarding Flow
+## New Monetization Model: Trial-to-Paid with Feature Gating
 
-### Overview
-Three features in one update:
-1. **Resend API** for sending real emails (invoice emails, reminders, welcome email)
-2. **Welcome email** sent automatically to every new user on signup
-3. **Quick tutorial/onboarding** shown on the dashboard for first-time users
+### What's Changing
 
----
+The business model is shifting from an ad-supported freemium to a **7-day free trial then paid** model:
 
-### 1. Resend Email Integration
-
-**Secret needed:** `RESEND_API_KEY` -- you'll get this from [resend.com](https://resend.com) after creating a free account and verifying your domain (`cushyinvoice.com`).
-
-**New edge function: `supabase/functions/send-email/index.ts`**
-A generic email-sending function using the Resend API that:
-- Accepts `to`, `subject`, `html`, and optional `attachments` (base64 PDF)
-- Sends via `https://api.resend.com/emails`
-- Uses `from: "CushyInvoice <noreply@cushyinvoice.com>"` (requires domain verification in Resend)
-- Returns success/failure
-
-**Update `send-invoice-email/index.ts`:**
-- Replace the current "log only" approach with an actual call to the new `send-email` function (or call Resend directly)
-- Keep the AI-generated email body
-- Attach the PDF base64 as a Resend attachment
-
-**Update `process-payment-reminders/index.ts`:**
-- No changes needed -- it already calls `send-invoice-email`, which will now actually send
+- **No more ads** -- all AdSense code will be removed
+- **During trial (7 days):** Full access to everything
+- **After trial expires (no payment):** Users can still browse the dashboard and sign in, but **cannot download, share, or screenshot invoices**
+- **After payment:** Everything unlocks again
 
 ---
 
-### 2. Welcome Email for New Users
+### 1. Remove All Ad-Related Code
 
-**New edge function: `supabase/functions/send-welcome-email/index.ts`**
-- Triggered from the frontend after a new profile is created (during signup/OTP verification)
-- Sends a branded HTML welcome email via Resend containing:
-  - Welcome greeting with the user's name
-  - Trial info (7-day free trial)
-  - Quick-start steps (Add a client, Create your first invoice, Send it)
-  - Link to the dashboard
+**Delete file:**
+- `src/components/AdSenseAd.tsx`
 
-**Frontend change: `src/pages/Auth.tsx`**
-- After successful profile creation (in `handleVerifyOtp` and `ensureProfileExists` for new users), call `supabase.functions.invoke("send-welcome-email", { body: { userId } })`
+**Clean up from Dashboard (`src/pages/Dashboard.tsx`):**
+- Remove all `AdSenseAd` imports and usages (2 instances)
+- Remove the `PlanLimitsBanner` component (no longer relevant -- no free tier limits)
+- Remove `UpgradeBanner` and `CompactUpgradeBanner` from the dashboard (replace with a simpler expired-trial banner)
+
+**Files to potentially delete (no longer needed with this model):**
+- `src/components/PlanLimitsBanner.tsx` -- free-tier usage limits don't apply
+- `src/hooks/usePlanLimits.ts` -- invoice/client count limits removed
 
 ---
 
-### 3. First-Time User Tutorial on Dashboard
+### 2. Update Subscription Logic
 
-**New component: `src/components/WelcomeTutorial.tsx`**
-- A dismissible card/dialog shown at the top of the dashboard for users who have 0 invoices and 0 clients
-- Steps displayed as a checklist:
-  1. Complete your company profile (link to Settings)
-  2. Add your first client (link to Clients)
-  3. Create your first invoice (link to Invoices/New)
-  4. Send it to your client
-- Progress tracked via `localStorage` key `cushy_tutorial_dismissed`
-- Once dismissed, it won't show again
+**Simplify the model to 3 states:**
+1. **Trial active** (within 7 days) -- full access
+2. **Trial expired, not paid** -- restricted (no download/share/screenshot)
+3. **Paid subscriber** -- full access
+
+**Update `src/hooks/useSubscription.ts`:**
+- Add a computed `isActive` boolean: `true` if subscribed OR trial hasn't expired
+- Expose `trialExpired` flag for easy gating
+
+---
+
+### 3. Gate Download, Share, and Screenshot on Invoice Detail
+
+**Update `src/pages/InvoiceDetail.tsx`:**
+- Import `useSubscription` hook
+- If trial expired and not subscribed:
+  - **Download button**: Disabled, shows upgrade prompt on click
+  - **Share button (ShareInvoiceDialog)**: Disabled or shows upgrade prompt
+  - The invoice preview tab with screenshot capability will show a blur overlay with upgrade CTA
+- Edit, view details, and delete remain available
+
+**Update `src/components/ShareInvoiceDialog.tsx`:**
+- Accept a `disabled` or `locked` prop
+- When locked, clicking the trigger shows a toast/dialog prompting upgrade instead of opening the share options
+
+---
+
+### 4. Add an Expired Trial Banner
+
+**Update `src/components/TrialBanner.tsx`:**
+- When trial days > 0: Show "X days left in your trial"
+- When trial has expired and user is not subscribed: Show "Your trial has expired. Subscribe to continue downloading and sharing invoices." with an Upgrade button
 
 **Update `src/pages/Dashboard.tsx`:**
-- Import and render `WelcomeTutorial` above the stats cards
-- Only show when the user has 0 invoices (use existing `stats.totalInvoices`)
+- Show only the `TrialBanner` (which now handles both active trial and expired states)
+- Remove all ad and limit-related banners
 
 ---
 
-### Technical Details
+### 5. Update Subscribe Page Messaging
 
-**Files to create:**
-- `supabase/functions/send-email/index.ts` -- generic Resend email sender
-- `supabase/functions/send-welcome-email/index.ts` -- welcome email logic
-- `src/components/WelcomeTutorial.tsx` -- onboarding checklist component
+**Update `src/pages/Subscribe.tsx`:**
+- Remove references to "no ads" in feature lists
+- Update features to emphasize: unlimited invoice downloads, sharing, PDF export, email delivery
+- Keep the 7-day free trial and pricing as-is
 
-**Files to modify:**
-- `supabase/functions/send-invoice-email/index.ts` -- use Resend via `send-email` or direct API call
-- `supabase/config.toml` -- add new function entries
-- `src/pages/Auth.tsx` -- trigger welcome email on new signup
-- `src/pages/Dashboard.tsx` -- show tutorial for new users
+---
 
-**Secret to add:**
-- `RESEND_API_KEY` -- you will be prompted to enter it from your Resend dashboard
+### 6. Update PaymentSuccess Page
 
-**Resend setup you'll need to do:**
-1. Create a free account at [resend.com](https://resend.com)
-2. Add and verify your domain `cushyinvoice.com` (add DNS records they provide)
-3. Copy your API key -- you'll paste it when prompted
+**Update `src/pages/PaymentSuccess.tsx`:**
+- Remove "ad-free experience" from the success message
+- Replace with "full access to download, share, and send invoices"
+
+---
+
+### Technical Summary
+
+| File | Action |
+|------|--------|
+| `src/components/AdSenseAd.tsx` | Delete |
+| `src/components/PlanLimitsBanner.tsx` | Delete |
+| `src/hooks/usePlanLimits.ts` | Delete (or keep if used elsewhere, but likely unused) |
+| `src/hooks/useSubscription.ts` | Add `isActive` and `trialExpired` computed fields |
+| `src/pages/Dashboard.tsx` | Remove ads, limit banners; keep simplified TrialBanner |
+| `src/components/TrialBanner.tsx` | Handle both active trial and expired trial states |
+| `src/components/UpgradeBanner.tsx` | Delete (merged into TrialBanner) |
+| `src/components/CompactUpgradeBanner.tsx` | Delete (merged into TrialBanner) |
+| `src/pages/InvoiceDetail.tsx` | Gate download/share buttons behind active subscription/trial |
+| `src/components/ShareInvoiceDialog.tsx` | Add locked state prop |
+| `src/pages/Subscribe.tsx` | Update feature copy |
+| `src/pages/PaymentSuccess.tsx` | Update success message |
+| `src/components/SubscriptionGuard.tsx` | Keep as-is (may be useful for future gating) |
 
