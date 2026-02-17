@@ -1,44 +1,52 @@
 
 
-## Fix: Always Use Direct Supabase OAuth with Custom Domain Redirect
+## Fix: Google OAuth Redirecting to lovable.app Instead of Custom Domain
 
-### Problem
-The `lovable.auth.signInWithOAuth` managed OAuth (line 327) is used when on lovable.app domains. Even though we set `redirect_uri: APP_DOMAIN + '/auth'`, the managed flow overrides this and redirects back to the lovable.app domain. This is why existing customers keep landing on `cushyinvoice.lovable.app` instead of `cushyinvoice.com`.
+### Root Cause
 
-### Solution
-Remove the three-way environment branching in `handleGoogleSignIn`. Since CushyInvoice has a custom domain, we should **always** use the direct Supabase OAuth flow with `APP_DOMAIN` as the redirect target -- never the managed Lovable OAuth.
+The code is correct -- it sets `redirectTo: "https://cushyinvoice.com/auth"`. However, the **backend authentication settings** (Site URL and Redirect URLs) still point to `cushyinvoice.lovable.app`. When Supabase receives a `redirectTo` URL that is not in its allowlist, it silently ignores it and falls back to the default Site URL (`cushyinvoice.lovable.app`).
 
-### Technical Details
+This is a **two-part fix**: one backend configuration change and one small code consistency fix.
 
-**File: `src/pages/Auth.tsx`**
+---
 
-Replace the `else` block (lines 325-334) that uses `lovable.auth.signInWithOAuth` with the same direct Supabase OAuth pattern used in the custom domain branch, but pointing to `APP_DOMAIN`:
+### Fix 1: Update Backend Auth Configuration (Required)
 
-```typescript
-} else {
-  // Lovable domain - redirect to custom domain via direct OAuth
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${APP_DOMAIN}/auth`,
-      skipBrowserRedirect: true,
-    },
-  });
-  if (error) {
-    toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
-    setLoading(false);
-    return;
-  }
-  if (data?.url) {
-    window.location.href = data.url;
-  }
-}
+You need to update two settings in your Lovable Cloud authentication config:
+
+1. Open your project's backend settings
+2. Go to **Users -> Authentication Settings**
+3. Set **Site URL** to: `https://cushyinvoice.com`
+4. Under **Redirect URLs**, add: `https://cushyinvoice.com/**`
+   - Keep `https://cushyinvoice.lovable.app/**` as well (for preview testing)
+
+Without this, Supabase will keep ignoring the `redirectTo` parameter and falling back to the lovable.app domain.
+
+---
+
+### Fix 2: Use APP_DOMAIN Consistently in Code
+
+**File: `src/pages/Auth.tsx`, line 313**
+
+The custom domain branch still uses `window.location.origin` instead of `APP_DOMAIN`. While they resolve to the same value on cushyinvoice.com, using the constant is safer and consistent with the other branches.
+
+Change:
+```
+redirectTo: `${window.location.origin}/auth`,
+```
+To:
+```
+redirectTo: `${APP_DOMAIN}/auth`,
 ```
 
-This ensures that no matter where the user starts (preview, lovable.app, or custom domain), Google always redirects back to `https://cushyinvoice.com/auth`.
+---
 
-| File | Change |
+### Summary
+
+| What | Change |
 |------|--------|
-| `src/pages/Auth.tsx` | Replace managed `lovable.auth.signInWithOAuth` with direct `supabase.auth.signInWithOAuth` using `APP_DOMAIN` redirect |
+| Backend Auth Settings | Set Site URL to `https://cushyinvoice.com` and add `https://cushyinvoice.com/**` to Redirect URLs |
+| `src/pages/Auth.tsx` line 313 | Change `window.location.origin` to `APP_DOMAIN` for consistency |
 
-After this change, **publish** the site for the fix to take effect.
+The backend config change is the critical fix. Without it, no code change will solve the redirect problem.
+
