@@ -24,6 +24,7 @@ serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
   // Authentication: accept either user JWT or service role key
   const authHeader = req.headers.get("Authorization");
@@ -37,7 +38,6 @@ serve(async (req) => {
   const token = authHeader.replace("Bearer ", "");
   const isServiceRole = token === serviceRoleKey;
 
-  // Create client with service role for DB operations
   const supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
   });
@@ -45,7 +45,6 @@ serve(async (req) => {
   let authenticatedUserId: string | null = null;
 
   if (!isServiceRole) {
-    // Validate user JWT
     const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -65,7 +64,6 @@ serve(async (req) => {
 
     console.log("Sending invoice email:", { invoiceId, isReminder, hasPdf: !!pdfBase64 });
 
-    // Get invoice with client details
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
       .select(`
@@ -89,7 +87,6 @@ serve(async (req) => {
       throw new Error("Invoice not found");
     }
 
-    // If called by a user (not service role), verify ownership
     if (authenticatedUserId && invoice.user_id !== authenticatedUserId) {
       return new Response(JSON.stringify({ error: "Forbidden - you do not own this invoice" }), {
         status: 403,
@@ -115,8 +112,8 @@ serve(async (req) => {
     const amount = `${sanitizeForPrompt(invoice.currency)} ${Number(invoice.total).toFixed(2)}`;
     const dueDate = new Date(invoice.due_date).toLocaleDateString();
 
-    // Generate email content using AI with structured prompts
-    const systemPrompt = "You are a professional email writer for invoices. Generate polite, professional invoice emails. Never include threatening language, legal threats, or demands. Output only the email body text. Keep it concise (under 150 words).";
+    // Generate email content using AI
+    const systemPrompt = "You are a professional email writer for invoices. Generate polite, professional invoice emails. Never include threatening language, legal threats, or demands. Output only the email body text as HTML (use <p>, <br> tags). Keep it concise (under 150 words).";
 
     const userPrompt = isReminder
       ? `Write a payment reminder email. Company: ${companyName}. Client: ${clientName}. Invoice: ${invoiceNumber}. Amount: ${amount}. Due date: ${dueDate}. Status: ${sanitizeForPrompt(invoice.status)}. The PDF invoice is attached. Be polite but clear that payment is due.`
@@ -139,27 +136,76 @@ serve(async (req) => {
     });
 
     const aiData = await aiResponse.json();
-    const emailBody = aiData.choices?.[0]?.message?.content || "Please find your invoice attached.";
+    const emailBody = aiData.choices?.[0]?.message?.content || "<p>Please find your invoice attached.</p>";
 
     console.log("Email content generated successfully");
 
-    // Build email data
     const subject = isReminder
       ? `Payment Reminder: Invoice ${invoiceNumber} from ${companyName}`
       : `Invoice ${invoiceNumber} from ${companyName}`;
 
-    const emailData = {
-      to: client.email,
-      from: fromEmail,
-      subject,
-      body: emailBody,
-      invoice_id: invoiceId,
-      has_attachment: !!pdfBase64,
-      sent: true,
-      sent_at: new Date().toISOString(),
-    };
+    // Wrap in a nice HTML template
+    const fullHtml = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:24px;text-align:center;">
+      <h1 style="color:#ffffff;font-size:20px;margin:0;">${subject}</h1>
+    </div>
+    <div style="padding:24px;font-size:14px;color:#475569;line-height:1.6;">
+      ${emailBody}
+    </div>
+    <div style="padding:16px 24px;background:#f8fafc;text-align:center;border-top:1px solid #e2e8f0;">
+      <p style="font-size:12px;color:#94a3b8;margin:0;">Sent via CushyInvoice</p>
+    </div>
+  </div>
+</body>
+</html>`;
 
-    // Log the email for records
+    // Send via Resend if API key is configured
+    let emailSent = false;
+    if (resendApiKey) {
+      try {
+        const resendPayload: Record<string, unknown> = {
+          from: `${companyName} via CushyInvoice <noreply@cushyinvoice.com>`,
+          to: [client.email],
+          subject,
+          html: fullHtml,
+        };
+
+        if (pdfBase64) {
+          resendPayload.attachments = [{
+            filename: `${invoiceNumber}.pdf`,
+            content: pdfBase64,
+          }];
+        }
+
+        const resendResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(resendPayload),
+        });
+
+        const resendData = await resendResponse.json();
+        if (resendResponse.ok) {
+          emailSent = true;
+          console.log("Email sent via Resend:", resendData.id);
+        } else {
+          console.error("Resend API error:", resendData);
+        }
+      } catch (resendError) {
+        console.error("Resend send failed:", resendError);
+      }
+    } else {
+      console.log("RESEND_API_KEY not configured, email logged only");
+    }
+
+    // Log the email
     await supabaseClient
       .from("email_logs")
       .insert({
@@ -172,12 +218,13 @@ serve(async (req) => {
         sent_manually: true,
       });
 
-    console.log("Email logged:", emailData);
-
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Invoice email sent to ${client.email}`,
+        email_sent: emailSent,
+        message: emailSent
+          ? `Invoice email sent to ${client.email}`
+          : `Invoice email logged (email delivery not configured)`,
         email_preview: emailBody,
       }),
       {

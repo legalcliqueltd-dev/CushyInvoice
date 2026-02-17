@@ -87,6 +87,11 @@ export default function Auth() {
           is_premium: true,
           trial_end_date: trialEndDate.toISOString(),
         });
+
+        // Send welcome email (fire and forget)
+        supabase.functions.invoke("send-welcome-email", {
+          body: { userId },
+        }).catch(() => {});
       }
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -229,8 +234,12 @@ export default function Auth() {
           trial_end_date: trialEndDate.toISOString(),
         });
 
+        // Send welcome email (fire and forget)
+        supabase.functions.invoke("send-welcome-email", {
+          body: { userId: data.user.id },
+        }).catch(() => {});
+
         toast({ title: "Account verified!", description: "Welcome to CushyInvoice. Your 7-day free trial has started." });
-        // Auth state change listener will handle navigation
       }
     } catch (error: any) {
       toast({ title: "Verification failed", description: error.message || "Invalid or expired code. Please try again.", variant: "destructive" });
