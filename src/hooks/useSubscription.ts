@@ -121,9 +121,19 @@ export const useSubscription = () => {
     };
   }, [checkSubscription]);
 
+  const trialExpired = !subscription.subscribed && (
+    !subscription.trial_end || new Date(subscription.trial_end).getTime() < Date.now()
+  );
+
+  const isActive = subscription.subscribed || (
+    !!subscription.trial_end && new Date(subscription.trial_end).getTime() >= Date.now()
+  );
+
   return {
     subscription,
     loading,
+    isActive,
+    trialExpired,
     checkSubscription,
     openCustomerPortal,
     startCheckout,

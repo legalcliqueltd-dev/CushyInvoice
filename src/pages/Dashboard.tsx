@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { TrialBanner } from "@/components/TrialBanner";
-import { PlanLimitsBanner } from "@/components/PlanLimitsBanner";
-import { UpgradeBanner } from "@/components/UpgradeBanner";
-import { AdSenseAd } from "@/components/AdSenseAd";
-import { CompactUpgradeBanner } from "@/components/CompactUpgradeBanner";
 import { WelcomeTutorial } from "@/components/WelcomeTutorial";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -24,7 +20,6 @@ import {
   AlertTriangle,
   LayoutDashboard,
   ArrowRight,
-  Crown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -191,23 +186,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {!subscription.subscribed && (
-          <>
-            {/* Mobile: single compact banner */}
-            <div className="block sm:hidden">
-              <CompactUpgradeBanner />
-            </div>
-            {/* Desktop: full banners */}
-            <div className="hidden sm:block space-y-4">
-              <TrialBanner />
-              <UpgradeBanner />
-              <PlanLimitsBanner />
-              {!(window as any).Capacitor && (
-                <AdSenseAd slot="1234567890" format="horizontal" className="my-2" />
-              )}
-            </div>
-          </>
-        )}
+        <TrialBanner />
 
         {/* Welcome tutorial for new users */}
         {stats.totalInvoices === 0 && (
@@ -330,14 +309,6 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-        
-        {!subscription.subscribed && !(window as any).Capacitor && (
-          <AdSenseAd 
-            slot="0987654321" 
-            format="rectangle"
-            className="my-4"
-          />
-        )}
       </div>
     </DashboardLayout>
   );

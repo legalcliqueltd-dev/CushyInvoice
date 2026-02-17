@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Share2, MessageCircle, Mail, Copy, Download, Loader2 } from "lucide-react";
+import { Share2, MessageCircle, Mail, Copy, Download, Loader2, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,12 +50,25 @@ interface ShareInvoiceDialogProps {
     email?: string;
     phone?: string;
   };
+  locked?: boolean;
 }
 
-export function ShareInvoiceDialog({ invoice, company }: ShareInvoiceDialogProps) {
+export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareInvoiceDialogProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (locked && newOpen) {
+      toast({
+        title: "Subscription Required",
+        description: "Upgrade your plan to share invoices.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setOpen(newOpen);
+  };
 
   const handleDownloadPdf = async () => {
     setLoading('download');
@@ -207,10 +220,10 @@ export function ShareInvoiceDialog({ invoice, company }: ShareInvoiceDialogProps
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Share2 className="h-4 w-4 mr-2" />
+        <Button variant="outline" size="sm" disabled={locked}>
+          {locked ? <Lock className="h-4 w-4 mr-2" /> : <Share2 className="h-4 w-4 mr-2" />}
           Share
         </Button>
       </DialogTrigger>

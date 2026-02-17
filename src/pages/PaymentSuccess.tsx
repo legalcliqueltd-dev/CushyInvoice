@@ -38,7 +38,7 @@ export default function PaymentSuccess() {
           <CardContent className="text-center space-y-6">
             <p className="text-muted-foreground text-lg">
               {isSubscription 
-                ? "You now have unlimited access to all premium features. Create unlimited invoices, enjoy ad-free experience, and access advanced reports."
+                ? "You now have full access to download, share, and send invoices. Enjoy all premium features!"
                 : "Your payment has been processed successfully. The invoice will be updated shortly."}
             </p>
             
@@ -46,8 +46,8 @@ export default function PaymentSuccess() {
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p className="font-semibold">What's included:</p>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>✓ Unlimited invoices and clients</li>
-                  <li>✓ No advertisements</li>
+                  <li>✓ Unlimited invoice downloads & PDF export</li>
+                  <li>✓ Share invoices via email, WhatsApp & more</li>
                   <li>✓ Advanced reporting and analytics</li>
                   <li>✓ Priority email support</li>
                 </ul>

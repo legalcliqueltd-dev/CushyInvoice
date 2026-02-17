@@ -27,6 +27,7 @@ import {
   Pencil,
   Eye,
   ListChecks,
+  Lock,
 } from "lucide-react";
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
@@ -34,6 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ShareInvoiceDialog } from "@/components/ShareInvoiceDialog";
 import { generateInvoicePdf, downloadPdf, savePdfToDevice } from "@/lib/generateInvoicePdf";
 import { InvoicePreview } from "@/components/InvoicePreview";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface InvoiceData {
   id: string;
@@ -87,6 +89,7 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isActive, trialExpired } = useSubscription();
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -185,6 +188,15 @@ export default function InvoiceDetail() {
 
   const handleDownloadPdf = async () => {
     if (!invoice) return;
+    if (!isActive) {
+      toast({
+        title: "Subscription Required",
+        description: "Upgrade your plan to download invoices.",
+        variant: "destructive",
+      });
+      navigate("/subscribe");
+      return;
+    }
     setDownloadingPdf(true);
     try {
       const blob = await generateInvoicePdf(invoice, profile || {});
@@ -294,16 +306,18 @@ export default function InvoiceDetail() {
               variant="outline" 
               size="sm" 
               onClick={handleDownloadPdf}
-              disabled={downloadingPdf}
+              disabled={downloadingPdf || !isActive}
             >
               {downloadingPdf ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : !isActive ? (
+                <Lock className="h-4 w-4 mr-1" />
               ) : (
                 <Download className="h-4 w-4 mr-1" />
               )}
               <span className="hidden sm:inline">Download</span>
             </Button>
-            <ShareInvoiceDialog invoice={invoice} company={profile || {}} />
+            <ShareInvoiceDialog invoice={invoice} company={profile || {}} locked={!isActive} />
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleDelete}>
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
@@ -360,7 +374,15 @@ export default function InvoiceDetail() {
           </TabsList>
 
           <TabsContent value="preview" className="mt-6">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto relative">
+              {!isActive && (
+                <div className="absolute inset-0 z-10 backdrop-blur-sm bg-background/60 flex flex-col items-center justify-center rounded-lg">
+                  <Lock className="h-8 w-8 text-muted-foreground mb-3" />
+                  <p className="font-semibold text-lg mb-1">Preview Locked</p>
+                  <p className="text-sm text-muted-foreground mb-4">Subscribe to view and export invoice previews</p>
+                  <Button size="sm" onClick={() => navigate("/subscribe")}>Upgrade Now</Button>
+                </div>
+              )}
               <InvoicePreview
                 companyInfo={{
                   company_name: profile?.company_name || "",
