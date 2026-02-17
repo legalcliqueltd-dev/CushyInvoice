@@ -325,7 +325,7 @@ export default function Auth() {
     } else {
       // Lovable domain - use managed OAuth
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: window.location.origin + '/auth',
       });
       if (error) {
         toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });

@@ -41,7 +41,7 @@ export const TrialBanner = () => {
       <Clock className="h-4 w-4" />
       <AlertDescription>
         You have <strong>{daysLeft}</strong> {daysLeft === 1 ? "day" : "days"} left in your free trial.
-        Your subscription will automatically start after the trial period.
+        Subscribe before it ends to keep downloading and sharing invoices.
       </AlertDescription>
     </Alert>
   );
