@@ -96,28 +96,40 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
     setLoading('whatsapp');
     try {
       const blob = await generateInvoicePdf(invoice, company);
+      const file = new File([blob], `Invoice-${invoice.invoice_number}.pdf`, { type: 'application/pdf' });
       
-      // For WhatsApp, we'll share a link with the invoice details
-      // since WhatsApp Web API doesn't support direct file sharing
       const text = `📄 *Invoice ${invoice.invoice_number}*\n\n*From:* ${company.company_name || 'Company'}\n*To:* ${invoice.clients.name}\n\n*Amount:* ${invoice.currency} ${invoice.total.toFixed(2)}\n*Due Date:* ${new Date(invoice.due_date).toLocaleDateString()}\n\nPlease find the invoice PDF attached.\nThank you for your business! 🙏`;
-      
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-      window.open(whatsappUrl, '_blank');
-      
-      // Also download the PDF so user can attach it manually
-      downloadPdf(blob, `Invoice-${invoice.invoice_number}.pdf`);
-      
-      toast({
-        title: "WhatsApp Opened",
-        description: "PDF downloaded. You can attach it to your WhatsApp message.",
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to prepare invoice for sharing.",
-        variant: "destructive",
-      });
+
+      // Try native share with PDF file attached (works on mobile)
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Invoice ${invoice.invoice_number}`,
+          text,
+          files: [file],
+        });
+        toast({
+          title: "Shared",
+          description: "Invoice shared successfully via WhatsApp.",
+        });
+      } else {
+        // Fallback: open WhatsApp with text and download PDF separately
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(whatsappUrl, '_blank');
+        downloadPdf(blob, `Invoice-${invoice.invoice_number}.pdf`);
+        toast({
+          title: "WhatsApp Opened",
+          description: "PDF downloaded. You can attach it to your WhatsApp message.",
+        });
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to prepare invoice for sharing.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(null);
     }
