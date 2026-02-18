@@ -3,6 +3,17 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { getCurrencySymbol } from './currencies';
 
+// jsPDF's default Helvetica font only supports basic Latin characters.
+// Currency symbols like ₦, ₹, GH₵ etc. render as garbage. Use code fallback.
+const ASCII_SAFE_SYMBOLS = new Set(['$', '€', '£', '¥']);
+
+function getPdfCurrencyPrefix(currencyCode: string): string {
+  const symbol = getCurrencySymbol(currencyCode);
+  if (ASCII_SAFE_SYMBOLS.has(symbol)) return symbol;
+  // For non-ASCII symbols, use the 3-letter code instead
+  return currencyCode + ' ';
+}
+
 interface InvoiceItem {
   description: string;
   quantity: number;
@@ -256,7 +267,7 @@ export async function generateInvoicePdf(
   doc.setFont('helvetica', 'bold');
   doc.text(format(new Date(invoice.issue_date), 'MMM dd, yyyy'), margin + 10, detailsY + 8);
   doc.text(format(new Date(invoice.due_date), 'MMM dd, yyyy'), margin + detailSpacing + 10, detailsY + 8);
-  doc.text(`${getCurrencySymbol(invoice.currency)}${Number(invoice.total).toFixed(2)}`, margin + detailSpacing * 2 + 10, detailsY + 8);
+  doc.text(`${getPdfCurrencyPrefix(invoice.currency)}${Number(invoice.total).toFixed(2)}`, margin + detailSpacing * 2 + 10, detailsY + 8);
 
   yPos += 35;
 
@@ -264,8 +275,8 @@ export async function generateInvoicePdf(
   const tableData = invoice.invoice_items.map(item => [
     item.description,
     item.quantity.toString(),
-    `${getCurrencySymbol(invoice.currency)}${Number(item.unit_price).toFixed(2)}`,
-    `${getCurrencySymbol(invoice.currency)}${Number(item.amount).toFixed(2)}`
+    `${getPdfCurrencyPrefix(invoice.currency)}${Number(item.unit_price).toFixed(2)}`,
+    `${getPdfCurrencyPrefix(invoice.currency)}${Number(item.amount).toFixed(2)}`
   ]);
 
   autoTable(doc, {
@@ -306,13 +317,13 @@ export async function generateInvoicePdf(
   doc.setTextColor(...mutedColor);
   doc.text('Subtotal:', summaryX, summaryY);
   doc.setTextColor(...textColor);
-  doc.text(`${getCurrencySymbol(invoice.currency)}${Number(invoice.subtotal).toFixed(2)}`, pageWidth - margin, summaryY, { align: 'right' });
+  doc.text(`${getPdfCurrencyPrefix(invoice.currency)}${Number(invoice.subtotal).toFixed(2)}`, pageWidth - margin, summaryY, { align: 'right' });
 
   summaryY += 8;
   doc.setTextColor(...mutedColor);
   doc.text(`Tax (${Number(invoice.tax_rate)}%):`, summaryX, summaryY);
   doc.setTextColor(...textColor);
-  doc.text(`${getCurrencySymbol(invoice.currency)}${Number(invoice.tax_amount).toFixed(2)}`, pageWidth - margin, summaryY, { align: 'right' });
+  doc.text(`${getPdfCurrencyPrefix(invoice.currency)}${Number(invoice.tax_amount).toFixed(2)}`, pageWidth - margin, summaryY, { align: 'right' });
 
   summaryY += 10;
   doc.setDrawColor(...primaryColor);
@@ -322,7 +333,7 @@ export async function generateInvoicePdf(
   doc.setFontSize(12);
   doc.setTextColor(...primaryColor);
   doc.text('Total:', summaryX, summaryY + 5);
-  doc.text(`${getCurrencySymbol(invoice.currency)}${Number(invoice.total).toFixed(2)}`, pageWidth - margin, summaryY + 5, { align: 'right' });
+  doc.text(`${getPdfCurrencyPrefix(invoice.currency)}${Number(invoice.total).toFixed(2)}`, pageWidth - margin, summaryY + 5, { align: 'right' });
 
   // Notes section
   if (invoice.notes) {

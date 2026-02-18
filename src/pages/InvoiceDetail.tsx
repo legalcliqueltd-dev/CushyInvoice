@@ -533,10 +533,10 @@ export default function InvoiceDetail() {
                             <TableRow key={item.id}>
                               <TableCell className="font-medium text-xs break-words">{item.description}</TableCell>
                               <TableCell className="text-right text-xs text-muted-foreground">{Number(item.quantity)}</TableCell>
-                              <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
+                              <TableCell className="text-right text-xs text-muted-foreground">
                                 {getCurrencySymbol(displayCurrency)}{Number(item.unit_price).toFixed(2)}
                               </TableCell>
-                              <TableCell className="text-right text-xs font-medium whitespace-nowrap">
+                              <TableCell className="text-right text-xs font-medium">
                                 {getCurrencySymbol(displayCurrency)}{Number(item.amount).toFixed(2)}
                               </TableCell>
                             </TableRow>
@@ -548,16 +548,16 @@ export default function InvoiceDetail() {
                     <div className="mt-4 space-y-2 text-sm">
                       <div className="flex justify-between py-1">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span className="whitespace-nowrap">{getCurrencySymbol(displayCurrency)}{Number(invoice.subtotal).toFixed(2)}</span>
+                        <span className="text-right">{getCurrencySymbol(displayCurrency)}{Number(invoice.subtotal).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between py-1">
                         <span className="text-muted-foreground">Tax ({Number(invoice.tax_rate)}%)</span>
-                        <span className="whitespace-nowrap">{getCurrencySymbol(displayCurrency)}{Number(invoice.tax_amount).toFixed(2)}</span>
+                        <span className="text-right">{getCurrencySymbol(displayCurrency)}{Number(invoice.tax_amount).toFixed(2)}</span>
                       </div>
                       <Separator className="my-2" />
                       <div className="flex justify-between py-1 text-base font-bold">
                         <span>Total</span>
-                        <span className="text-primary whitespace-nowrap">{getCurrencySymbol(displayCurrency)}{Number(invoice.total).toFixed(2)}</span>
+                        <span className="text-primary text-right">{getCurrencySymbol(displayCurrency)}{Number(invoice.total).toFixed(2)}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -586,21 +586,21 @@ export default function InvoiceDetail() {
                     <CardTitle className="text-lg">Details</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="flex justify-between items-center gap-2">
+                    <div className="flex justify-between items-start gap-2">
                       <span className="text-sm text-muted-foreground shrink-0">Invoice #</span>
-                      <span className="text-sm font-medium text-right">{invoice.invoice_number}</span>
+                      <span className="text-sm font-medium text-right break-all">{invoice.invoice_number}</span>
                     </div>
                     <Separator />
-                    <div className="flex justify-between items-center gap-2">
+                    <div className="flex justify-between items-start gap-2">
                       <span className="text-sm text-muted-foreground shrink-0">Issue Date</span>
-                      <span className="text-sm font-medium whitespace-nowrap">
+                      <span className="text-sm font-medium text-right">
                         {format(new Date(invoice.issue_date), "MMM d, yyyy")}
                       </span>
                     </div>
                     <Separator />
-                    <div className="flex justify-between items-center gap-2">
+                    <div className="flex justify-between items-start gap-2">
                       <span className="text-sm text-muted-foreground shrink-0">Due Date</span>
-                      <span className="text-sm font-medium whitespace-nowrap">
+                      <span className="text-sm font-medium text-right">
                         {format(new Date(invoice.due_date), "MMM d, yyyy")}
                       </span>
                     </div>
