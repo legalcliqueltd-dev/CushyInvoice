@@ -24,6 +24,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [isLoginOtp, setIsLoginOtp] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
   const [pendingUserId, setPendingUserId] = useState("");
@@ -46,6 +47,7 @@ export default function Auth() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (showOtpVerification) return; // Guard: don't auto-redirect during OTP flow
       if (session) {
         if (event === 'SIGNED_IN') {
           setTimeout(() => {
@@ -57,7 +59,7 @@ export default function Auth() {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, showOtpVerification]);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -149,9 +151,9 @@ export default function Auth() {
             throw new Error("Invalid email or password. Please check your credentials.");
           }
           if (error.message.includes("Email not confirmed")) {
-            // User hasn't verified email yet — show OTP screen
             setPendingEmail(validation.data.email);
             setShowOtpVerification(true);
+            setIsLoginOtp(false);
             await supabase.auth.resend({ type: 'signup', email: validation.data.email });
             setResendCooldown(60);
             toast({ title: "Email not verified", description: "We've sent a new verification code to your email." });
@@ -161,7 +163,16 @@ export default function Auth() {
           throw error;
         }
 
-        toast({ title: "Welcome back!", description: "You've successfully logged in." });
+        // Password correct — sign out and send OTP for 2-step verification
+        await supabase.auth.signOut();
+        await supabase.auth.signInWithOtp({ email: validation.data.email });
+        setPendingEmail(validation.data.email);
+        setIsLoginOtp(true);
+        setShowOtpVerification(true);
+        setResendCooldown(60);
+        toast({ title: "Verification code sent", description: "Please check your email for the 6-digit code." });
+        setLoading(false);
+        return;
       } else {
         const { data, error } = await supabase.auth.signUp({
           email: validation.data.email,
@@ -215,31 +226,35 @@ export default function Auth() {
       const { data, error } = await supabase.auth.verifyOtp({
         email: pendingEmail,
         token: otpValue,
-        type: 'signup',
+        type: isLoginOtp ? 'email' : 'signup',
       });
 
       if (error) throw error;
 
       if (data.user) {
-        // Create profile after successful verification
-        const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 7);
+        if (isLoginOtp) {
+          // Returning user — profile already exists
+          toast({ title: "Welcome back!", description: "You've successfully signed in." });
+        } else {
+          // New signup — create profile
+          const trialEndDate = new Date();
+          trialEndDate.setDate(trialEndDate.getDate() + 7);
 
-        await supabase.from("profiles").upsert({
-          id: data.user.id,
-          email: pendingEmail,
-          full_name: pendingFullName || null,
-          plan_type: 'trial',
-          is_premium: true,
-          trial_end_date: trialEndDate.toISOString(),
-        });
+          await supabase.from("profiles").upsert({
+            id: data.user.id,
+            email: pendingEmail,
+            full_name: pendingFullName || null,
+            plan_type: 'trial',
+            is_premium: true,
+            trial_end_date: trialEndDate.toISOString(),
+          });
 
-        // Send welcome email (fire and forget)
-        supabase.functions.invoke("send-welcome-email", {
-          body: { userId: data.user.id },
-        }).catch(() => {});
+          supabase.functions.invoke("send-welcome-email", {
+            body: { userId: data.user.id },
+          }).catch(() => {});
 
-        toast({ title: "Account verified!", description: "Welcome to CushyInvoice. Your 7-day free trial has started." });
+          toast({ title: "Account verified!", description: "Welcome to CushyInvoice. Your 7-day free trial has started." });
+        }
       }
     } catch (error: any) {
       toast({ title: "Verification failed", description: error.message || "Invalid or expired code. Please try again.", variant: "destructive" });
@@ -252,11 +267,13 @@ export default function Auth() {
     if (resendCooldown > 0) return;
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: pendingEmail,
-      });
-      if (error) throw error;
+      if (isLoginOtp) {
+        const { error } = await supabase.auth.signInWithOtp({ email: pendingEmail });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.resend({ type: 'signup', email: pendingEmail });
+        if (error) throw error;
+      }
       setResendCooldown(60);
       toast({ title: "Code resent", description: "A new verification code has been sent to your email." });
     } catch (error: any) {
@@ -392,11 +409,12 @@ export default function Auth() {
             onClick={() => {
               setShowOtpVerification(false);
               setOtpValue("");
+              setIsLoginOtp(false);
             }}
             className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="inline mr-1 h-3 w-3" />
-            Back to Sign Up
+            {isLoginOtp ? "Back to Sign In" : "Back to Sign Up"}
           </button>
         </div>
       </AuthLayout>
