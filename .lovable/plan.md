@@ -1,52 +1,61 @@
 
+# Invoice Sharing and Account Details Improvements
 
-## Fix: Google OAuth Redirecting to lovable.app Instead of Custom Domain
-
-### Root Cause
-
-The code is correct -- it sets `redirectTo: "https://cushyinvoice.com/auth"`. However, the **backend authentication settings** (Site URL and Redirect URLs) still point to `cushyinvoice.lovable.app`. When Supabase receives a `redirectTo` URL that is not in its allowlist, it silently ignores it and falls back to the default Site URL (`cushyinvoice.lovable.app`).
-
-This is a **two-part fix**: one backend configuration change and one small code consistency fix.
+## Overview
+This plan addresses four changes: making lock icons blue, redirecting locked actions to the payment page, ensuring PDF generation before sharing for paid users, and adding optional bank account details to the invoice creation form.
 
 ---
 
-### Fix 1: Update Backend Auth Configuration (Required)
+## 1. Blue Lock Icons + Redirect to Payment Page
 
-You need to update two settings in your Lovable Cloud authentication config:
+**Files to change:** `src/pages/InvoiceDetail.tsx`, `src/components/ShareInvoiceDialog.tsx`
 
-1. Open your project's backend settings
-2. Go to **Users -> Authentication Settings**
-3. Set **Site URL** to: `https://cushyinvoice.com`
-4. Under **Redirect URLs**, add: `https://cushyinvoice.com/**`
-   - Keep `https://cushyinvoice.lovable.app/**` as well (for preview testing)
+### InvoiceDetail.tsx
+- Change the Lock icon on the Download button to use `className="h-4 w-4 mr-1 text-blue-500"` instead of the default color.
+- The download button already redirects to `/subscribe` when `!isActive` -- this is already working.
 
-Without this, Supabase will keep ignoring the `redirectTo` parameter and falling back to the lovable.app domain.
-
----
-
-### Fix 2: Use APP_DOMAIN Consistently in Code
-
-**File: `src/pages/Auth.tsx`, line 313**
-
-The custom domain branch still uses `window.location.origin` instead of `APP_DOMAIN`. While they resolve to the same value on cushyinvoice.com, using the constant is safer and consistent with the other branches.
-
-Change:
-```
-redirectTo: `${window.location.origin}/auth`,
-```
-To:
-```
-redirectTo: `${APP_DOMAIN}/auth`,
-```
+### ShareInvoiceDialog.tsx
+- Change the Lock icon color to blue: `className="h-4 w-4 mr-2 text-blue-500"`
+- Update `handleOpenChange` so that when `locked` is true and user clicks, it navigates to `/subscribe` instead of just showing a toast. This requires passing `navigate` from react-router-dom (either via props or using `useNavigate` inside the dialog).
 
 ---
 
-### Summary
+## 2. PDF-First Sharing for Paid Users
 
-| What | Change |
-|------|--------|
-| Backend Auth Settings | Set Site URL to `https://cushyinvoice.com` and add `https://cushyinvoice.com/**` to Redirect URLs |
-| `src/pages/Auth.tsx` line 313 | Change `window.location.origin` to `APP_DOMAIN` for consistency |
+The current sharing flow already generates a PDF before sharing for WhatsApp, Email, and Native Share. The Download button also already generates a PDF. This is working correctly. No changes needed here -- the existing implementation in `ShareInvoiceDialog.tsx` already calls `generateInvoicePdf()` before each sharing action.
 
-The backend config change is the critical fix. Without it, no code change will solve the redirect problem.
+---
 
+## 3. Optional Account Details in Invoice Form
+
+**Files to change:** `src/pages/InvoiceNew.tsx`
+
+The Settings page already has bank details fields (bank name, account number, routing code). The invoice form does not currently have these fields.
+
+### Changes:
+- Add state variables for bank details: `bankName`, `bankAccountNumber`, `bankRoutingCode`, and a `showBankDetails` toggle (checkbox or switch).
+- Fetch bank details from the profile in `fetchProfileDefaults` (add `bank_name, bank_account_number, bank_routing_code` to the select query) and pre-fill the state.
+- Add a collapsible "Account Details" section in the invoice form with:
+  - A Switch/Checkbox labeled "Include account details on invoice"
+  - Bank Name, Account Number, and Routing/Sort Code fields (only shown when toggled on)
+- Pass the bank details to `InvoicePreview` so they show in the preview tab.
+- Save these values with the invoice (this may require adding columns to the `invoices` table, or we can rely on the profile-level bank details which are already used in PDF generation).
+
+### Database consideration:
+The bank details are already stored at the profile level and the PDF generation (`generateInvoicePdf`) and `InvoicePreview` component already use them from the profile. Adding a toggle per invoice to "include bank details" would require a new boolean column `include_bank_details` on the `invoices` table.
+
+### Migration:
+- Add `include_bank_details` boolean column (default `false`) to the `invoices` table.
+
+---
+
+## Technical Summary
+
+| File | Changes |
+|------|---------|
+| `src/pages/InvoiceDetail.tsx` | Blue lock icon color on download button |
+| `src/components/ShareInvoiceDialog.tsx` | Blue lock icon, redirect to `/subscribe` on click, add `useNavigate` |
+| `src/pages/InvoiceNew.tsx` | Add bank details toggle + fields, fetch bank info from profile, pass to preview |
+| `supabase/migrations/` | Add `include_bank_details` column to `invoices` table |
+| `src/components/InvoicePreview.tsx` | Accept and conditionally render bank details based on toggle |
+| `src/lib/generateInvoicePdf.ts` | Conditionally include bank details in PDF based on the toggle |
