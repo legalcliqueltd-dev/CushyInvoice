@@ -332,7 +332,7 @@ export default function InvoiceDetail() {
           <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
               <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
-              <p className="text-base sm:text-2xl font-bold text-primary mt-1 truncate">
+              <p className="text-sm sm:text-2xl font-bold text-primary mt-1 break-all">
                 {getCurrencySymbol(invoice.currency)}{Number(invoice.total).toFixed(2)}
               </p>
             </CardContent>
@@ -340,7 +340,7 @@ export default function InvoiceDetail() {
           <Card>
             <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
               <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Paid</p>
-              <p className="text-base sm:text-2xl font-bold text-emerald-600 mt-1 truncate">
+              <p className="text-sm sm:text-2xl font-bold text-emerald-600 mt-1 break-all">
                 {getCurrencySymbol(invoice.currency)}{totalPaid.toFixed(2)}
               </p>
             </CardContent>
@@ -348,7 +348,7 @@ export default function InvoiceDetail() {
           <Card>
             <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
               <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Due</p>
-              <p className="text-base sm:text-2xl font-bold text-amber-600 mt-1 truncate">
+              <p className="text-sm sm:text-2xl font-bold text-amber-600 mt-1 break-all">
                 {getCurrencySymbol(invoice.currency)}{amountDue.toFixed(2)}
               </p>
             </CardContent>
@@ -356,7 +356,7 @@ export default function InvoiceDetail() {
           <Card>
             <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
               <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
-              <p className="text-base sm:text-xl font-semibold mt-1 truncate">
+              <p className="text-sm sm:text-xl font-semibold mt-1">
                 {(() => { try { return format(new Date(invoice.due_date), "MMM d"); } catch { return invoice.due_date; } })()}
               </p>
             </CardContent>
@@ -531,7 +531,7 @@ export default function InvoiceDetail() {
                         <TableBody>
                           {invoice.invoice_items.map((item) => (
                             <TableRow key={item.id}>
-                              <TableCell className="font-medium text-xs break-words max-w-[120px]">{item.description}</TableCell>
+                              <TableCell className="font-medium text-xs break-words">{item.description}</TableCell>
                               <TableCell className="text-right text-xs text-muted-foreground">{Number(item.quantity)}</TableCell>
                               <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
                                 {getCurrencySymbol(displayCurrency)}{Number(item.unit_price).toFixed(2)}
@@ -588,7 +588,7 @@ export default function InvoiceDetail() {
                   <CardContent className="space-y-3">
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-sm text-muted-foreground shrink-0">Invoice #</span>
-                      <span className="text-sm font-medium truncate">{invoice.invoice_number}</span>
+                      <span className="text-sm font-medium text-right">{invoice.invoice_number}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between items-center gap-2">
@@ -649,7 +649,7 @@ export default function InvoiceDetail() {
                       <div className="text-center space-y-4">
                         <div>
                           <p className="text-sm text-muted-foreground">Amount Due</p>
-                          <p className="text-xl sm:text-2xl font-bold text-primary truncate">
+                          <p className="text-xl sm:text-2xl font-bold text-primary break-all">
                             {getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}
                           </p>
                         </div>
