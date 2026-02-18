@@ -460,6 +460,8 @@ export type Database = {
           is_premium: boolean | null
           last_reset_date: string | null
           paystack_customer_code: string | null
+          paystack_email_token: string | null
+          paystack_subscription_code: string | null
           phone: string | null
           plan_type: Database["public"]["Enums"]["plan_type"] | null
           preferred_language: string | null
@@ -488,6 +490,8 @@ export type Database = {
           is_premium?: boolean | null
           last_reset_date?: string | null
           paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_subscription_code?: string | null
           phone?: string | null
           plan_type?: Database["public"]["Enums"]["plan_type"] | null
           preferred_language?: string | null
@@ -516,6 +520,8 @@ export type Database = {
           is_premium?: boolean | null
           last_reset_date?: string | null
           paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_subscription_code?: string | null
           phone?: string | null
           plan_type?: Database["public"]["Enums"]["plan_type"] | null
           preferred_language?: string | null

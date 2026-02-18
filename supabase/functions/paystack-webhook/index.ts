@@ -63,14 +63,14 @@ serve(async (req) => {
       const planCode = data.plan?.plan_code || data.subscription?.plan?.plan_code;
       let currentPlan = null;
       
-      // These will be updated with actual Paystack plan codes
       if (planCode) {
-        // We'll check the interval to determine monthly vs yearly
         const interval = data.plan?.interval || data.subscription?.plan?.interval;
         currentPlan = interval === "annually" ? "yearly" : "monthly";
       }
 
       const customerCode = data.customer?.customer_code;
+      const subscriptionCode = data.subscription?.subscription_code || data.subscription_code;
+      const emailToken = data.subscription?.email_token || data.email_token;
       
       // Calculate subscription end based on plan interval
       let subscriptionEnd = null;
@@ -87,18 +87,23 @@ serve(async (req) => {
         subscriptionEnd = paidDate.toISOString();
       }
 
-      logStep("Updating profile", { userId: user.id, plan: currentPlan, customerCode });
+      logStep("Updating profile", { userId: user.id, plan: currentPlan, customerCode, subscriptionCode });
+
+      const updateData: Record<string, any> = {
+        subscription_status: "active",
+        current_plan: currentPlan,
+        subscription_expiry: subscriptionEnd,
+        paystack_customer_code: customerCode,
+        is_premium: true,
+        plan_type: "premium",
+      };
+
+      if (subscriptionCode) updateData.paystack_subscription_code = subscriptionCode;
+      if (emailToken) updateData.paystack_email_token = emailToken;
 
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({
-          subscription_status: "active",
-          current_plan: currentPlan,
-          subscription_expiry: subscriptionEnd,
-          paystack_customer_code: customerCode,
-          is_premium: true,
-          plan_type: "premium",
-        })
+        .update(updateData)
         .eq("id", user.id);
 
       if (updateError) {

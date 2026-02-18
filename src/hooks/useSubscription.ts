@@ -8,6 +8,7 @@ interface SubscriptionData {
   current_plan: string | null;
   subscription_end: string | null;
   trial_end: string | null;
+  provider?: "stripe" | "paystack" | null;
 }
 
 export const useSubscription = () => {
@@ -17,6 +18,7 @@ export const useSubscription = () => {
     current_plan: null,
     subscription_end: null,
     trial_end: null,
+    provider: null,
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -31,6 +33,7 @@ export const useSubscription = () => {
           current_plan: null,
           subscription_end: null,
           trial_end: null,
+          provider: null,
         });
         setLoading(false);
         return;
@@ -47,6 +50,7 @@ export const useSubscription = () => {
           current_plan: data.current_plan || null,
           subscription_end: data.subscription_end || null,
           trial_end: data.trial_end || null,
+          provider: data.provider || null,
         });
       }
     } catch (error: any) {
@@ -79,6 +83,40 @@ export const useSubscription = () => {
     }
   }, [toast]);
 
+  const managePaystackSubscription = useCallback(async (action: "cancel" | "enable" | "update-card") => {
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-paystack-subscription", {
+        body: { action },
+      });
+
+      if (error) throw error;
+
+      if (action === "update-card" && data?.url) {
+        window.open(data.url, "_blank");
+        return data;
+      }
+
+      toast({
+        title: "Success",
+        description: data?.message || `Subscription ${action}d successfully`,
+      });
+
+      // Refresh subscription status
+      await checkSubscription();
+      return data;
+    } catch (error: any) {
+      if (import.meta.env.DEV) {
+        console.error("Error managing Paystack subscription:", error);
+      }
+      toast({
+        title: "Error",
+        description: error.message || `Failed to ${action} subscription`,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }, [toast, checkSubscription]);
+
   const startCheckout = useCallback(async (priceId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("create-subscription-session", {
@@ -105,12 +143,10 @@ export const useSubscription = () => {
   useEffect(() => {
     checkSubscription();
 
-    // Set up interval to check subscription every minute
     const interval = setInterval(() => {
       checkSubscription();
-    }, 60000); // 60 seconds
+    }, 60000);
 
-    // Listen for auth state changes
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(() => {
       checkSubscription();
     });
@@ -136,6 +172,7 @@ export const useSubscription = () => {
     trialExpired,
     checkSubscription,
     openCustomerPortal,
+    managePaystackSubscription,
     startCheckout,
   };
 };
