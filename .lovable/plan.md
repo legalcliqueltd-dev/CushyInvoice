@@ -1,34 +1,44 @@
 
+# Add 2-Step OTP Verification for Email Sign-In
 
-# Fix WhatsApp PDF Attachment and Truncated Text on Invoice Page
+## Overview
+After a user signs in with their email and password, they will receive a 6-digit verification code via email before being granted access. This adds an extra layer of security to every login.
 
-## Issue 1: WhatsApp Not Attaching PDF
+## How It Will Work
 
-**Root cause:** The current WhatsApp sharing uses `wa.me/?text=...` which only supports text messages -- it cannot attach files. The PDF is downloaded separately to the device, but users have to manually attach it.
+1. User enters email + password and clicks "Sign In"
+2. Password is verified against the database -- if wrong, show error as usual
+3. If password is correct, the user is immediately signed out and a 6-digit OTP is sent to their email
+4. The OTP verification screen appears (reusing the existing OTP UI)
+5. User enters the code -- once verified, they are fully signed in and redirected to the dashboard
 
-**Fix:** Use the Web Share API (`navigator.share`) with the PDF file when available (works on mobile devices). This opens the native share sheet where the user can pick WhatsApp and the PDF will be attached automatically. Fall back to the current `wa.me` text-only approach only on desktop browsers that don't support file sharing.
+## Technical Details
 
-### Changes in `src/components/ShareInvoiceDialog.tsx`:
-- Update `handleShareWhatsApp` to try `navigator.share({ files: [pdfFile], text: ... })` first
-- If `navigator.share` with files is supported, share directly with PDF attached
-- Fall back to current `wa.me` URL + separate PDF download only when native sharing is unavailable
+### Changes in `src/pages/Auth.tsx`
 
-## Issue 2: Text Truncated on Invoice Detail Page
+**New state variable:**
+- `isLoginOtp` (boolean) -- tracks whether the current OTP screen is for a login verification (vs. signup verification)
 
-**Root cause:** On mobile screens, the Items table columns and the Details sidebar have fixed/narrow widths causing text like amounts ("₦400000.00"), invoice number ("INV-00001"), and dates ("Feb 18, 2026") to be cut off.
+**Updated sign-in flow (`handleSubmit`):**
+- After successful `signInWithPassword`, immediately call `supabase.auth.signOut()` to prevent auto-redirect
+- Then call `supabase.auth.signInWithOtp({ email })` to send a verification code
+- Set `pendingEmail`, `isLoginOtp = true`, `showOtpVerification = true`, and start the resend cooldown
+- Show toast: "Verification code sent to your email"
 
-**Fix:** Adjust responsive styles so content doesn't overflow on small screens.
+**Updated OTP verification (`handleVerifyOtp`):**
+- Check `isLoginOtp` flag to determine the OTP type
+- For login: call `supabase.auth.verifyOtp({ email, token, type: 'email' })` (type `email` instead of `signup`)
+- Skip profile creation (profile already exists for returning users)
+- Show toast: "Welcome back! You've successfully signed in."
 
-### Changes in `src/pages/InvoiceDetail.tsx`:
-- Remove `truncate` from amount values in summary cards so full currency amounts show
-- Remove `max-w-[120px]` constraint on the description table cell
-- Use `text-[11px]` or smaller font for table cells on mobile to fit more content
-- In the Details sidebar card, allow text to wrap instead of truncating invoice numbers and dates
-- Ensure the Items table scrolls horizontally gracefully with proper minimum widths
+**Updated OTP resend (`handleResendOtp`):**
+- When `isLoginOtp` is true, use `supabase.auth.signInWithOtp({ email })` to resend (instead of `supabase.auth.resend({ type: 'signup' })`)
 
-### Specific fixes:
-- Summary cards: remove `truncate` from currency amounts, use smaller text if needed
-- Items table: reduce cell padding, use smaller font sizes for mobile
-- Details sidebar: remove `truncate` and `whitespace-nowrap` from values that get cut off, allow wrapping
-- Add `overflow-x-auto` wrapper around the items table (already present, but ensure inner content has proper min-widths)
+**Updated `onAuthStateChange` listener:**
+- Add a guard so that when `showOtpVerification` is true, the `SIGNED_IN` event from the initial password check does not auto-redirect to the dashboard before sign-out completes
 
+**OTP screen "Back" button:**
+- When `isLoginOtp` is true, the back button label says "Back to Sign In" and resets `isLoginOtp`
+
+### No other files need to change
+The existing OTP UI components (InputOTP slots, resend button, cooldown timer) are fully reused.
