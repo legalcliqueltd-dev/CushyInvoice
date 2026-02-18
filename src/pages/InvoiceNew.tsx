@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, CalendarIcon, Loader2, Building2, Upload, X, Eye, Edit3 } from "lucide-react";
+import { Plus, Trash2, CalendarIcon, Loader2, Building2, Upload, X, Eye, Edit3, Landmark } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
@@ -37,6 +37,7 @@ import { currencies, getCurrencySymbol } from "@/lib/currencies";
 import { LogoUploadDialog } from "@/components/LogoUploadDialog";
 import { InvoicePreview } from "@/components/InvoicePreview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 
 interface Client {
   id: string;
@@ -76,6 +77,9 @@ interface CompanyInfo {
   email: string;
   phone: string;
   address: string;
+  bank_name?: string;
+  bank_account_number?: string;
+  bank_routing_code?: string;
 }
 
 const clientSchema = z.object({
@@ -128,6 +132,7 @@ export default function InvoiceNew() {
   });
   const [logoUploadDialog, setLogoUploadDialog] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [includeBankDetails, setIncludeBankDetails] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -178,6 +183,7 @@ export default function InvoiceNew() {
     setLogoBgColor(data.logo_bg_color || "#ffffff");
     setInvoiceNumber(data.invoice_number);
     if (data.template_id) setSelectedTemplateId(data.template_id);
+    if (data.include_bank_details) setIncludeBankDetails(true);
 
     if (data.invoice_items && data.invoice_items.length > 0) {
       setLineItems(
@@ -200,7 +206,7 @@ export default function InvoiceNew() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("default_tax_rate, default_currency, company_name, company_logo, email, phone, address")
+        .select("default_tax_rate, default_currency, company_name, company_logo, email, phone, address, bank_name, bank_account_number, bank_routing_code")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -215,7 +221,14 @@ export default function InvoiceNew() {
           email: data.email || "",
           phone: data.phone || "",
           address: data.address || "",
+          bank_name: data.bank_name || "",
+          bank_account_number: data.bank_account_number || "",
+          bank_routing_code: data.bank_routing_code || "",
         });
+        // Auto-enable bank details toggle if profile has bank info
+        if (data.bank_name || data.bank_account_number || data.bank_routing_code) {
+          setIncludeBankDetails(true);
+        }
       }
     } catch (error: any) {
       if (import.meta.env.DEV) {
@@ -529,15 +542,21 @@ export default function InvoiceNew() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Auto-save company info to profile before creating invoice
+      // Auto-save company info (including bank details) to profile before creating invoice
+      const profileUpdate: Record<string, any> = {
+        company_name: companyInfo.company_name,
+        email: companyInfo.email,
+        phone: companyInfo.phone,
+        address: companyInfo.address,
+      };
+      if (includeBankDetails) {
+        profileUpdate.bank_name = companyInfo.bank_name || null;
+        profileUpdate.bank_account_number = companyInfo.bank_account_number || null;
+        profileUpdate.bank_routing_code = companyInfo.bank_routing_code || null;
+      }
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({
-          company_name: companyInfo.company_name,
-          email: companyInfo.email,
-          phone: companyInfo.phone,
-          address: companyInfo.address,
-        })
+        .update(profileUpdate)
         .eq("id", user.id);
 
       if (profileError) {
@@ -561,6 +580,7 @@ export default function InvoiceNew() {
             total,
             notes,
             logo_bg_color: logoBgColor,
+            include_bank_details: includeBankDetails,
           })
           .eq("id", editId)
           .eq("user_id", user.id);
@@ -607,6 +627,7 @@ export default function InvoiceNew() {
             total,
             notes,
             logo_bg_color: logoBgColor,
+            include_bank_details: includeBankDetails,
           } as any)
           .select()
           .single();
@@ -717,7 +738,12 @@ export default function InvoiceNew() {
 
           <TabsContent value="preview" className="mt-6">
             <InvoicePreview
-              companyInfo={companyInfo}
+              companyInfo={includeBankDetails ? companyInfo : {
+                ...companyInfo,
+                bank_name: undefined,
+                bank_account_number: undefined,
+                bank_routing_code: undefined,
+              }}
               client={selectedClient ? { name: selectedClient.name, email: selectedClient.email } : undefined}
               invoiceNumber={isEditMode ? invoiceNumber : undefined}
               issueDate={issueDate}
@@ -1196,6 +1222,55 @@ export default function InvoiceNew() {
                 rows={4}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Account Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Landmark className="h-5 w-5" />
+              Account Details
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Optional bank/payment details to display on the invoice</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="include-bank">Include account details on invoice</Label>
+              <Switch
+                id="include-bank"
+                checked={includeBankDetails}
+                onCheckedChange={setIncludeBankDetails}
+              />
+            </div>
+            {includeBankDetails && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                  <Label>Bank Name</Label>
+                  <Input
+                    value={companyInfo.bank_name || ""}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, bank_name: e.target.value }))}
+                    placeholder="e.g. First National Bank"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Account Number</Label>
+                  <Input
+                    value={companyInfo.bank_account_number || ""}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, bank_account_number: e.target.value }))}
+                    placeholder="e.g. 1234567890"
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Routing / Sort Code</Label>
+                  <Input
+                    value={companyInfo.bank_routing_code || ""}
+                    onChange={(e) => setCompanyInfo(prev => ({ ...prev, bank_routing_code: e.target.value }))}
+                    placeholder="e.g. 012345678"
+                  />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -199,7 +199,10 @@ export default function InvoiceDetail() {
     }
     setDownloadingPdf(true);
     try {
-      const blob = await generateInvoicePdf(invoice, profile || {});
+      const companyForPdf = (invoice as any).include_bank_details 
+        ? (profile || {}) 
+        : { ...profile, bank_name: undefined, bank_account_number: undefined, bank_routing_code: undefined };
+      const blob = await generateInvoicePdf(invoice, companyForPdf);
       const filename = `Invoice-${invoice.invoice_number}.pdf`;
       
       const saved = await savePdfToDevice(blob, filename);
@@ -306,12 +309,12 @@ export default function InvoiceDetail() {
               variant="outline" 
               size="sm" 
               onClick={handleDownloadPdf}
-              disabled={downloadingPdf || !isActive}
+              disabled={downloadingPdf}
             >
               {downloadingPdf ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : !isActive ? (
-                <Lock className="h-4 w-4 mr-1" />
+                <Lock className="h-4 w-4 mr-1 text-blue-500" />
               ) : (
                 <Download className="h-4 w-4 mr-1" />
               )}
@@ -390,9 +393,9 @@ export default function InvoiceDetail() {
                   email: profile?.email || "",
                   phone: profile?.phone || "",
                   address: profile?.address || "",
-                  bank_name: profile?.bank_name,
-                  bank_account_number: profile?.bank_account_number,
-                  bank_routing_code: profile?.bank_routing_code,
+                  bank_name: (invoice as any).include_bank_details ? profile?.bank_name : undefined,
+                  bank_account_number: (invoice as any).include_bank_details ? profile?.bank_account_number : undefined,
+                  bank_routing_code: (invoice as any).include_bank_details ? profile?.bank_routing_code : undefined,
                 }}
                 client={{
                   name: invoice.clients.name,

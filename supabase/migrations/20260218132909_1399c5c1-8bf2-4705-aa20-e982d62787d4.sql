@@ -1,0 +1,1 @@
+ALTER TABLE public.invoices ADD COLUMN include_bank_details boolean DEFAULT false;
