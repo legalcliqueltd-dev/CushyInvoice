@@ -20,7 +20,8 @@ const PLANS = [
     paystack: {
       price: "₦4,500",
       period: "/month",
-      planCode: "PLN_monthly_placeholder", // Replace with actual Paystack plan code
+      planCode: "PLN_g4lw65mt3lnj6py",
+      amountInKobo: 450000,
     },
     icon: Zap,
     features: [
@@ -45,7 +46,8 @@ const PLANS = [
     paystack: {
       price: "₦36,000",
       period: "/year",
-      planCode: "PLN_yearly_placeholder", // Replace with actual Paystack plan code
+      planCode: "PLN_xb5byfwpuvqvs5z",
+      amountInKobo: 3600000,
     },
     icon: Star,
     features: [
@@ -81,7 +83,7 @@ const Subscribe = () => {
         if (data?.url) window.open(data.url, "_blank");
       } else {
         const { data, error } = await supabase.functions.invoke("create-paystack-subscription", {
-          body: { planCode: plan.paystack.planCode },
+          body: { planCode: plan.paystack.planCode, amount: plan.paystack.amountInKobo },
         });
         if (error) throw error;
         if (data?.url) window.open(data.url, "_blank");

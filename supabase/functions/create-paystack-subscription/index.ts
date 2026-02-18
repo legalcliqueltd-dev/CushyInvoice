@@ -38,9 +38,10 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { planCode } = await req.json();
+    const { planCode, amount } = await req.json();
     if (!planCode) throw new Error("Plan code is required");
-    logStep("Plan code received", { planCode });
+    if (!amount) throw new Error("Amount is required");
+    logStep("Plan code received", { planCode, amount });
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
 
@@ -53,6 +54,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         email: user.email,
+        amount: amount,
         plan: planCode,
         callback_url: `${origin}/payment-success?provider=paystack`,
         metadata: {
