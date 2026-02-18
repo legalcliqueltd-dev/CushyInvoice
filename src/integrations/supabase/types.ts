@@ -254,6 +254,7 @@ export type Database = {
           currency: string
           due_date: string
           id: string
+          include_bank_details: boolean | null
           invoice_number: string
           issue_date: string
           logo_bg_color: string | null
@@ -276,6 +277,7 @@ export type Database = {
           currency?: string
           due_date: string
           id?: string
+          include_bank_details?: boolean | null
           invoice_number: string
           issue_date?: string
           logo_bg_color?: string | null
@@ -298,6 +300,7 @@ export type Database = {
           currency?: string
           due_date?: string
           id?: string
+          include_bank_details?: boolean | null
           invoice_number?: string
           issue_date?: string
           logo_bg_color?: string | null

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -55,16 +56,13 @@ interface ShareInvoiceDialogProps {
 
 export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareInvoiceDialogProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (locked && newOpen) {
-      toast({
-        title: "Subscription Required",
-        description: "Upgrade your plan to share invoices.",
-        variant: "destructive",
-      });
+      navigate("/subscribe");
       return;
     }
     setOpen(newOpen);
@@ -222,8 +220,8 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={locked}>
-          {locked ? <Lock className="h-4 w-4 mr-2" /> : <Share2 className="h-4 w-4 mr-2" />}
+        <Button variant="outline" size="sm">
+          {locked ? <Lock className="h-4 w-4 mr-2 text-blue-500" /> : <Share2 className="h-4 w-4 mr-2" />}
           Share
         </Button>
       </DialogTrigger>
