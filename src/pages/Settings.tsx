@@ -68,11 +68,13 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [logoDialogOpen, setLogoDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const { 
     subscription, 
     loading: subscriptionLoading, 
     checkSubscription, 
-    openCustomerPortal 
+    openCustomerPortal,
+    managePaystackSubscription,
   } = useSubscription();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
@@ -681,13 +683,27 @@ export default function Settings() {
                   {subscription.subscribed ? (
                     <>
                       <div className="flex flex-wrap gap-2">
-                        <Button 
-                          onClick={openCustomerPortal} 
-                          className="flex-1 sm:flex-none"
-                        >
-                          <Crown className="h-4 w-4 mr-2" />
-                          Manage Subscription
-                        </Button>
+                        {subscription.provider === "paystack" ? (
+                          <Button 
+                            onClick={async () => {
+                              try {
+                                await managePaystackSubscription("update-card");
+                              } catch {}
+                            }}
+                            className="flex-1 sm:flex-none"
+                          >
+                            <CreditCard className="h-4 w-4 mr-2" />
+                            Update Payment Method
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={openCustomerPortal} 
+                            className="flex-1 sm:flex-none"
+                          >
+                            <Crown className="h-4 w-4 mr-2" />
+                            Manage Subscription
+                          </Button>
+                        )}
                         <Button 
                           onClick={checkSubscription} 
                           variant="outline"
@@ -700,11 +716,19 @@ export default function Settings() {
                         variant="outline"
                         className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setCancelDialogOpen(true)}
+                        disabled={cancelLoading}
                       >
-                        Cancel Subscription
+                        {cancelLoading ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Canceling...</>
+                        ) : (
+                          "Cancel Subscription"
+                        )}
                       </Button>
                       <p className="text-xs text-muted-foreground">
-                        Update payment method, change plan, or manage billing
+                        {subscription.provider === "paystack" 
+                          ? "Update payment method or cancel your subscription"
+                          : "Update payment method, change plan, or manage billing"
+                        }
                       </p>
                     </>
                   ) : (
@@ -979,9 +1003,18 @@ export default function Settings() {
               <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive hover:bg-destructive/90"
-                onClick={() => {
+                onClick={async () => {
                   setCancelDialogOpen(false);
-                  openCustomerPortal();
+                  if (subscription.provider === "paystack") {
+                    setCancelLoading(true);
+                    try {
+                      await managePaystackSubscription("cancel");
+                    } catch {} finally {
+                      setCancelLoading(false);
+                    }
+                  } else {
+                    openCustomerPortal();
+                  }
                 }}
               >
                 Continue to Cancel

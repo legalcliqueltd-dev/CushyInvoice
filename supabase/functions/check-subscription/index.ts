@@ -184,7 +184,8 @@ serve(async (req) => {
       subscription_end: subscriptionEnd,
       trial_end: trialEnd,
       plan_type: hasActiveSub ? 'premium' : 'free',
-      is_premium: hasActiveSub
+      is_premium: hasActiveSub,
+      provider: 'stripe'
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
