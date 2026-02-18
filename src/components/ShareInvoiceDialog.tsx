@@ -13,6 +13,8 @@ import { Share2, MessageCircle, Mail, Copy, Download, Loader2, Lock } from "luci
 import { useToast } from "@/hooks/use-toast";
 import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface ShareInvoiceDialogProps {
   invoice: {
@@ -59,6 +61,7 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+  const [recipientEmail, setRecipientEmail] = useState(invoice.clients.email);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (locked && newOpen) {
@@ -137,6 +140,7 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
           body: {
             invoiceId: invoice.id,
             pdfBase64: base64Pdf,
+            recipientEmail,
           },
         });
 
@@ -144,7 +148,7 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
 
         toast({
           title: "Email Sent",
-          description: `Invoice PDF has been sent to ${invoice.clients.email}`,
+          description: `Invoice PDF has been sent to ${recipientEmail}`,
         });
         setOpen(false);
       };
@@ -233,6 +237,16 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="recipient-email">Send to:</Label>
+            <Input
+              id="recipient-email"
+              type="email"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              placeholder="Enter recipient email"
+            />
+          </div>
           <Button
             variant="outline"
             className="w-full justify-start h-12"

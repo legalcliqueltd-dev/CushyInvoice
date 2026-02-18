@@ -56,13 +56,13 @@ serve(async (req) => {
   }
 
   try {
-    const { invoiceId, pdfBase64, isReminder = false } = await req.json();
+    const { invoiceId, pdfBase64, isReminder = false, recipientEmail } = await req.json();
 
     if (!invoiceId) {
       throw new Error("Invoice ID is required");
     }
 
-    console.log("Sending invoice email:", { invoiceId, isReminder, hasPdf: !!pdfBase64 });
+    console.log("Sending invoice email:", { invoiceId, isReminder, hasPdf: !!pdfBase64, recipientEmail });
 
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
@@ -95,9 +95,11 @@ serve(async (req) => {
     }
 
     const client = invoice.clients as any;
-    if (!client?.email) {
-      throw new Error("Client email not found");
+    if (!recipientEmail && !client?.email) {
+      throw new Error("No recipient email provided and client email not found");
     }
+
+    const toEmail = recipientEmail || client?.email;
 
     const { data: profile } = await supabaseClient
       .from("profiles")
@@ -112,31 +114,17 @@ serve(async (req) => {
     const amount = `${sanitizeForPrompt(invoice.currency)} ${Number(invoice.total).toFixed(2)}`;
     const dueDate = new Date(invoice.due_date).toLocaleDateString();
 
-    // Generate email content using AI
-    const systemPrompt = "You are a professional email writer for invoices. Generate polite, professional invoice emails. Never include threatening language, legal threats, or demands. Output only the email body text as HTML (use <p>, <br> tags). Keep it concise (under 150 words).";
-
-    const userPrompt = isReminder
-      ? `Write a payment reminder email. Company: ${companyName}. Client: ${clientName}. Invoice: ${invoiceNumber}. Amount: ${amount}. Due date: ${dueDate}. Status: ${sanitizeForPrompt(invoice.status)}. The PDF invoice is attached. Be polite but clear that payment is due.`
-      : `Write an invoice email. Company: ${companyName}. Client: ${clientName}. Invoice: ${invoiceNumber}. Amount: ${amount}. Due date: ${dueDate}. The PDF invoice is attached. Include a call to action to review and pay.`;
-
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 500,
-      }),
-    });
-
-    const aiData = await aiResponse.json();
-    const emailBody = aiData.choices?.[0]?.message?.content || "<p>Please find your invoice attached.</p>";
+    // Static professional email body
+    const emailBody = isReminder
+      ? `<p>Dear ${clientName},</p>
+<p>This is a friendly reminder that Invoice <strong>${invoiceNumber}</strong> for <strong>${amount}</strong> was due on <strong>${dueDate}</strong>.</p>
+<p>Please find the invoice attached for your reference. Kindly arrange payment at your earliest convenience.</p>
+<p>If you have already made the payment, please disregard this message.</p>
+<p>Thank you,<br/>${companyName}</p>`
+      : `<p>Dear ${clientName},</p>
+<p>Please find attached Invoice <strong>${invoiceNumber}</strong> for <strong>${amount}</strong>, due on <strong>${dueDate}</strong>.</p>
+<p>Kindly review and arrange payment at your convenience.</p>
+<p>Thank you,<br/>${companyName}</p>`;
 
     console.log("Email content generated successfully");
 
@@ -170,7 +158,7 @@ serve(async (req) => {
       try {
         const resendPayload: Record<string, unknown> = {
           from: `${companyName} via CushyInvoice <noreply@cushyinvoice.com>`,
-          to: [client.email],
+          to: [toEmail],
           subject,
           html: fullHtml,
         };
@@ -211,7 +199,7 @@ serve(async (req) => {
       .insert({
         user_id: invoice.user_id,
         invoice_id: invoiceId,
-        recipient_email: client.email,
+        recipient_email: toEmail,
         subject: subject,
         body: emailBody,
         email_type: isReminder ? "reminder" : "invoice",
@@ -223,7 +211,7 @@ serve(async (req) => {
         success: true,
         email_sent: emailSent,
         message: emailSent
-          ? `Invoice email sent to ${client.email}`
+          ? `Invoice email sent to ${toEmail}`
           : `Invoice email logged (email delivery not configured)`,
         email_preview: emailBody,
       }),
