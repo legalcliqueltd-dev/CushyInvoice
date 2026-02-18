@@ -99,7 +99,7 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
       
       // For WhatsApp, we'll share a link with the invoice details
       // since WhatsApp Web API doesn't support direct file sharing
-      const text = `📄 Invoice ${invoice.invoice_number}\n\nFrom: ${company.company_name || 'Company'}\nTo: ${invoice.clients.name}\n\nTotal: ${invoice.currency} ${invoice.total.toFixed(2)}\nDue Date: ${new Date(invoice.due_date).toLocaleDateString()}\n\nPlease find the invoice attached.`;
+      const text = `📄 *Invoice ${invoice.invoice_number}*\n\n*From:* ${company.company_name || 'Company'}\n*To:* ${invoice.clients.name}\n\n*Amount:* ${invoice.currency} ${invoice.total.toFixed(2)}\n*Due Date:* ${new Date(invoice.due_date).toLocaleDateString()}\n\nPlease find the invoice PDF attached.\nThank you for your business! 🙏`;
       
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
       window.open(whatsappUrl, '_blank');
