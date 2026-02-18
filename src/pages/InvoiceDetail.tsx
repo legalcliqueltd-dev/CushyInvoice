@@ -283,14 +283,14 @@ export default function InvoiceDetail() {
             </Button>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-3xl font-bold tracking-tight truncate">
+                <h1 className="text-xl sm:text-3xl font-bold tracking-tight break-words">
                   {invoice.invoice_number}
                 </h1>
                 <Badge variant="outline" className={`${getStatusColor(invoice.status)} shrink-0`}>
                   {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Created {(() => { try { return format(new Date(invoice.issue_date), "MMM d, yyyy"); } catch { return invoice.issue_date; } })()}
               </p>
             </div>
@@ -446,12 +446,12 @@ export default function InvoiceDetail() {
                             />
                           </div>
                         )}
-                        <p className="font-semibold truncate">{profile?.company_name || "Your Company"}</p>
+                        <p className="font-semibold break-words">{profile?.company_name || "Your Company"}</p>
                         {profile?.email && (
-                          <p className="text-sm text-muted-foreground truncate">{profile.email}</p>
+                          <p className="text-sm text-muted-foreground break-words">{profile.email}</p>
                         )}
                         {profile?.phone && (
-                          <p className="text-sm text-muted-foreground truncate">{profile.phone}</p>
+                          <p className="text-sm text-muted-foreground">{profile.phone}</p>
                         )}
                         {profile?.address && (
                           <p className="text-sm text-muted-foreground break-words">{profile.address}</p>
@@ -469,16 +469,16 @@ export default function InvoiceDetail() {
                           <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Bill To</span>
                         </div>
-                        <p className="font-semibold truncate">{invoice.clients.name}</p>
-                        <p className="text-sm text-muted-foreground truncate">{invoice.clients.email}</p>
+                        <p className="font-semibold break-words">{invoice.clients.name}</p>
+                        <p className="text-sm text-muted-foreground break-words">{invoice.clients.email}</p>
                         {invoice.clients.phone && (
-                          <p className="text-sm text-muted-foreground truncate">{invoice.clients.phone}</p>
+                          <p className="text-sm text-muted-foreground">{invoice.clients.phone}</p>
                         )}
                         {invoice.clients.address && (
                           <div className="text-sm text-muted-foreground">
                             <p className="break-words">{invoice.clients.address}</p>
                             {invoice.clients.city && (
-                              <p className="truncate">
+                              <p className="break-words">
                                 {invoice.clients.city}
                                 {invoice.clients.state && `, ${invoice.clients.state}`}{" "}
                                 {invoice.clients.zip_code}
@@ -625,7 +625,7 @@ export default function InvoiceDetail() {
                         {invoice.payments.map((payment) => (
                           <div key={payment.id} className="flex justify-between items-center gap-2">
                             <div className="min-w-0">
-                              <p className="text-sm font-medium truncate">
+                              <p className="text-sm font-medium break-all">
                                 {getCurrencySymbol(displayCurrency)}{Number(payment.amount).toFixed(2)}
                               </p>
                               <p className="text-xs text-muted-foreground">
