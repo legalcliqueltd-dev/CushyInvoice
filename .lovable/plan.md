@@ -1,42 +1,34 @@
 
-# Fix Email Sharing: Custom Recipient + Clean Email Body
 
-## Problems
-1. Email always sends to the client's email on file -- no way to specify a different recipient
-2. AI-generated email body contains raw markdown artifacts (e.g. triple backticks `html`) that appear in the email
+# Fix WhatsApp PDF Attachment and Truncated Text on Invoice Page
 
-## Changes
+## Issue 1: WhatsApp Not Attaching PDF
 
-### 1. Add Email Input to Share Dialog
-**File: `src/components/ShareInvoiceDialog.tsx`**
-- Add a text input field above the "Send via Email" button where users can type a custom email address
-- Pre-fill it with `invoice.clients.email` as default
-- Pass the custom email (`recipientEmail`) to the edge function call
-- Update the success toast to show the actual recipient email
+**Root cause:** The current WhatsApp sharing uses `wa.me/?text=...` which only supports text messages -- it cannot attach files. The PDF is downloaded separately to the device, but users have to manually attach it.
 
-### 2. Accept Custom Recipient in Edge Function
-**File: `supabase/functions/send-invoice-email/index.ts`**
-- Accept an optional `recipientEmail` field from the request body
-- Use `recipientEmail` (if provided) instead of `client.email` as the Resend `to` address
-- Keep `client.email` as fallback when no custom email is provided
+**Fix:** Use the Web Share API (`navigator.share`) with the PDF file when available (works on mobile devices). This opens the native share sheet where the user can pick WhatsApp and the PDF will be attached automatically. Fall back to the current `wa.me` text-only approach only on desktop browsers that don't support file sharing.
 
-### 3. Fix AI Email Body Artifacts
-**File: `supabase/functions/send-invoice-email/index.ts`**
-- Strip markdown code fences from the AI response (remove lines like triple-backtick-html and trailing triple-backticks)
-- Update the system prompt to explicitly say: "Do NOT wrap output in code fences or markdown. Output raw HTML only."
-- Replace the AI-generated email with a simple static HTML template instead, to avoid unpredictable AI formatting issues:
-  - "Dear [Client], Please find attached Invoice [number] for [amount], due [date]. Kindly review and arrange payment at your convenience. Thank you, [Company]"
-  - This is more reliable and always clean
+### Changes in `src/components/ShareInvoiceDialog.tsx`:
+- Update `handleShareWhatsApp` to try `navigator.share({ files: [pdfFile], text: ... })` first
+- If `navigator.share` with files is supported, share directly with PDF attached
+- Fall back to current `wa.me` URL + separate PDF download only when native sharing is unavailable
 
-### Technical Details
+## Issue 2: Text Truncated on Invoice Detail Page
 
-**ShareInvoiceDialog.tsx changes:**
-- Add `const [recipientEmail, setRecipientEmail] = useState(invoice.clients.email)` state
-- Add an Input field with label "Send to:" before the Email button
-- Pass `recipientEmail` in the edge function body
+**Root cause:** On mobile screens, the Items table columns and the Details sidebar have fixed/narrow widths causing text like amounts ("₦400000.00"), invoice number ("INV-00001"), and dates ("Feb 18, 2026") to be cut off.
 
-**send-invoice-email/index.ts changes:**
-- Destructure `recipientEmail` from request body
-- Use `recipientEmail || client.email` for the `to` field
-- Replace AI email generation with a clean static template to avoid markdown artifacts
-- Remove the AI gateway call entirely (simpler, faster, more reliable)
+**Fix:** Adjust responsive styles so content doesn't overflow on small screens.
+
+### Changes in `src/pages/InvoiceDetail.tsx`:
+- Remove `truncate` from amount values in summary cards so full currency amounts show
+- Remove `max-w-[120px]` constraint on the description table cell
+- Use `text-[11px]` or smaller font for table cells on mobile to fit more content
+- In the Details sidebar card, allow text to wrap instead of truncating invoice numbers and dates
+- Ensure the Items table scrolls horizontally gracefully with proper minimum widths
+
+### Specific fixes:
+- Summary cards: remove `truncate` from currency amounts, use smaller text if needed
+- Items table: reduce cell padding, use smaller font sizes for mobile
+- Details sidebar: remove `truncate` and `whitespace-nowrap` from values that get cut off, allow wrapping
+- Add `overflow-x-auto` wrapper around the items table (already present, but ensure inner content has proper min-widths)
+
