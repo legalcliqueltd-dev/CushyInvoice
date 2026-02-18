@@ -72,6 +72,13 @@ const Subscribe = () => {
   const handleSubscribe = async (planId: string) => {
     try {
       setLoading(planId);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
       const plan = PLANS.find((p) => p.id === planId);
       if (!plan) throw new Error("Plan not found");
 
