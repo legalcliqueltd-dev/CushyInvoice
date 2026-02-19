@@ -105,8 +105,8 @@ const Index = () => {
       <nav className="sticky top-0 z-50 border-b-2 border-foreground/10 bg-background/90 backdrop-blur-md safe-top">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-primary rounded-lg p-1.5">
-              <Receipt className="h-5 w-5 text-primary-foreground" />
+            <div className="w-9 h-9 rounded-lg overflow-hidden">
+              <img src="/favicon.png" alt="CushyInvoice" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-black tracking-tight">CushyInvoice</span>
           </div>

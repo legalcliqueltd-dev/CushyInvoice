@@ -139,8 +139,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           {/* Logo Header */}
           <div className="h-16 px-6 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-                <Receipt className="h-5 w-5 text-primary-foreground" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden">
+                <img src="/favicon.png" alt="CushyInvoice" className="w-full h-full object-cover" />
               </div>
               <span className="text-lg font-extrabold tracking-tight">CushyInvoice</span>
             </div>
