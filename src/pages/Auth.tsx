@@ -24,7 +24,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
-  const [isLoginOtp, setIsLoginOtp] = useState(false);
+  
   const [otpValue, setOtpValue] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
   const [pendingUserId, setPendingUserId] = useState("");
@@ -153,7 +153,6 @@ export default function Auth() {
           if (error.message.includes("Email not confirmed")) {
             setPendingEmail(validation.data.email);
             setShowOtpVerification(true);
-            setIsLoginOtp(false);
             await supabase.auth.resend({ type: 'signup', email: validation.data.email });
             setResendCooldown(60);
             toast({ title: "Email not verified", description: "We've sent a new verification code to your email." });
@@ -163,16 +162,7 @@ export default function Auth() {
           throw error;
         }
 
-        // Password correct — sign out and send OTP for 2-step verification
-        await supabase.auth.signOut();
-        await supabase.auth.signInWithOtp({ email: validation.data.email });
-        setPendingEmail(validation.data.email);
-        setIsLoginOtp(true);
-        setShowOtpVerification(true);
-        setResendCooldown(60);
-        toast({ title: "Verification code sent", description: "Please check your email for the 6-digit code." });
-        setLoading(false);
-        return;
+        // Password correct — auth state change listener handles redirect to dashboard
       } else {
         const { data, error } = await supabase.auth.signUp({
           email: validation.data.email,
@@ -226,16 +216,13 @@ export default function Auth() {
       const { data, error } = await supabase.auth.verifyOtp({
         email: pendingEmail,
         token: otpValue,
-        type: isLoginOtp ? 'email' : 'signup',
+        type: 'signup',
       });
 
       if (error) throw error;
 
       if (data.user) {
-        if (isLoginOtp) {
-          // Returning user — profile already exists
-          toast({ title: "Welcome back!", description: "You've successfully signed in." });
-        } else {
+        {
           // New signup — create profile
           const trialEndDate = new Date();
           trialEndDate.setDate(trialEndDate.getDate() + 7);
@@ -267,13 +254,8 @@ export default function Auth() {
     if (resendCooldown > 0) return;
     setLoading(true);
     try {
-      if (isLoginOtp) {
-        const { error } = await supabase.auth.signInWithOtp({ email: pendingEmail });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.resend({ type: 'signup', email: pendingEmail });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.resend({ type: 'signup', email: pendingEmail });
+      if (error) throw error;
       setResendCooldown(60);
       toast({ title: "Code resent", description: "A new verification code has been sent to your email." });
     } catch (error: any) {
@@ -432,12 +414,11 @@ export default function Auth() {
               onClick={() => {
                 setShowOtpVerification(false);
                 setOtpValue("");
-                setIsLoginOtp(false);
               }}
               className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              {isLoginOtp ? "Back to Sign In" : "Back to Sign Up"}
+              Back to Sign Up
             </button>
           </div>
         </div>
