@@ -32,15 +32,22 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
+        if (!session.user.email_confirmed_at) {
+          await supabase.auth.signOut();
+          return;
+        }
         ensureProfileExists(session.user.id, session.user.email || "");
         navigate("/dashboard");
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
+        if (!session.user.email_confirmed_at) {
+          return;
+        }
         if (event === 'SIGNED_IN') {
           setTimeout(() => {
             ensureProfileExists(session.user.id, session.user.email || "", session.user.user_metadata?.full_name);

@@ -158,7 +158,10 @@ export default function VerifyOtp() {
 
           <button
             type="button"
-            onClick={() => navigate("/auth")}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate("/auth");
+            }}
             className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
