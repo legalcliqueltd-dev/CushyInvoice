@@ -34,10 +34,6 @@ export default function Auth() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        if (!session.user.email_confirmed_at) {
-          await supabase.auth.signOut();
-          return;
-        }
         ensureProfileExists(session.user.id, session.user.email || "");
         navigate("/dashboard");
       }
@@ -45,9 +41,6 @@ export default function Auth() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        if (!session.user.email_confirmed_at) {
-          return;
-        }
         if (event === 'SIGNED_IN') {
           setTimeout(() => {
             ensureProfileExists(session.user.id, session.user.email || "", session.user.user_metadata?.full_name);
@@ -142,13 +135,6 @@ export default function Auth() {
           if (error.message.includes("Invalid login credentials")) {
             throw new Error("Invalid email or password. Please check your credentials.");
           }
-          if (error.message.includes("Email not confirmed")) {
-            await supabase.auth.resend({ type: 'signup', email: validation.data.email });
-            navigate("/auth/verify", { state: { email: validation.data.email } });
-            toast({ title: "Email not verified", description: "We've sent a new verification code to your email." });
-            setLoading(false);
-            return;
-          }
           throw error;
         }
 
@@ -171,20 +157,8 @@ export default function Auth() {
           throw error;
         }
 
-        if (data.user) {
-          navigate("/auth/verify", {
-            state: {
-              email: validation.data.email,
-              userId: data.user.id,
-              fullName: validation.data.fullName || "",
-            },
-          });
-
-          toast({
-            title: "Verification code sent!",
-            description: "Please check your email for the 6-digit code.",
-          });
-        }
+        // Auto-confirm is enabled, so the user is signed in immediately.
+        // The onAuthStateChange listener handles redirect to dashboard.
       }
     } catch (error: any) {
       if (import.meta.env.DEV) {
