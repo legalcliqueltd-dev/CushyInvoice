@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { AuthLayout } from "@/components/AuthLayout";
-import { Loader2, Mail, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
+import { Loader2, Mail, Lock, User, ArrowRight, ArrowLeft, Receipt } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { z } from "zod";
@@ -359,65 +359,89 @@ export default function Auth() {
     }
   };
 
-  // OTP Verification view
+  // OTP Verification view — dedicated full-screen page
   if (showOtpVerification) {
     return (
-      <AuthLayout
-        title="Verify your email"
-        subtitle={`Enter the 6-digit code sent to ${pendingEmail}`}
-      >
-        <div className="space-y-6">
-          <div className="flex justify-center">
-            <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8 safe-top safe-bottom">
+        <div className="w-full max-w-md flex flex-col items-center space-y-8">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary flex items-center justify-center">
+              <Receipt className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
+            </div>
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">CushyInvoice</span>
           </div>
 
-          <Button
-            onClick={handleVerifyOtp}
-            className="w-full h-11 font-medium"
-            disabled={loading || otpValue.length !== 6}
-          >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Verify Email
-            {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
-          </Button>
+          {/* Mail icon */}
+          <div className="rounded-full bg-primary/10 p-5">
+            <Mail className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+          </div>
 
+          {/* Heading */}
           <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Didn't receive the code?
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Verify your email</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Enter the 6-digit code sent to{" "}
+              <span className="font-medium text-foreground">{pendingEmail}</span>
             </p>
+          </div>
+
+          {/* OTP Card */}
+          <div className="w-full bg-card rounded-2xl p-6 sm:p-8 border shadow-sm space-y-6">
+            <div className="flex justify-center">
+              <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue} autoFocus>
+                <InputOTPGroup className="gap-2 sm:gap-3">
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
+                    <InputOTPSlot
+                      key={i}
+                      index={i}
+                      className="h-12 w-12 sm:h-14 sm:w-14 text-lg sm:text-xl font-semibold rounded-lg border-2 border-input"
+                    />
+                  ))}
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+
+            <Button
+              onClick={handleVerifyOtp}
+              className="w-full h-12 sm:h-13 text-base font-medium"
+              disabled={loading || otpValue.length !== 6}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Verify
+              {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+            </Button>
+          </div>
+
+          {/* Resend & Back */}
+          <div className="flex flex-col items-center space-y-4">
+            <div className="text-center">
+              <span className="text-sm text-muted-foreground">Didn't receive the code? </span>
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={resendCooldown > 0 || loading}
+                className="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:no-underline"
+              >
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={handleResendOtp}
-              disabled={resendCooldown > 0 || loading}
-              className="text-sm text-primary hover:underline disabled:opacity-50 disabled:no-underline"
+              onClick={() => {
+                setShowOtpVerification(false);
+                setOtpValue("");
+                setIsLoginOtp(false);
+              }}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
             >
-              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {isLoginOtp ? "Back to Sign In" : "Back to Sign Up"}
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setShowOtpVerification(false);
-              setOtpValue("");
-              setIsLoginOtp(false);
-            }}
-            className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="inline mr-1 h-3 w-3" />
-            {isLoginOtp ? "Back to Sign In" : "Back to Sign Up"}
-          </button>
         </div>
-      </AuthLayout>
+      </div>
     );
   }
 
