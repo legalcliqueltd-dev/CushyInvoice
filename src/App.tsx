@@ -24,6 +24,7 @@ import Expenses from "./pages/Expenses";
 import Templates from "./pages/Templates";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
+import DeleteAccount from "./pages/DeleteAccount";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,7 @@ const App = () => (
             
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/delete-account" element={<DeleteAccount />} />
             <Route path="/subscribe" element={<Subscribe />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-failed" element={<PaymentFailed />} />
