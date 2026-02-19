@@ -1,39 +1,59 @@
 
 
-# Simplify Login: Remove 2-Step OTP for Sign-In
+# Fix: Block Dashboard Access Until Email is Verified
 
-## What Changes
+## Problem
+When a new user signs up, the backend creates a session immediately -- even before the email is confirmed. This means:
+- The auth state listener fires and redirects to the dashboard
+- Clicking "Back" on the OTP page goes to `/auth`, which finds the unconfirmed session and redirects to the dashboard
+- The ProtectedRoute only checks for a session, not whether the email has been verified
 
-**Sign-in**: Goes back to standard email + password. After entering correct credentials, users go straight to the dashboard -- no OTP step.
+## Solution
+Check the user's `email_confirmed_at` field (provided by the authentication system) at every gate to ensure unverified users cannot access the app.
 
-**Sign-up**: Keeps the OTP email verification (the dedicated OTP page you just built stays for new account creation).
+## Changes
 
-**Unverified email on login**: If a user tries to sign in but hasn't verified their email yet, they still get redirected to the OTP page to complete verification.
+### 1. `src/pages/Auth.tsx`
+- In `getSession` check (line 35-40): Only redirect to dashboard if `session.user.email_confirmed_at` is set
+- In `onAuthStateChange` listener (line 42-51): Only redirect to dashboard if `session.user.email_confirmed_at` is set
+- If a session exists but email is unconfirmed, sign the user out to clear the dangling session
 
-## Technical Changes (all in `src/pages/Auth.tsx`)
+### 2. `src/components/ProtectedRoute.tsx`
+- After getting the session, also check `session.user.email_confirmed_at`
+- If the session exists but email is not confirmed, sign the user out and redirect to `/auth`
+- This is the final safety net -- even if someone manually navigates to `/dashboard`, they get bounced back
 
-1. **Remove the 2-step OTP logic from the login flow (lines 166-175)**
-   - Delete the `signOut()` + `signInWithOtp()` calls after successful password check
-   - After successful `signInWithPassword`, let the normal auth flow redirect to dashboard (the `onAuthStateChange` listener handles this)
+### 3. `src/pages/VerifyOtp.tsx`
+- Change the "Back" button to sign the user out before navigating to `/auth`
+- This clears the unconfirmed session so the user starts fresh on the auth page
 
-2. **Remove `isLoginOtp` state variable (line 27)**
-   - No longer needed since login never enters the OTP flow
-   - Remove all references to `isLoginOtp` throughout the file
+## How It Works After the Fix
 
-3. **Simplify `handleVerifyOtp` (lines 226-230)**
-   - Always use `type: 'signup'` since OTP is only for new signups now
-   - Remove the `isLoginOtp` conditional branch (lines 235-237)
+```text
+Signup Flow:
+  User signs up
+    --> Backend creates unconfirmed session
+    --> Auth.tsx sees session but email_confirmed_at is null
+    --> Does NOT redirect to dashboard
+    --> Navigates to /auth/verify
 
-4. **Simplify `handleResendOtp` (lines 270-276)**
-   - Always use `supabase.auth.resend({ type: 'signup' })` since only signup uses OTP
-   - Remove the `isLoginOtp` conditional
+OTP Page "Back" button:
+  User clicks Back
+    --> Signs out (clears unconfirmed session)
+    --> Navigates to /auth
+    --> No session found, stays on auth page
 
-5. **Simplify `onAuthStateChange` guard (line 50)**
-   - Keep the `showOtpVerification` guard (still needed for signup OTP)
-   - No changes needed here
+Direct URL to /dashboard:
+  User types /dashboard in browser
+    --> ProtectedRoute checks session
+    --> email_confirmed_at is null
+    --> Signs out and redirects to /auth
 
-6. **Update OTP "Back" button text (line 440)**
-   - Always show "Back to Sign Up" since OTP is only for signup now
-
-The dedicated OTP page UI you just built stays exactly as-is -- it just only appears during signup now.
+After OTP verification:
+  User enters correct code
+    --> verifyOtp confirms the email
+    --> email_confirmed_at is now set
+    --> Profile created, navigates to /dashboard
+    --> ProtectedRoute sees confirmed email, allows access
+```
 
