@@ -44,8 +44,8 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-              <Receipt className="h-7 w-7" />
+            <div className="w-12 h-12 rounded-xl overflow-hidden">
+              <img src="/favicon.png" alt="CushyInvoice" className="w-full h-full object-cover" />
             </div>
             <span className="text-2xl font-bold tracking-tight">CushyInvoice</span>
           </div>
@@ -90,8 +90,8 @@ export const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <div className="inline-flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Receipt className="h-6 w-6 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden">
+                <img src="/favicon.png" alt="CushyInvoice" className="w-full h-full object-cover" />
               </div>
               <span className="text-xl font-bold tracking-tight">CushyInvoice</span>
             </div>
