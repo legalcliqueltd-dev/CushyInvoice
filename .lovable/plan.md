@@ -1,50 +1,39 @@
 
 
-# Redesigned OTP Verification Page
+# Simplify Login: Remove 2-Step OTP for Sign-In
 
-## Overview
-Replace the current inline OTP verification (embedded inside AuthLayout) with a dedicated, full-screen OTP page optimized for both desktop and mobile/native apps.
+## What Changes
 
-## Design (Based on Reference Screenshot)
+**Sign-in**: Goes back to standard email + password. After entering correct credentials, users go straight to the dashboard -- no OTP step.
 
-The new OTP screen will be a standalone full-page view with:
-- Centered layout with the CushyInvoice logo at top
-- A mail icon in a colored circle
-- "Verify your email" heading
-- Subtitle showing the email address the code was sent to
-- Large, touch-friendly OTP input slots (bigger on mobile for easy tapping)
-- "Verify" button
-- "Resend code" link with cooldown timer
-- "Back to Sign In / Sign Up" link
-- Mobile-optimized: larger tap targets, proper safe-area padding, full-width on small screens
+**Sign-up**: Keeps the OTP email verification (the dedicated OTP page you just built stays for new account creation).
 
-## Technical Details
+**Unverified email on login**: If a user tries to sign in but hasn't verified their email yet, they still get redirected to the OTP page to complete verification.
 
-### File: `src/pages/Auth.tsx`
+## Technical Changes (all in `src/pages/Auth.tsx`)
 
-Replace the current OTP `if (showOtpVerification)` block (lines 363-421) with a new dedicated full-screen layout instead of wrapping in `AuthLayout`.
+1. **Remove the 2-step OTP logic from the login flow (lines 166-175)**
+   - Delete the `signOut()` + `signInWithOtp()` calls after successful password check
+   - After successful `signInWithPassword`, let the normal auth flow redirect to dashboard (the `onAuthStateChange` listener handles this)
 
-**New OTP UI structure:**
-```
-Full screen centered container
-  |-- CushyInvoice logo + name
-  |-- Mail icon (in rounded primary bg circle)
-  |-- "Verify your email" heading
-  |-- "Enter the 6-digit code sent to {email}" subtitle
-  |-- Card with:
-  |     |-- OTP input (6 slots, larger on mobile)
-  |     |-- Paste-friendly: users can paste the full code
-  |     |-- "Verify" button (full width, prominent)
-  |-- "Didn't receive?" + Resend link with cooldown
-  |-- "Back to Sign In/Up" link
-```
+2. **Remove `isLoginOtp` state variable (line 27)**
+   - No longer needed since login never enters the OTP flow
+   - Remove all references to `isLoginOtp` throughout the file
 
-**Key changes:**
-- Remove `AuthLayout` wrapper for the OTP view -- use a custom centered layout instead
-- OTP slots styled larger for mobile (`h-12 w-12` on mobile, `h-14 w-14` on desktop)
-- Add `autoFocus` to the OTP input so users can immediately start typing/pasting
-- Safe area padding (`safe-top safe-bottom`) for native mobile apps
-- All existing logic (verify, resend, back) stays the same -- only the UI template changes
+3. **Simplify `handleVerifyOtp` (lines 226-230)**
+   - Always use `type: 'signup'` since OTP is only for new signups now
+   - Remove the `isLoginOtp` conditional branch (lines 235-237)
 
-### No new files needed
-All changes are contained within `src/pages/Auth.tsx` by replacing the OTP rendering block.
+4. **Simplify `handleResendOtp` (lines 270-276)**
+   - Always use `supabase.auth.resend({ type: 'signup' })` since only signup uses OTP
+   - Remove the `isLoginOtp` conditional
+
+5. **Simplify `onAuthStateChange` guard (line 50)**
+   - Keep the `showOtpVerification` guard (still needed for signup OTP)
+   - No changes needed here
+
+6. **Update OTP "Back" button text (line 440)**
+   - Always show "Back to Sign Up" since OTP is only for signup now
+
+The dedicated OTP page UI you just built stays exactly as-is -- it just only appears during signup now.
+
