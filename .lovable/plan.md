@@ -1,44 +1,50 @@
 
-# Add 2-Step OTP Verification for Email Sign-In
+
+# Redesigned OTP Verification Page
 
 ## Overview
-After a user signs in with their email and password, they will receive a 6-digit verification code via email before being granted access. This adds an extra layer of security to every login.
+Replace the current inline OTP verification (embedded inside AuthLayout) with a dedicated, full-screen OTP page optimized for both desktop and mobile/native apps.
 
-## How It Will Work
+## Design (Based on Reference Screenshot)
 
-1. User enters email + password and clicks "Sign In"
-2. Password is verified against the database -- if wrong, show error as usual
-3. If password is correct, the user is immediately signed out and a 6-digit OTP is sent to their email
-4. The OTP verification screen appears (reusing the existing OTP UI)
-5. User enters the code -- once verified, they are fully signed in and redirected to the dashboard
+The new OTP screen will be a standalone full-page view with:
+- Centered layout with the CushyInvoice logo at top
+- A mail icon in a colored circle
+- "Verify your email" heading
+- Subtitle showing the email address the code was sent to
+- Large, touch-friendly OTP input slots (bigger on mobile for easy tapping)
+- "Verify" button
+- "Resend code" link with cooldown timer
+- "Back to Sign In / Sign Up" link
+- Mobile-optimized: larger tap targets, proper safe-area padding, full-width on small screens
 
 ## Technical Details
 
-### Changes in `src/pages/Auth.tsx`
+### File: `src/pages/Auth.tsx`
 
-**New state variable:**
-- `isLoginOtp` (boolean) -- tracks whether the current OTP screen is for a login verification (vs. signup verification)
+Replace the current OTP `if (showOtpVerification)` block (lines 363-421) with a new dedicated full-screen layout instead of wrapping in `AuthLayout`.
 
-**Updated sign-in flow (`handleSubmit`):**
-- After successful `signInWithPassword`, immediately call `supabase.auth.signOut()` to prevent auto-redirect
-- Then call `supabase.auth.signInWithOtp({ email })` to send a verification code
-- Set `pendingEmail`, `isLoginOtp = true`, `showOtpVerification = true`, and start the resend cooldown
-- Show toast: "Verification code sent to your email"
+**New OTP UI structure:**
+```
+Full screen centered container
+  |-- CushyInvoice logo + name
+  |-- Mail icon (in rounded primary bg circle)
+  |-- "Verify your email" heading
+  |-- "Enter the 6-digit code sent to {email}" subtitle
+  |-- Card with:
+  |     |-- OTP input (6 slots, larger on mobile)
+  |     |-- Paste-friendly: users can paste the full code
+  |     |-- "Verify" button (full width, prominent)
+  |-- "Didn't receive?" + Resend link with cooldown
+  |-- "Back to Sign In/Up" link
+```
 
-**Updated OTP verification (`handleVerifyOtp`):**
-- Check `isLoginOtp` flag to determine the OTP type
-- For login: call `supabase.auth.verifyOtp({ email, token, type: 'email' })` (type `email` instead of `signup`)
-- Skip profile creation (profile already exists for returning users)
-- Show toast: "Welcome back! You've successfully signed in."
+**Key changes:**
+- Remove `AuthLayout` wrapper for the OTP view -- use a custom centered layout instead
+- OTP slots styled larger for mobile (`h-12 w-12` on mobile, `h-14 w-14` on desktop)
+- Add `autoFocus` to the OTP input so users can immediately start typing/pasting
+- Safe area padding (`safe-top safe-bottom`) for native mobile apps
+- All existing logic (verify, resend, back) stays the same -- only the UI template changes
 
-**Updated OTP resend (`handleResendOtp`):**
-- When `isLoginOtp` is true, use `supabase.auth.signInWithOtp({ email })` to resend (instead of `supabase.auth.resend({ type: 'signup' })`)
-
-**Updated `onAuthStateChange` listener:**
-- Add a guard so that when `showOtpVerification` is true, the `SIGNED_IN` event from the initial password check does not auto-redirect to the dashboard before sign-out completes
-
-**OTP screen "Back" button:**
-- When `isLoginOtp` is true, the back button label says "Back to Sign In" and resets `isLoginOtp`
-
-### No other files need to change
-The existing OTP UI components (InputOTP slots, resend button, cooldown timer) are fully reused.
+### No new files needed
+All changes are contained within `src/pages/Auth.tsx` by replacing the OTP rendering block.
