@@ -18,10 +18,10 @@ const PLANS = [
       priceId: "price_1SSKe7RWxKms6a9XPEoka2SG",
     },
     paystack: {
-      price: "₦4,500",
+      price: "₦3,900",
       period: "/month",
       planCode: "PLN_g4lw65mt3lnj6py",
-      amountInKobo: 450000,
+      amountInKobo: 390000,
     },
     icon: Zap,
     features: [
