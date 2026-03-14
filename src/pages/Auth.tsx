@@ -184,7 +184,16 @@ export default function Auth() {
       try {
         const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
         if (!googleAuthPlugin?.signIn) {
-          throw new Error("Native Google Sign-In plugin is unavailable. Please run npm install and npx cap sync.");
+          throw new Error("Native Google Sign-In plugin is unavailable.");
+        }
+
+        // Ensure plugin is initialized before calling signIn
+        if (googleAuthPlugin.initialize) {
+          await googleAuthPlugin.initialize({
+            clientId: "",
+            scopes: ["profile", "email"],
+            grantOfflineAccess: true,
+          });
         }
 
         const googleUser = await googleAuthPlugin.signIn();
