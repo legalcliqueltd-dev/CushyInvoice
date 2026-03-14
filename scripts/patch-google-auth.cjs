@@ -15,11 +15,17 @@ if (!fs.existsSync(gradlePath)) {
   process.exit(0);
 }
 
-let content = fs.readFileSync(gradlePath, "utf8");
-
-const next = content
+const content = fs.readFileSync(gradlePath, "utf8");
+let next = content
   .replace(/jcenter\(\)/g, "mavenCentral()")
   .replace(/proguard-android\.txt/g, "proguard-android-optimize.txt");
+
+if (!next.includes("com.facebook.android:facebook-login")) {
+  next = next.replace(
+    /dependencies\s*\{/,
+    "dependencies {\n    implementation 'com.facebook.android:facebook-login:17.0.2'"
+  );
+}
 
 if (next !== content) {
   fs.writeFileSync(gradlePath, next);
