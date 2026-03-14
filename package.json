@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "node scripts/patch-google-auth.js"
+    "postinstall": "node scripts/patch-google-auth.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.2",
