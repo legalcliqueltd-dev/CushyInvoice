@@ -230,17 +230,22 @@ export default function Auth() {
         }
 
         if (isCode10) {
-          const fallbackError = await startManagedGoogleSignIn();
-          if (!fallbackError) {
+          // Cloud auth module can't load in native WebView, use direct Supabase OAuth
+          const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo: `${APP_DOMAIN}/auth`,
+              skipBrowserRedirect: true,
+            },
+          });
+          if (oauthErr) {
+            toast({ title: "Google Sign-In Error", description: oauthErr.message, variant: "destructive" });
+            setLoading(false);
             return;
           }
-
-          toast({
-            title: "Google Sign-In Error",
-            description: fallbackError.message || "Native sign-in failed and fallback sign-in could not be started.",
-            variant: "destructive",
-          });
-          setLoading(false);
+          if (data?.url) {
+            window.location.href = data.url;
+          }
           return;
         }
 
