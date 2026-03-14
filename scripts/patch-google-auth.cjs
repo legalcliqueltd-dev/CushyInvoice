@@ -18,7 +18,31 @@ if (!fs.existsSync(gradlePath)) {
 const content = fs.readFileSync(gradlePath, "utf8");
 let next = content
   .replace(/jcenter\(\)/g, "mavenCentral()")
-  .replace(/proguard-android\.txt/g, "proguard-android-optimize.txt");
+  .replace(/proguard-android\.txt/g, "proguard-android-optimize.txt")
+  // Remove any previously misplaced facebook dependency lines (e.g. in buildscript.dependencies)
+  .replace(/^\s*implementation\s+["']com\.facebook\.android:facebook-login:[^"']+["']\s*\r?\n/gm, "");
+
+const facebookDependency =
+  ' implementation "com.facebook.android:facebook-login:17.0.2"';
+
+if (!next.includes("com.facebook.android:facebook-login")) {
+  if (
+    next.includes(
+      'implementation "com.google.android.gms:play-services-auth:$gmsPlayServicesAuthVersion"'
+    )
+  ) {
+    next = next.replace(
+      'implementation "com.google.android.gms:play-services-auth:$gmsPlayServicesAuthVersion"',
+      'implementation "com.google.android.gms:play-services-auth:$gmsPlayServicesAuthVersion"\n' +
+        facebookDependency
+    );
+  } else {
+    next = next.replace(
+      /(dependencies\s*\{[\s\S]*?implementation\s+project\(':capacitor-android'\))/m,
+      `$1\n${facebookDependency}`
+    );
+  }
+}
 
 if (next !== content) {
   fs.writeFileSync(gradlePath, next);
