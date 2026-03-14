@@ -32,12 +32,15 @@ if ((window as any).Capacitor) {
     SplashScreen.hide();
   }
 
-  // Initialize native Google Sign-In
-  import("@deldev/capacitor-google-auth").then(({ GoogleAuth }) => {
-    GoogleAuth.initialize({
-      clientId: "", // Uses strings.xml server_client_id on Android
-      scopes: ["profile", "email"],
-      grantOfflineAccess: true,
-    });
-  }).catch(() => {});
+  // Initialize native Google Sign-In via Capacitor bridge
+  const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
+  if (googleAuthPlugin?.initialize) {
+    Promise.resolve(
+      googleAuthPlugin.initialize({
+        clientId: "", // Uses strings.xml server_client_id on Android
+        scopes: ["profile", "email"],
+        grantOfflineAccess: true,
+      })
+    ).catch(() => {});
+  }
 }
