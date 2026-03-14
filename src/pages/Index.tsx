@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { Receipt, FileText, Users, TrendingUp, Zap, Twitter, Linkedin, Facebook, Instagram, MessageCircle, ArrowRight, Star, Loader2 } from "lucide-react";
+import heroGoldCoin from "@/assets/hero-gold-coin.png";
+import heroInvoice from "@/assets/hero-invoice.png";
 
 const features = [
   {
@@ -130,6 +132,19 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 sm:py-20 lg:py-32 relative">
+        {/* Decorative hero images — behind text */}
+        <img
+          src={heroGoldCoin}
+          alt=""
+          aria-hidden="true"
+          className="absolute -left-4 sm:left-8 lg:left-16 top-8 sm:top-12 lg:top-20 w-28 sm:w-36 lg:w-48 opacity-20 sm:opacity-25 -rotate-12 pointer-events-none select-none"
+        />
+        <img
+          src={heroInvoice}
+          alt=""
+          aria-hidden="true"
+          className="absolute -right-4 sm:right-8 lg:right-16 bottom-8 sm:bottom-16 lg:bottom-24 w-28 sm:w-36 lg:w-48 opacity-20 sm:opacity-25 rotate-12 pointer-events-none select-none"
+        />
         <div className="text-center max-w-3xl mx-auto space-y-6 sm:space-y-8 relative z-10">
           <div className="inline-block neo-brutal-btn rounded-full px-4 py-1.5 text-sm font-bold bg-primary/10 text-foreground cursor-default" style={{ boxShadow: "3px 3px 0px hsl(var(--foreground) / 0.3)" }}>
             ✨ invoicing, but make it fun
