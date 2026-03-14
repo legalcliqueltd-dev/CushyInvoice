@@ -173,21 +173,29 @@ export default function Auth() {
 
 
 
+  const startManagedGoogleSignIn = async () => {
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${APP_DOMAIN}/auth`,
+      extraParams: {
+        prompt: "select_account",
+      },
+    });
+
+    return error ?? null;
+  };
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const isCapacitor = !!(window as any).Capacitor;
-    const isCustomDomain =
-      !window.location.hostname.includes("lovable.app") &&
-      !window.location.hostname.includes("lovableproject.com");
 
     if (isCapacitor) {
       try {
         const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
+
         if (!googleAuthPlugin?.signIn) {
           throw new Error("Native Google Sign-In plugin is unavailable.");
         }
 
-        // Ensure plugin is initialized before calling signIn
         if (googleAuthPlugin.initialize) {
           await googleAuthPlugin.initialize({
             clientId: "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com",
@@ -199,7 +207,9 @@ export default function Auth() {
         const googleUser = await googleAuthPlugin.signIn();
         const idToken = googleUser?.authentication?.idToken || googleUser?.idToken;
 
-        if (!idToken) throw new Error("No ID token returned from Google Sign-In");
+        if (!idToken) {
+          throw new Error("No ID token returned from Google Sign-In");
+        }
 
         const { error } = await supabase.auth.signInWithIdToken({
           provider: "google",
@@ -207,48 +217,43 @@ export default function Auth() {
         });
 
         if (error) throw error;
-
-        // Session is now set — onAuthStateChange listener handles navigation
+        return;
       } catch (error: any) {
-        const msg = error.message || "Failed to sign in with Google.";
-        if (!msg.includes("popup_closed") && !msg.includes("canceled")) {
-          toast({ title: "Google Sign-In Error", description: msg, variant: "destructive" });
+        const message = error?.message || "Failed to sign in with Google.";
+        const code = String(error?.code ?? "");
+        const isCancelled = code === "USER_CANCELLED" || message.includes("popup_closed") || message.includes("canceled");
+        const isCode10 = code === "10" || message.includes("code: 10") || message.includes("code 10");
+
+        if (isCancelled) {
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-      }
-    } else if (isCustomDomain) {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${APP_DOMAIN}/auth`,
-          skipBrowserRedirect: true,
-        },
-      });
-      if (error) {
-        toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } else {
-      // Lovable domain - redirect to custom domain via direct OAuth
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${APP_DOMAIN}/auth`,
-          skipBrowserRedirect: true,
-        },
-      });
-      if (error) {
-        toast({ title: "Google Sign-In Error", description: error.message, variant: "destructive" });
+
+        if (isCode10) {
+          const fallbackError = await startManagedGoogleSignIn();
+          if (!fallbackError) {
+            return;
+          }
+
+          toast({
+            title: "Google Sign-In Error",
+            description: fallbackError.message || "Native sign-in failed and fallback sign-in could not be started.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        toast({ title: "Google Sign-In Error", description: message, variant: "destructive" });
         setLoading(false);
         return;
       }
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+    }
+
+    const oauthError = await startManagedGoogleSignIn();
+    if (oauthError) {
+      toast({ title: "Google Sign-In Error", description: oauthError.message, variant: "destructive" });
+      setLoading(false);
     }
   };
 
