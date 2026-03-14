@@ -25,10 +25,19 @@ setTimeout(() => {
   setTimeout(() => splash.remove(), 400);
 }, 1500);
 
-// Hide native splash screen in Capacitor
+// Hide native splash screen and initialize Google Auth in Capacitor
 if ((window as any).Capacitor) {
   const { SplashScreen } = (window as any).Capacitor.Plugins;
   if (SplashScreen) {
     SplashScreen.hide();
   }
+
+  // Initialize native Google Sign-In
+  import("@codetrix-studio/capacitor-google-auth").then(({ GoogleAuth }) => {
+    GoogleAuth.initialize({
+      clientId: "", // Uses strings.xml server_client_id on Android
+      scopes: ["profile", "email"],
+      grantOfflineAccess: true,
+    });
+  }).catch(() => {});
 }
