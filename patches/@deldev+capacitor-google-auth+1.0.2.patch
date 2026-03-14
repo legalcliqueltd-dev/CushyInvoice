@@ -1,0 +1,10 @@
+diff --git a/node_modules/@deldev/capacitor-google-auth/android/build.gradle b/node_modules/@deldev/capacitor-google-auth/android/build.gradle
+index 1234567..abcdefg 100644
+--- a/node_modules/@deldev/capacitor-google-auth/android/build.gradle
++++ b/node_modules/@deldev/capacitor-google-auth/android/build.gradle
+@@ -8,7 +8,7 @@ buildscript {
+     repositories {
+-        jcenter()
++        mavenCentral()
+         google()
+     }
