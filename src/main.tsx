@@ -37,7 +37,7 @@ if ((window as any).Capacitor) {
   if (googleAuthPlugin?.initialize) {
     Promise.resolve(
       googleAuthPlugin.initialize({
-        clientId: "", // Uses strings.xml server_client_id on Android
+        clientId: "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com",
         scopes: ["profile", "email"],
         grantOfflineAccess: true,
       })

@@ -190,7 +190,7 @@ export default function Auth() {
         // Ensure plugin is initialized before calling signIn
         if (googleAuthPlugin.initialize) {
           await googleAuthPlugin.initialize({
-            clientId: "",
+            clientId: "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com",
             scopes: ["profile", "email"],
             grantOfflineAccess: true,
           });
