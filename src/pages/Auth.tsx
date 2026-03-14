@@ -58,13 +58,13 @@ export default function Auth() {
       import("@capacitor/app").then(({ App }) => {
         const listener = App.addListener("appUrlOpen", async (event) => {
           const url = event.url;
-          // Handle OAuth callback URLs
-          if (url.includes("/auth") || url.includes("access_token") || url.includes("code=")) {
-            // Close the external browser
-            try {
-              const { Browser } = await import("@capacitor/browser");
-              await Browser.close();
-            } catch {}
+            // Handle OAuth callback URLs (both https and cushyinvoice:// scheme)
+            if (url.includes("cushyinvoice://auth") || url.includes("/auth") || url.includes("access_token") || url.includes("code=")) {
+              // Close Chrome Custom Tabs / external browser
+              try {
+                const { Browser } = await import("@capacitor/browser");
+                await Browser.close();
+              } catch {}
 
             // If the URL contains hash fragments with tokens, set the session
             if (url.includes("access_token") || url.includes("#")) {
