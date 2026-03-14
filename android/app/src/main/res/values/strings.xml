@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">cushyinvoice</string>
     <string name="title_activity_main">cushyinvoice</string>
-    <string name="package_name">app.lovable.e23699a8f80e4b9dbb96d8d50a1c74ed</string>
-    <string name="custom_url_scheme">app.lovable.e23699a8f80e4b9dbb96d8d50a1c74ed</string>
+    <string name="package_name">cushyinvoice</string>
+    <string name="custom_url_scheme">cushyinvoice.com</string>
+    <string name="server_client_id">261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com</string>
+
 </resources>
