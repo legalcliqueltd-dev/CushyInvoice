@@ -1,35 +1,24 @@
 
 
-# Plan: Add Tester Whitelist for Free Access
+# Replace CushyInvoice App Icon
 
-## Overview
-Create a `tester_emails` database table and update the `check-subscription` edge function to grant free premium access to whitelisted tester emails. This lets your Google Play testers use the app without needing a paid subscription.
+## What This Does
+Replaces all app icons (favicon, splash screen, and store-ready assets) with your new blue invoice icon.
 
-## Steps
+## Changes
 
-### 1. Create `tester_emails` table (migration)
-```sql
-CREATE TABLE public.tester_emails (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text NOT NULL UNIQUE,
-  added_at timestamptz DEFAULT now(),
-  notes text
-);
-ALTER TABLE public.tester_emails ENABLE ROW LEVEL SECURITY;
--- No RLS policies needed — only accessed via service role in edge function
-```
+1. Copy the uploaded icon to three locations in the project:
+   - `public/app-icon-1024.png` -- high-res version for app store submissions
+   - `public/app-icon-512.png` -- Google Play Store required size
+   - `public/favicon.png` -- web browser favicon and splash screen icon
 
-### 2. Update `check-subscription` edge function
-Add an early check at the top of the function (after user authentication):
-- Query `tester_emails` table for the user's email using the service role client
-- If found, immediately return `{ subscribed: true, status: 'active', plan_type: 'tester', is_premium: true }` — bypassing all Stripe/Paystack checks
+2. No code changes needed -- the existing `index.html`, `src/main.tsx`, and `capacitor.config.ts` already reference these file paths.
 
-### 3. Populate the table with tester emails
-Use the data insert tool to add your 12+ tester email addresses to the `tester_emails` table.
+## After Approval
 
-## What this achieves
-- Testers get full premium access without paying
-- No code changes needed on the frontend — the existing `useSubscription` hook will see them as subscribed
-- Easy to manage: add/remove testers by inserting/deleting rows in the table
-- Zero impact on paying users' flow
+Once deployed, to update native Android/iOS icons locally:
+1. Git pull the latest changes
+2. Place the 1024px icon in a `resources/` folder as `icon.png`
+3. Run `npx capacitor-assets generate`
+4. Run `npx cap sync`
 

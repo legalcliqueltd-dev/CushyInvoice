@@ -48,6 +48,30 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id });
 
+    // Check if user is a whitelisted tester
+    const { data: testerEntry } = await supabaseClient
+      .from('tester_emails')
+      .select('email')
+      .eq('email', user.email)
+      .maybeSingle();
+
+    if (testerEntry) {
+      logStep("Tester email found, granting free premium access", { email: user.email });
+      return new Response(JSON.stringify({
+        subscribed: true,
+        status: 'active',
+        current_plan: 'tester',
+        subscription_end: null,
+        trial_end: null,
+        plan_type: 'tester',
+        is_premium: true,
+        provider: 'tester'
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
