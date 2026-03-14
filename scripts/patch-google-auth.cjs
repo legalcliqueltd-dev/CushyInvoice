@@ -56,3 +56,9 @@ const splashGradle = path.join(
   process.cwd(), "node_modules", "@capacitor", "splash-screen", "android", "build.gradle"
 );
 patchGradleFile(splashGradle, "@capacitor/splash-screen");
+
+// Patch @capacitor/app
+const appGradle = path.join(
+  process.cwd(), "node_modules", "@capacitor", "app", "android", "build.gradle"
+);
+patchGradleFile(appGradle, "@capacitor/app");
