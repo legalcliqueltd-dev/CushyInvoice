@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { Receipt, FileText, Users, TrendingUp, Zap, Twitter, Linkedin, Facebook, Instagram, MessageCircle, ArrowRight, Star, Loader2 } from "lucide-react";
+import heroGoldCoin from "@/assets/hero-gold-coin.png";
+import heroInvoice from "@/assets/hero-invoice.png";
 
 const features = [
   {
