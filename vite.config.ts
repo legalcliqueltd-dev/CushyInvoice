@@ -18,7 +18,10 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
-      external: ["@capacitor/filesystem", "@lovable.dev/cloud-auth-js"],
+      external: ["@capacitor/filesystem", "@lovable.dev/cloud-auth-js", "@codetrix-studio/capacitor-google-auth"],
     },
+  },
+  optimizeDeps: {
+    exclude: ["@codetrix-studio/capacitor-google-auth"],
   },
 }));
