@@ -33,7 +33,7 @@ if ((window as any).Capacitor) {
   }
 
   // Initialize native Google Sign-In
-  import("@codetrix-studio/capacitor-google-auth").then(({ GoogleAuth }) => {
+  import("@deldev/capacitor-google-auth").then(({ GoogleAuth }) => {
     GoogleAuth.initialize({
       clientId: "", // Uses strings.xml server_client_id on Android
       scopes: ["profile", "email"],
