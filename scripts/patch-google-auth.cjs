@@ -20,13 +20,6 @@ let next = content
   .replace(/jcenter\(\)/g, "mavenCentral()")
   .replace(/proguard-android\.txt/g, "proguard-android-optimize.txt");
 
-if (!next.includes("com.facebook.android:facebook-login")) {
-  next = next.replace(
-    /dependencies\s*\{/,
-    "dependencies {\n    implementation 'com.facebook.android:facebook-login:17.0.2'"
-  );
-}
-
 if (next !== content) {
   fs.writeFileSync(gradlePath, next);
   console.log("[patch-google-auth] Applied Android Gradle fixes.");
