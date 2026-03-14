@@ -58,13 +58,13 @@ export default function Auth() {
       import("@capacitor/app").then(({ App }) => {
         const listener = App.addListener("appUrlOpen", async (event) => {
           const url = event.url;
-          // Handle OAuth callback URLs
-          if (url.includes("/auth") || url.includes("access_token") || url.includes("code=")) {
-            // Close the external browser
-            try {
-              const { Browser } = await import("@capacitor/browser");
-              await Browser.close();
-            } catch {}
+            // Handle OAuth callback URLs (both https and cushyinvoice:// scheme)
+            if (url.includes("cushyinvoice://auth") || url.includes("/auth") || url.includes("access_token") || url.includes("code=")) {
+              // Close Chrome Custom Tabs / external browser
+              try {
+                const { Browser } = await import("@capacitor/browser");
+                await Browser.close();
+              } catch {}
 
             // If the URL contains hash fragments with tokens, set the session
             if (url.includes("access_token") || url.includes("#")) {
@@ -273,11 +273,11 @@ export default function Auth() {
         }
 
         if (isCode10) {
-          // Google blocks OAuth in embedded WebViews — open in external browser
+          // Native auth failed — use Chrome Custom Tabs with custom scheme redirect
           const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-              redirectTo: `${APP_DOMAIN}/auth`,
+              redirectTo: "cushyinvoice://auth/callback",
               skipBrowserRedirect: true,
             },
           });
@@ -289,10 +289,10 @@ export default function Auth() {
           if (data?.url) {
             try {
               const { Browser } = await import("@capacitor/browser");
-              await Browser.open({ url: data.url, windowName: "_system" });
+              // No windowName — uses Chrome Custom Tabs (in-app overlay)
+              await Browser.open({ url: data.url });
             } catch {
-              // Fallback: open in system browser
-              window.open(data.url, "_system");
+              window.open(data.url, "_blank");
             }
           }
           setLoading(false);
