@@ -18,7 +18,7 @@
     "@capacitor/filesystem": "^8.1.0",
     "@capacitor/ios": "^8.0.2",
     "@capacitor/splash-screen": "^8.0.0",
-    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
+    "@deldev/capacitor-google-auth": "^1.0.2",
     "@hookform/resolvers": "^3.10.0",
     "@huggingface/transformers": "^3.8.0",
     "@lovable.dev/cloud-auth-js": "^0.0.2",

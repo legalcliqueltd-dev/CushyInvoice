@@ -182,7 +182,7 @@ export default function Auth() {
 
     if (isCapacitor) {
       try {
-        const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+        const { GoogleAuth } = await import("@deldev/capacitor-google-auth");
         const googleUser = await GoogleAuth.signIn();
         const idToken = googleUser.authentication.idToken;
 
