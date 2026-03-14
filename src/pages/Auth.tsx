@@ -182,35 +182,25 @@ export default function Auth() {
 
     if (isCapacitor) {
       try {
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+        const googleUser = await GoogleAuth.signIn();
+        const idToken = googleUser.authentication.idToken;
+
+        if (!idToken) throw new Error("No ID token returned from Google Sign-In");
+
+        const { error } = await supabase.auth.signInWithIdToken({
           provider: "google",
-          options: {
-            redirectTo: `${APP_DOMAIN}/auth`,
-            skipBrowserRedirect: true,
-          },
+          token: idToken,
         });
+
         if (error) throw error;
-        if (!data?.url) throw new Error("No OAuth URL returned");
 
-        const { Browser } = await import("@capacitor/browser");
-        
-        const sessionCheckHandler = async () => {
-          const { data: sessionData } = await supabase.auth.getSession();
-          if (sessionData.session) {
-            await ensureProfileExists(
-              sessionData.session.user.id,
-              sessionData.session.user.email || "",
-              sessionData.session.user.user_metadata?.full_name
-            );
-            navigate("/dashboard");
-          }
-          setLoading(false);
-        };
-
-        await Browser.addListener("browserFinished", sessionCheckHandler);
-        await Browser.open({ url: data.url, windowName: "_self" });
+        // Session is now set — onAuthStateChange listener handles navigation
       } catch (error: any) {
-        toast({ title: "Google Sign-In Error", description: error.message || "Failed to start Google sign-in.", variant: "destructive" });
+        const msg = error.message || "Failed to sign in with Google.";
+        if (!msg.includes("popup_closed") && !msg.includes("canceled")) {
+          toast({ title: "Google Sign-In Error", description: msg, variant: "destructive" });
+        }
         setLoading(false);
       }
     } else if (isCustomDomain) {
