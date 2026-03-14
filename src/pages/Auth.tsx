@@ -50,7 +50,50 @@ export default function Auth() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Listen for deep link redirects from external browser OAuth
+    const isCapacitor = !!(window as any).Capacitor;
+    let appListenerCleanup: (() => void) | null = null;
+
+    if (isCapacitor) {
+      import("@capacitor/app").then(({ App }) => {
+        const listener = App.addListener("appUrlOpen", async (event) => {
+          const url = event.url;
+          // Handle OAuth callback URLs
+          if (url.includes("/auth") || url.includes("access_token") || url.includes("code=")) {
+            // Close the external browser
+            try {
+              const { Browser } = await import("@capacitor/browser");
+              await Browser.close();
+            } catch {}
+
+            // If the URL contains hash fragments with tokens, set the session
+            if (url.includes("access_token") || url.includes("#")) {
+              const hashPart = url.split("#")[1];
+              if (hashPart) {
+                const params = new URLSearchParams(hashPart);
+                const accessToken = params.get("access_token");
+                const refreshToken = params.get("refresh_token");
+                if (accessToken && refreshToken) {
+                  await supabase.auth.setSession({
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                  });
+                }
+              }
+            }
+          }
+        });
+
+        listener.then((handle) => {
+          appListenerCleanup = () => handle.remove();
+        });
+      }).catch(() => {});
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      appListenerCleanup?.();
+    };
   }, [navigate]);
 
 
