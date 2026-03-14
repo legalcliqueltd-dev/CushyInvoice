@@ -230,7 +230,7 @@ export default function Auth() {
         }
 
         if (isCode10) {
-          // Cloud auth module can't load in native WebView, use direct Supabase OAuth
+          // Google blocks OAuth in embedded WebViews — open in external browser
           const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
@@ -244,8 +244,15 @@ export default function Auth() {
             return;
           }
           if (data?.url) {
-            window.location.href = data.url;
+            try {
+              const { Browser } = await import("@capacitor/browser");
+              await Browser.open({ url: data.url, windowName: "_system" });
+            } catch {
+              // Fallback: open in system browser
+              window.open(data.url, "_system");
+            }
           }
+          setLoading(false);
           return;
         }
 
