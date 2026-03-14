@@ -182,9 +182,13 @@ export default function Auth() {
 
     if (isCapacitor) {
       try {
-        const { GoogleAuth } = await import("@deldev/capacitor-google-auth");
-        const googleUser = await GoogleAuth.signIn();
-        const idToken = googleUser.authentication.idToken;
+        const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
+        if (!googleAuthPlugin?.signIn) {
+          throw new Error("Native Google Sign-In plugin is unavailable. Please run npm install and npx cap sync.");
+        }
+
+        const googleUser = await googleAuthPlugin.signIn();
+        const idToken = googleUser?.authentication?.idToken || googleUser?.idToken;
 
         if (!idToken) throw new Error("No ID token returned from Google Sign-In");
 
