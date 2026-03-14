@@ -136,7 +136,7 @@ const Index = () => {
           src={heroInvoice}
           alt=""
           aria-hidden="true"
-          className="absolute right-4 sm:right-12 lg:right-24 top-1/2 -translate-y-1/2 w-48 sm:w-64 lg:w-80 opacity-15 sm:opacity-20 rotate-6 pointer-events-none select-none"
+          className="absolute right-1/2 translate-x-1/2 top-[55%] -translate-y-1/2 w-[600px] sm:w-[900px] lg:w-[1100px] opacity-10 sm:opacity-[0.12] rotate-6 pointer-events-none select-none"
         />
         <div className="text-center max-w-3xl mx-auto space-y-6 sm:space-y-8 relative z-10">
           <div className="inline-block neo-brutal-btn rounded-full px-4 py-1.5 text-sm font-bold bg-primary/10 text-foreground cursor-default" style={{ boxShadow: "3px 3px 0px hsl(var(--foreground) / 0.3)" }}>
