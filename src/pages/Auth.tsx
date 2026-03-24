@@ -258,6 +258,23 @@ export default function Auth() {
     return error ?? null;
   };
 
+  const openOAuthUrl = async (url: string) => {
+    const platform = (window as any).Capacitor?.getPlatform?.();
+
+    // On iOS, direct navigation is more reliable for returning via custom URL schemes
+    if (platform === "ios") {
+      window.location.assign(url);
+      return;
+    }
+
+    try {
+      const { Browser } = await import("@capacitor/browser");
+      await Browser.open({ url });
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const isCapacitor = !!(window as any).Capacitor;
@@ -280,12 +297,7 @@ export default function Auth() {
           return;
         }
         if (data?.url) {
-          try {
-            const { Browser } = await import("@capacitor/browser");
-            await Browser.open({ url: data.url });
-          } catch {
-            window.open(data.url, "_blank");
-          }
+          await openOAuthUrl(data.url);
         }
         setLoading(false);
         return;
@@ -341,13 +353,7 @@ export default function Auth() {
             return;
           }
           if (data?.url) {
-            try {
-              const { Browser } = await import("@capacitor/browser");
-              // No windowName — uses Chrome Custom Tabs (in-app overlay)
-              await Browser.open({ url: data.url });
-            } catch {
-              window.open(data.url, "_blank");
-            }
+            await openOAuthUrl(data.url);
           }
           setLoading(false);
           return;
