@@ -14,15 +14,17 @@ export default function MobileAuthCallback() {
     const hash = window.location.hash?.replace(/^#/, "") || "";
     const search = window.location.search?.replace(/^\?/, "") || "";
 
-    if (hash) {
-      return `cushyinvoice://auth/callback#${hash}`;
-    }
+    const mergedParams = new URLSearchParams(search);
+    const hashParams = new URLSearchParams(hash);
 
-    if (search) {
-      return `cushyinvoice://auth/callback?${search}`;
-    }
+    hashParams.forEach((value, key) => {
+      mergedParams.set(key, value);
+    });
 
-    return "cushyinvoice://auth/callback";
+    const query = mergedParams.toString();
+    return query
+      ? `cushyinvoice://auth/callback?${query}`
+      : "cushyinvoice://auth/callback";
   }, []);
 
   useEffect(() => {
