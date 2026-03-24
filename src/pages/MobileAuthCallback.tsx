@@ -10,12 +10,16 @@ export default function MobileAuthCallback() {
   useEffect(() => {
     const hash = window.location.hash?.replace(/^#/, "") || "";
     const search = window.location.search?.replace(/^\?/, "") || "";
-    const fragment = hash || search;
 
-    if (fragment) {
-      // Redirect to custom scheme so iOS app intercepts it
-      const customUrl = `cushyinvoice://auth/callback#${fragment}`;
-      window.location.replace(customUrl);
+    if (hash) {
+      // implicit flow tokens
+      window.location.replace(`cushyinvoice://auth/callback#${hash}`);
+      return;
+    }
+
+    if (search) {
+      // PKCE code flow params
+      window.location.replace(`cushyinvoice://auth/callback?${search}`);
     }
   }, []);
 
