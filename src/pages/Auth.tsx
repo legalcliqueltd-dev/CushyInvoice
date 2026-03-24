@@ -232,12 +232,36 @@ export default function Auth() {
     const isCapacitor = !!(window as any).Capacitor;
 
     if (isCapacitor) {
-      try {
-        const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
+      const platform = (window as any).Capacitor?.getPlatform?.() || "web";
+      const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
 
-        if (!googleAuthPlugin?.signIn) {
-          throw new Error("Native Google Sign-In plugin is unavailable.");
+      // On iOS or if native plugin unavailable, use in-app browser OAuth
+      if (platform === "ios" || !googleAuthPlugin?.signIn) {
+        const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: "cushyinvoice://auth/callback",
+            skipBrowserRedirect: true,
+          },
+        });
+        if (oauthErr) {
+          toast({ title: "Google Sign-In Error", description: oauthErr.message, variant: "destructive" });
+          setLoading(false);
+          return;
         }
+        if (data?.url) {
+          try {
+            const { Browser } = await import("@capacitor/browser");
+            await Browser.open({ url: data.url });
+          } catch {
+            window.open(data.url, "_blank");
+          }
+        }
+        setLoading(false);
+        return;
+      }
+
+      try {
 
         if (googleAuthPlugin.initialize) {
           await googleAuthPlugin.initialize({
