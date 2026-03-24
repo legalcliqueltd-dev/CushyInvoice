@@ -74,10 +74,21 @@ export default function Auth() {
 
         const parsedUrl = new URL(url);
         const code = parsedUrl.searchParams.get("code");
+        const accessTokenFromQuery = parsedUrl.searchParams.get("access_token");
+        const refreshTokenFromQuery = parsedUrl.searchParams.get("refresh_token");
 
         // PKCE flow: exchange authorization code for a session
         if (code) {
           await supabase.auth.exchangeCodeForSession(code);
+          return;
+        }
+
+        // Token flow via query params (more reliable on iOS than hash fragments)
+        if (accessTokenFromQuery && refreshTokenFromQuery) {
+          await supabase.auth.setSession({
+            access_token: accessTokenFromQuery,
+            refresh_token: refreshTokenFromQuery,
+          });
           return;
         }
 
