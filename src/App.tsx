@@ -88,6 +88,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/reset" element={<ResetPassword />} />
+            <Route path="/auth/mobile-callback" element={<MobileAuthCallback />} />
             
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
