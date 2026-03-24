@@ -25,6 +25,7 @@ import Templates from "./pages/Templates";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import DeleteAccount from "./pages/DeleteAccount";
+import MobileAuthCallback from "./pages/MobileAuthCallback";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
