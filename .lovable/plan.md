@@ -1,21 +1,16 @@
 
 
-## Fix: Add `@capacitor/app` to Vite externals
+## Update Capacitor App ID
 
-The error says Rollup can't resolve `@capacitor/app` during build. This package is dynamically imported in `Auth.tsx` for deep link handling but only runs in the native Capacitor environment.
+**File: `capacitor.config.ts`**
 
-### Change
+Change `appId` from `app.lovable.e23699a8f80e4b9dbb96d8d50a1c74ed` to `com.cushyinvoice.app`.
 
-**File: `vite.config.ts`** — Add `@capacitor/app` to the `rollupOptions.external` array:
+### After deployment
+1. Pull latest changes
+2. Run `npx cap sync ios`
+3. Verify Bundle Identifier in Xcode matches `com.cushyinvoice.app`
+4. Ensure signing succeeds
 
-```
-external: [
-  "@capacitor/filesystem",
-  "@lovable.dev/cloud-auth-js",
-  "@deldev/capacitor-google-auth",
-  "@capacitor/app"    // ← add this
-]
-```
-
-That's it. After this change, run `npm run build` again and it should succeed.
+> **Note:** Your iOS OAuth Client ID in Google Cloud Console must also use `com.cushyinvoice.app` as the bundle ID.
 
