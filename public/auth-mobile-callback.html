@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Returning to CushyInvoice...</title>
+  <style>
+    body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f9fafb; color: #333; }
+    .container { text-align: center; padding: 2rem; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn { display: none; margin-top: 1.5rem; padding: 0.75rem 2rem; background: #6366f1; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+    .btn:active { background: #4f46e5; }
+    .hint { display: none; margin-top: 0.75rem; font-size: 0.8rem; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <p>Returning to app...</p>
+    <button class="btn" id="openBtn" onclick="doRedirect()">Open CushyInvoice</button>
+    <p class="hint" id="hint">If the button doesn't work, switch back to the app manually.</p>
+  </div>
+  <script>
+    function buildDeepLink() {
+      var hash = window.location.hash ? window.location.hash.replace(/^#/, '') : '';
+      var search = window.location.search ? window.location.search.replace(/^\?/, '') : '';
+      var merged = new URLSearchParams(search);
+      var hp = new URLSearchParams(hash);
+      hp.forEach(function(v, k) { merged.set(k, v); });
+      var q = merged.toString();
+      return q ? 'cushyinvoice://auth/callback?' + q : 'cushyinvoice://auth/callback';
+    }
+
+    function doRedirect() {
+      window.location.assign(buildDeepLink());
+    }
+
+    // Attempt redirect immediately
+    doRedirect();
+
+    // Show manual fallback if page is still visible after 1.5s
+    var hidden = false;
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') hidden = true;
+    });
+    setTimeout(function() {
+      if (!hidden) {
+        document.getElementById('openBtn').style.display = 'inline-block';
+        document.getElementById('hint').style.display = 'block';
+      }
+    }, 1500);
+  </script>
+</body>
+</html>
