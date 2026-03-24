@@ -1,24 +1,21 @@
 
 
-# Replace CushyInvoice App Icon
+## Fix: Add `@capacitor/app` to Vite externals
 
-## What This Does
-Replaces all app icons (favicon, splash screen, and store-ready assets) with your new blue invoice icon.
+The error says Rollup can't resolve `@capacitor/app` during build. This package is dynamically imported in `Auth.tsx` for deep link handling but only runs in the native Capacitor environment.
 
-## Changes
+### Change
 
-1. Copy the uploaded icon to three locations in the project:
-   - `public/app-icon-1024.png` -- high-res version for app store submissions
-   - `public/app-icon-512.png` -- Google Play Store required size
-   - `public/favicon.png` -- web browser favicon and splash screen icon
+**File: `vite.config.ts`** — Add `@capacitor/app` to the `rollupOptions.external` array:
 
-2. No code changes needed -- the existing `index.html`, `src/main.tsx`, and `capacitor.config.ts` already reference these file paths.
+```
+external: [
+  "@capacitor/filesystem",
+  "@lovable.dev/cloud-auth-js",
+  "@deldev/capacitor-google-auth",
+  "@capacitor/app"    // ← add this
+]
+```
 
-## After Approval
-
-Once deployed, to update native Android/iOS icons locally:
-1. Git pull the latest changes
-2. Place the 1024px icon in a `resources/` folder as `icon.png`
-3. Run `npx capacitor-assets generate`
-4. Run `npx cap sync`
+That's it. After this change, run `npm run build` again and it should succeed.
 
