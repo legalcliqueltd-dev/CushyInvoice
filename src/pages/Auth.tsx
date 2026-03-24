@@ -217,12 +217,12 @@ export default function Auth() {
     if (isCapacitor) {
       const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
 
-      // If native plugin is unavailable, use in-app browser OAuth fallback
+      // If native plugin is unavailable, use browser OAuth fallback
       if (!googleAuthPlugin?.signIn) {
         const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
-            redirectTo: `${APP_DOMAIN}/auth/mobile-callback`,
+            redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
             skipBrowserRedirect: true,
           },
         });
@@ -239,6 +239,10 @@ export default function Auth() {
       }
 
       try {
+        const platform = (window as any).Capacitor?.getPlatform?.();
+        const clientId = platform === "ios"
+          ? "261698725488-qsbo20fl2qi11frd50aab93f0r39lckn.apps.googleusercontent.com"
+          : "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com";
 
         if (googleAuthPlugin.initialize) {
           await googleAuthPlugin.initialize({
