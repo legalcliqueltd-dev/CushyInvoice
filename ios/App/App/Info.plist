@@ -57,6 +57,14 @@
 				<string>cushyinvoice</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps.261698725488-qsbo20fl2qi11frd50aab93f0r39lckn</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.261698725488-qsbo20fl2qi11frd50aab93f0r39lckn</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>
