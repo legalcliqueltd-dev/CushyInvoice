@@ -13,6 +13,7 @@
         "@capacitor/filesystem": "^8.1.0",
         "@capacitor/ios": "^8.0.2",
         "@capacitor/splash-screen": "^8.0.0",
+        "@codetrix-studio/capacitor-google-auth": "3.3.6",
         "@deldev/capacitor-google-auth": "^1.0.2",
         "@hookform/resolvers": "^3.10.0",
         "@huggingface/transformers": "^3.8.0",
@@ -122,6 +123,8 @@
     "@capacitor/splash-screen": ["@capacitor/splash-screen@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-zkFdUSd6C6gd3s3bIEgtO3DVjfwpaX5mmWU9er8xYTg47zr2toEkGtfyE6CPhhErG09fl4rCqrK5DfnGrXLh9w=="],
 
     "@capacitor/synapse": ["@capacitor/synapse@1.0.4", "", {}, "sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw=="],
+
+    "@codetrix-studio/capacitor-google-auth": ["@codetrix-studio/capacitor-google-auth@3.3.6", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@codetrix-studio/capacitor-google-auth/-/capacitor-google-auth-3.3.6.tgz", { "peerDependencies": { "@capacitor/core": "^5.0.0" } }, "sha512-SiMjYq5O2rWzEdKrmu3VZQ2nmFdq6LUXPzsNbjs4Ri6WTJVCtzp1HI12t4Dcwi5YoSw8g94Iyi3Can8msj57QA=="],
 
     "@deldev/capacitor-google-auth": ["@deldev/capacitor-google-auth@1.0.2", "", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-uFEuXpCfRccy5e2HVWSMnFEh4Sda2lXEgRee/sIC8BakihTTPxYBwcJ1NFwDYEGtQWBlHAPMSNg7wsYv6mIcDw=="],
 
