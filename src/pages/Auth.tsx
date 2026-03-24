@@ -259,6 +259,21 @@ export default function Auth() {
   };
 
   const openOAuthUrl = async (url: string) => {
+    const platform = (window as any).Capacitor?.getPlatform?.();
+
+    // iOS: use external Safari (window.open/_blank) instead of SFSafariViewController
+    // because in-app browser redirects to custom URL schemes can fail to reopen the app.
+    if (platform === "ios") {
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.target = "_blank";
+      anchor.rel = "noopener noreferrer";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      return;
+    }
+
     try {
       const { Browser } = await import("@capacitor/browser");
       await Browser.open({ url });
