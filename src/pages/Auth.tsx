@@ -282,7 +282,7 @@ export default function Auth() {
           const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-              redirectTo: `${APP_DOMAIN}/auth/mobile-callback`,
+              redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
               skipBrowserRedirect: true,
             },
           });
