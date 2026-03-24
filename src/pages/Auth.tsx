@@ -261,7 +261,7 @@ export default function Auth() {
   const openOAuthUrl = async (url: string) => {
     try {
       const { Browser } = await import("@capacitor/browser");
-      await Browser.open({ url, presentationStyle: "popover" });
+      await Browser.open({ url });
     } catch {
       window.open(url, "_blank");
     }
