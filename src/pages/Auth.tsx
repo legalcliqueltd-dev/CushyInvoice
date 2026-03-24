@@ -232,11 +232,10 @@ export default function Auth() {
     const isCapacitor = !!(window as any).Capacitor;
 
     if (isCapacitor) {
-      const platform = (window as any).Capacitor?.getPlatform?.() || "web";
       const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
 
-      // On iOS or if native plugin unavailable, use in-app browser OAuth
-      if (platform === "ios" || !googleAuthPlugin?.signIn) {
+      // If native plugin is unavailable, use in-app browser OAuth fallback
+      if (!googleAuthPlugin?.signIn) {
         const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
