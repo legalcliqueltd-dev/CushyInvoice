@@ -246,7 +246,7 @@ export default function Auth() {
 
         if (googleAuthPlugin.initialize) {
           await googleAuthPlugin.initialize({
-            clientId: "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com",
+            clientId,
             scopes: ["profile", "email"],
             grantOfflineAccess: true,
           });
