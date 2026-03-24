@@ -50,91 +50,8 @@ export default function Auth() {
       }
     });
 
-    // Listen for deep link redirects from external browser OAuth
-    const isCapacitor = !!(window as any).Capacitor;
-    let appListenerCleanup: (() => void) | null = null;
-    let lastHandledOAuthUrl: string | null = null;
-
-    const handleOAuthCallbackUrl = async (url: string) => {
-      const isOAuthCallbackUrl =
-        url.includes("cushyinvoice://auth") ||
-        url.includes("/auth") ||
-        url.includes("access_token") ||
-        url.includes("code=");
-
-      if (!isOAuthCallbackUrl || lastHandledOAuthUrl === url) return;
-      lastHandledOAuthUrl = url;
-
-      try {
-        // Close in-app browser/custom tab overlay when app is reopened
-        try {
-          const { Browser } = await import("@capacitor/browser");
-          await Browser.close();
-        } catch {}
-
-        const parsedUrl = new URL(url);
-        const code = parsedUrl.searchParams.get("code");
-        const accessTokenFromQuery = parsedUrl.searchParams.get("access_token");
-        const refreshTokenFromQuery = parsedUrl.searchParams.get("refresh_token");
-
-        // PKCE flow: exchange authorization code for a session
-        if (code) {
-          await supabase.auth.exchangeCodeForSession(code);
-          return;
-        }
-
-        // Token flow via query params (more reliable on iOS than hash fragments)
-        if (accessTokenFromQuery && refreshTokenFromQuery) {
-          await supabase.auth.setSession({
-            access_token: accessTokenFromQuery,
-            refresh_token: refreshTokenFromQuery,
-          });
-          return;
-        }
-
-        // Implicit flow fallback: parse hash tokens
-        const hashPart = parsedUrl.hash?.replace(/^#/, "") || "";
-        if (hashPart) {
-          const params = new URLSearchParams(hashPart);
-          const accessToken = params.get("access_token");
-          const refreshToken = params.get("refresh_token");
-
-          if (accessToken && refreshToken) {
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-          }
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error("Error handling OAuth callback URL:", error);
-        }
-      }
-    };
-
-    if (isCapacitor) {
-      import("@capacitor/app")
-        .then(async ({ App }) => {
-          const listener = App.addListener("appUrlOpen", async (event) => {
-            await handleOAuthCallbackUrl(event.url);
-          });
-
-          const launchUrl = await App.getLaunchUrl();
-          if (launchUrl?.url) {
-            await handleOAuthCallbackUrl(launchUrl.url);
-          }
-
-          listener.then((handle) => {
-            appListenerCleanup = () => handle.remove();
-          });
-        })
-        .catch(() => {});
-    }
-
     return () => {
       subscription.unsubscribe();
-      appListenerCleanup?.();
     };
   }, [navigate]);
 
@@ -300,12 +217,12 @@ export default function Auth() {
     if (isCapacitor) {
       const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
 
-      // If native plugin is unavailable, use in-app browser OAuth fallback
+      // If native plugin is unavailable, use browser OAuth fallback
       if (!googleAuthPlugin?.signIn) {
         const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
-            redirectTo: `${APP_DOMAIN}/auth/mobile-callback`,
+            redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
             skipBrowserRedirect: true,
           },
         });
@@ -322,10 +239,14 @@ export default function Auth() {
       }
 
       try {
+        const platform = (window as any).Capacitor?.getPlatform?.();
+        const clientId = platform === "ios"
+          ? "261698725488-qsbo20fl2qi11frd50aab93f0r39lckn.apps.googleusercontent.com"
+          : "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com";
 
         if (googleAuthPlugin.initialize) {
           await googleAuthPlugin.initialize({
-            clientId: "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com",
+            clientId,
             scopes: ["profile", "email"],
             grantOfflineAccess: true,
           });
@@ -361,7 +282,7 @@ export default function Auth() {
           const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-              redirectTo: `${APP_DOMAIN}/auth/mobile-callback`,
+              redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
               skipBrowserRedirect: true,
             },
           });

@@ -28,6 +28,7 @@ import DeleteAccount from "./pages/DeleteAccount";
 import MobileAuthCallback from "./pages/MobileAuthCallback";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import DeepLinkHandler from "./components/DeepLinkHandler";
 import { Button } from "@/components/ui/button";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ErrorBoundary>
+          <DeepLinkHandler />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
