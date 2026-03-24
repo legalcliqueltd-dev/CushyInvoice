@@ -259,17 +259,9 @@ export default function Auth() {
   };
 
   const openOAuthUrl = async (url: string) => {
-    const platform = (window as any).Capacitor?.getPlatform?.();
-
-    // On iOS, direct navigation is more reliable for returning via custom URL schemes
-    if (platform === "ios") {
-      window.location.assign(url);
-      return;
-    }
-
     try {
       const { Browser } = await import("@capacitor/browser");
-      await Browser.open({ url });
+      await Browser.open({ url, presentationStyle: "popover" });
     } catch {
       window.open(url, "_blank");
     }
