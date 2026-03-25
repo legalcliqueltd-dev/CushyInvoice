@@ -1,56 +1,36 @@
 
-Problem summary
-- The app now stalls on the native iOS launch screen after returning from Google login.
-- This is a regression likely introduced by startup/auth flow changes, not by Google OAuth credentials themselves.
 
-Do I know what the issue is?
-- Yes (high confidence): startup can deadlock on splash because `launchAutoHide` is `false` and `src/main.tsx` uses unsafe plugin access (`window.Capacitor.Plugins`) that can be undefined in Capacitor v8.
-- Also likely (secondary): auth/session readiness race can still bounce users back to `/auth` after deep-link return.
+## Fix: Native Google Sign-In on iOS (No Browser Redirect)
 
-Implementation plan
+### Problem
+The native `@deldev/capacitor-google-auth` plugin is installed and linked in the iOS project, but the sign-in flow falls back to Safari because:
+1. The `initialize()` call passes the **iOS client ID** as `clientId`, but does not pass the **web/server client ID** as `serverClientId`. Without a server client ID, the plugin cannot return an ID token that Supabase can verify.
+2. If the plugin's `signIn` method isn't found at runtime (Capacitor v8 plugin registration), the code immediately falls back to browser OAuth without retrying native.
 
-1) Fix startup splash deadlock (highest priority)
-- Update `src/main.tsx` to stop using `window.Capacitor.Plugins` destructuring.
-- Use safe plugin access/import for Splash Screen and wrap hide in guarded try/catch.
-- Add a fail-safe hide path so launch screen is always removed even if first call fails.
-- Move any non-critical plugin init out of bootstrap-critical path.
+### Plan
 
-2) Remove bootstrap risk from Google init
-- In `src/main.tsx`, remove global Google plugin initialization at app boot.
-- Keep Google plugin initialization only inside the sign-in action flow in `src/pages/Auth.tsx` (already present), so app startup is never blocked by auth plugin readiness.
+**File: `src/pages/Auth.tsx`** — Fix native Google Sign-In initialization for iOS
 
-3) Add auth readiness gate to prevent post-login bounce
-- Create `src/hooks/useAuthReady.ts`:
-  - call `supabase.auth.getSession()` first
-  - then subscribe to `supabase.auth.onAuthStateChange`
-  - expose `{ user, isReady }`
-- Refactor `src/components/ProtectedRoute.tsx` to wait for `isReady` before redirecting to `/auth`.
-- Ensure no awaited async work runs directly inside auth-state callback bodies.
+1. Update the `initialize()` call to pass both the iOS client ID and the web server client ID:
+   - `clientId` → iOS client ID (`261698725488-qsbo20fl2qi11frd50aab93f0r39lckn`)
+   - `serverClientId` → Web client ID (`261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma`) — this is what generates the ID token Supabase can verify
+   - On Android, keep using the web client ID as `clientId` (current behavior)
 
-4) Harden deep-link handoff completion
-- In `src/components/DeepLinkHandler.tsx`, keep code/token parsing but add explicit handling when callback arrives without usable auth params.
-- Only navigate to `/dashboard` after confirmed session establishment.
-- Add minimal debug logging around received URL + parsing outcome (dev-safe), so cold-start vs warm-start behavior is visible.
+2. Before checking `googleAuthPlugin?.signIn`, attempt to load the plugin via dynamic `import("@deldev/capacitor-google-auth")` as a fallback — Capacitor v8 may not register all plugins on `window.Capacitor.Plugins` automatically.
 
-5) Keep iOS callback bridge and OAuth redirect stable
-- Keep `public/auth-mobile-callback.html` as primary bridge.
-- Confirm `src/pages/Auth.tsx` continues using `redirectTo: https://cushyinvoice.com/auth-mobile-callback.html` for mobile browser fallback.
-- Keep iOS native client ID and current URL schemes unchanged unless mismatch is found.
+3. Remove the browser fallback as the primary iOS path. Only fall back to browser if the native plugin truly throws a non-recoverable error (not code 10 or cancellation).
 
-6) Verify iOS native config consistency
-- Re-check `ios/App/App/Info.plist` URL schemes and `ios/App/App.xcodeproj/project.pbxproj` bundle ID (`com.cushyinvoice.app`) alignment.
-- No backend/database changes required for this fix.
+4. On successful `signIn()`, extract the ID token and call `supabase.auth.signInWithIdToken()` as currently done — this part is correct.
 
-Technical files to modify
-- `src/main.tsx` (critical startup/splash fix)
-- `src/hooks/useAuthReady.ts` (new)
-- `src/components/ProtectedRoute.tsx` (auth-ready gating)
-- `src/components/DeepLinkHandler.tsx` (callback robustness + diagnostics)
-- `src/pages/Auth.tsx` (ensure bootstrap-safe Google flow assumptions)
+### Technical Detail
 
-Validation checklist
-1) Launch app normally from home screen: splash disappears every time.
-2) iOS Google sign-in (warm start): returns to app and lands on dashboard.
-3) iOS Google sign-in (cold start after app kill): returns to app and lands on dashboard.
-4) No redirect loop back to `/auth`.
-5) Manual fallback button on bridge page still opens the app and completes sign-in.
+```text
+Current iOS flow:
+  googleAuthPlugin?.signIn undefined → browser fallback → Safari → bridge page → deep link (broken)
+
+Fixed iOS flow:
+  import plugin → initialize(iosClientId, serverClientId) → native account picker → idToken → signInWithIdToken → dashboard
+```
+
+No changes needed to `Info.plist`, `Package.swift`, or backend config — the iOS URL scheme and plugin are already correctly set up. The fix is purely in how the JS code initializes and invokes the plugin.
+
