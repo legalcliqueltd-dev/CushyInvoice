@@ -232,12 +232,22 @@ export default function Auth() {
 
       if (googleAuthPlugin?.signIn) {
         try {
-          // Plugin is configured via capacitor.config.ts — no manual initialize() needed
-          if (import.meta.env.DEV) {
-            console.log("[GoogleAuth] Native plugin found, calling signIn(). Platform:", platform);
+          console.log("[GoogleAuth] Native plugin found. Platform:", platform);
+
+          // initialize() is required by @deldev/capacitor-google-auth before signIn()
+          if (typeof googleAuthPlugin.initialize === "function") {
+            console.log("[GoogleAuth] Calling initialize()...");
+            await googleAuthPlugin.initialize({
+              clientId: IOS_CLIENT_ID,
+              scopes: ["profile", "email"],
+              grantOfflineAccess: true,
+              ...(platform === "ios" ? {} : { serverClientId: WEB_CLIENT_ID }),
+            });
           }
 
+          console.log("[GoogleAuth] Calling signIn()...");
           const googleUser = await googleAuthPlugin.signIn();
+          console.log("[GoogleAuth] signIn() returned:", JSON.stringify(googleUser, null, 2));
           const idToken = googleUser?.authentication?.idToken || googleUser?.idToken;
 
           if (!idToken) {
