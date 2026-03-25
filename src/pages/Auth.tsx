@@ -232,21 +232,9 @@ export default function Auth() {
 
       if (googleAuthPlugin?.signIn) {
         try {
-          // Initialize with platform-appropriate IDs + serverClientId for ID token generation
-          if (googleAuthPlugin.initialize) {
-            const initConfig: any = {
-              scopes: ["profile", "email"],
-              grantOfflineAccess: true,
-            };
-
-            if (platform === "ios") {
-              initConfig.clientId = IOS_CLIENT_ID;
-              initConfig.serverClientId = WEB_CLIENT_ID;
-            } else {
-              initConfig.clientId = WEB_CLIENT_ID;
-            }
-
-            await googleAuthPlugin.initialize(initConfig);
+          // Plugin is configured via capacitor.config.ts — no manual initialize() needed
+          if (import.meta.env.DEV) {
+            console.log("[GoogleAuth] Native plugin found, calling signIn(). Platform:", platform);
           }
 
           const googleUser = await googleAuthPlugin.signIn();
