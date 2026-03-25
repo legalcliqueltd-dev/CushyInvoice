@@ -238,10 +238,10 @@ export default function Auth() {
           if (typeof googleAuthPlugin.initialize === "function") {
             console.log("[GoogleAuth] Calling initialize()...");
             await googleAuthPlugin.initialize({
-              clientId: IOS_CLIENT_ID,
+              clientId: platform === "ios" ? IOS_CLIENT_ID : WEB_CLIENT_ID,
+              serverClientId: WEB_CLIENT_ID,
               scopes: ["profile", "email"],
               grantOfflineAccess: true,
-              ...(platform === "ios" ? {} : { serverClientId: WEB_CLIENT_ID }),
             });
           }
 
