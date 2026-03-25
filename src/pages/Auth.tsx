@@ -215,93 +215,89 @@ export default function Auth() {
     const isCapacitor = !!(window as any).Capacitor;
 
     if (isCapacitor) {
-      const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
+      const platform = (window as any).Capacitor?.getPlatform?.();
+      const IOS_CLIENT_ID = "261698725488-qsbo20fl2qi11frd50aab93f0r39lckn.apps.googleusercontent.com";
+      const WEB_CLIENT_ID = "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com";
 
-      // If native plugin is unavailable, use browser OAuth fallback
+      // Try to get the plugin — first from Capacitor.Plugins, then via dynamic import
+      let googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
       if (!googleAuthPlugin?.signIn) {
-        const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (oauthErr) {
-          toast({ title: "Google Sign-In Error", description: oauthErr.message, variant: "destructive" });
-          setLoading(false);
-          return;
+        try {
+          const mod = await import("@deldev/capacitor-google-auth");
+          googleAuthPlugin = mod.GoogleAuth ?? mod.default ?? mod;
+        } catch {
+          googleAuthPlugin = null;
         }
-        if (data?.url) {
-          await openOAuthUrl(data.url);
-        }
-        setLoading(false);
-        return;
       }
 
-      try {
-        const platform = (window as any).Capacitor?.getPlatform?.();
-        const clientId = platform === "ios"
-          ? "261698725488-qsbo20fl2qi11frd50aab93f0r39lckn.apps.googleusercontent.com"
-          : "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com";
+      if (googleAuthPlugin?.signIn) {
+        try {
+          // Initialize with platform-appropriate IDs + serverClientId for ID token generation
+          if (googleAuthPlugin.initialize) {
+            const initConfig: any = {
+              scopes: ["profile", "email"],
+              grantOfflineAccess: true,
+            };
 
-        if (googleAuthPlugin.initialize) {
-          await googleAuthPlugin.initialize({
-            clientId,
-            scopes: ["profile", "email"],
-            grantOfflineAccess: true,
-          });
-        }
+            if (platform === "ios") {
+              initConfig.clientId = IOS_CLIENT_ID;
+              initConfig.serverClientId = WEB_CLIENT_ID;
+            } else {
+              initConfig.clientId = WEB_CLIENT_ID;
+            }
 
-        const googleUser = await googleAuthPlugin.signIn();
-        const idToken = googleUser?.authentication?.idToken || googleUser?.idToken;
+            await googleAuthPlugin.initialize(initConfig);
+          }
 
-        if (!idToken) {
-          throw new Error("No ID token returned from Google Sign-In");
-        }
+          const googleUser = await googleAuthPlugin.signIn();
+          const idToken = googleUser?.authentication?.idToken || googleUser?.idToken;
 
-        const { error } = await supabase.auth.signInWithIdToken({
-          provider: "google",
-          token: idToken,
-        });
+          if (!idToken) {
+            throw new Error("No ID token returned from Google Sign-In");
+          }
 
-        if (error) throw error;
-        return;
-      } catch (error: any) {
-        const message = error?.message || "Failed to sign in with Google.";
-        const code = String(error?.code ?? "");
-        const isCancelled = code === "USER_CANCELLED" || message.includes("popup_closed") || message.includes("canceled");
-        const isCode10 = code === "10" || message.includes("code: 10") || message.includes("code 10");
-
-        if (isCancelled) {
-          setLoading(false);
-          return;
-        }
-
-        if (isCode10) {
-          // Native auth failed — use Chrome Custom Tabs with custom scheme redirect
-          const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
+          const { error } = await supabase.auth.signInWithIdToken({
             provider: "google",
-            options: {
-              redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
-              skipBrowserRedirect: true,
-            },
+            token: idToken,
           });
-          if (oauthErr) {
-            toast({ title: "Google Sign-In Error", description: oauthErr.message, variant: "destructive" });
+
+          if (error) throw error;
+          return;
+        } catch (error: any) {
+          const message = error?.message || "Failed to sign in with Google.";
+          const code = String(error?.code ?? "");
+          const isCancelled = code === "USER_CANCELLED" || message.includes("popup_closed") || message.includes("canceled");
+
+          if (isCancelled) {
             setLoading(false);
             return;
           }
-          if (data?.url) {
-            await openOAuthUrl(data.url);
-          }
-          setLoading(false);
-          return;
-        }
 
-        toast({ title: "Google Sign-In Error", description: message, variant: "destructive" });
+          // For any non-cancellation native error, fall through to browser fallback
+          if (import.meta.env.DEV) {
+            console.warn("Native Google Sign-In failed, falling back to browser:", message);
+          }
+        }
+      }
+
+      // Browser OAuth fallback — only reached if native plugin unavailable or failed
+      const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
+          skipBrowserRedirect: true,
+        },
+      });
+      if (oauthErr) {
+        toast({ title: "Google Sign-In Error", description: oauthErr.message, variant: "destructive" });
         setLoading(false);
         return;
       }
+      if (data?.url) {
+        await openOAuthUrl(data.url);
+      }
+      setLoading(false);
+      return;
     }
 
     const oauthError = await startManagedGoogleSignIn();
