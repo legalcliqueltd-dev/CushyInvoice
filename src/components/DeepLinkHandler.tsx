@@ -17,7 +17,7 @@ export default function DeepLinkHandler() {
     const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.();
     if (!isCapacitor) return;
 
-    let cleanup: (() => void) | null = null;
+    const cleanups: (() => void)[] = [];
 
     const handleOAuthUrl = async (url: string) => {
       const isCallback =
@@ -84,28 +84,81 @@ export default function DeepLinkHandler() {
       }
     };
 
-    import("@capacitor/app")
-      .then(async ({ App }) => {
-        const listener = await App.addListener("appUrlOpen", (event) => {
+    // --- 1. App plugin: appUrlOpen (warm start) + getLaunchUrl (cold start) ---
+    const initAppPlugin = async () => {
+      try {
+        // Try static access first, then dynamic import
+        let AppPlugin = (window as any).Capacitor?.Plugins?.App;
+        if (!AppPlugin?.addListener) {
+          const mod = await import("@capacitor/app");
+          AppPlugin = mod.App;
+        }
+
+        if (!AppPlugin?.addListener) {
+          console.warn("[DeepLink] App plugin not available");
+          return;
+        }
+
+        const listener = await AppPlugin.addListener("appUrlOpen", (event: any) => {
           console.log("[DeepLink] appUrlOpen:", event.url);
           handleOAuthUrl(event.url);
         });
-
-        cleanup = () => listener.remove();
+        cleanups.push(() => listener.remove());
 
         // Cold-start: check if app was launched via a URL
-        const launchUrl = await App.getLaunchUrl();
-        if (launchUrl?.url) {
-          console.log("[DeepLink] Cold-start launch URL:", launchUrl.url);
-          handleOAuthUrl(launchUrl.url);
+        if (AppPlugin.getLaunchUrl) {
+          const launchUrl = await AppPlugin.getLaunchUrl();
+          if (launchUrl?.url) {
+            console.log("[DeepLink] Cold-start launch URL:", launchUrl.url);
+            handleOAuthUrl(launchUrl.url);
+          }
         }
-      })
-      .catch((err) => {
+
+        console.log("[DeepLink] App plugin listeners registered");
+      } catch (err) {
         console.error("[DeepLink] Failed to init App plugin:", err);
-      });
+      }
+    };
+
+    // --- 2. Browser plugin: browserFinished (safety net for iOS) ---
+    const initBrowserListener = async () => {
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        const listener = await Browser.addListener("browserFinished", async () => {
+          console.log("[DeepLink] browserFinished event — checking for session");
+          // Small delay to let any pending auth state settle
+          await new Promise((r) => setTimeout(r, 500));
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            console.log("[DeepLink] Session found after browser closed, navigating to dashboard");
+            navigate("/dashboard", { replace: true });
+          } else {
+            console.log("[DeepLink] No session after browser closed");
+          }
+        });
+        cleanups.push(() => listener.remove());
+        console.log("[DeepLink] Browser browserFinished listener registered");
+      } catch (err) {
+        console.warn("[DeepLink] Browser plugin not available for browserFinished:", err);
+      }
+    };
+
+    // --- 3. Startup URL fallback: check window.location.href ---
+    const checkStartupUrl = () => {
+      const url = window.location.href;
+      if (url.includes("code=") || url.includes("access_token=")) {
+        console.log("[DeepLink] Startup URL contains auth params:", url);
+        handleOAuthUrl(url);
+      }
+    };
+
+    // Initialize all listeners in parallel
+    initAppPlugin();
+    initBrowserListener();
+    checkStartupUrl();
 
     return () => {
-      cleanup?.();
+      cleanups.forEach((fn) => fn());
     };
   }, [navigate, toast]);
 
