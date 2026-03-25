@@ -1,38 +1,34 @@
 
 
-## Fix: Native Google Sign-In on iOS — Root Cause & Solution
+## Diagnosis: Multiple Interacting Failures in iOS Google Sign-In
 
-### Root Cause
+### Issues Found
 
-**Line 244 in `src/pages/Auth.tsx`** explicitly removes `serverClientId` on iOS:
+**Issue 1 — Package.swift references a broken SPM package**
+`ios/App/CapApp-SPM/Package.swift` (lines 19, 31) still lists `DeldevCapacitorGoogleAuth` as a dependency. Since the patch script stripped the native iOS source from that package (creating only a stub directory), SPM resolution can fail or produce warnings that break plugin registration for ALL native plugins — including `@capacitor/app`. This is the most likely cause of the `[DeepLink] Failed to init App plugin: {}` error.
 
-```typescript
-...(platform === "ios" ? {} : { serverClientId: WEB_CLIENT_ID }),
-```
+**Issue 2 — iOS opens external Safari instead of in-app browser**
+`Auth.tsx` lines 192-202 deliberately open the OAuth URL in external Safari on iOS (via anchor tag + `target="_blank"`). External Safari cannot redirect back to the app via a custom URL scheme as reliably as `SFSafariViewController` (used by `@capacitor/browser`). This makes the return-to-app step fragile.
 
-This means the native plugin initializes without a `serverClientId`, so it **cannot return an ID token** that Supabase can verify. The `signIn()` call either fails or returns no `idToken`, causing the code to fall through to the browser OAuth fallback on line 282.
+**Issue 3 — No fallback session detection**
+If the deep-link listener fails (Issue 1) AND the browser redirect doesn't reopen the app cleanly, there is no fallback. The `Auth.tsx` `onAuthStateChange` listener only fires if Supabase detects a session in the current WebView context — but the OAuth completed in Safari, not the WebView.
 
-**Second issue:** After the browser OAuth completes and redirects back, the session is never restored because the `DeepLinkHandler` depends on `@capacitor/app`'s `appUrlOpen` event, but the redirect goes to `auth-mobile-callback.html` which tries to redirect via `cushyinvoice://` custom scheme — and the app may not pick it up reliably.
+### Fix Plan
 
-### Fix
+**1. Remove broken google-auth reference from Package.swift**
+Remove lines referencing `DeldevCapacitorGoogleAuth` from both the `dependencies` and `targets` arrays. This package has no valid iOS source. Removing it allows the remaining 4 plugins (including `@capacitor/app`) to build and register correctly.
 
-**File: `src/pages/Auth.tsx`**
+**2. Use `@capacitor/browser` on iOS instead of external Safari**
+Change `openOAuthUrl()` in `Auth.tsx` to use the Browser plugin on ALL platforms (remove the iOS-specific anchor-tag hack). `SFSafariViewController` handles custom URL scheme redirects back to the app more reliably than external Safari.
 
-1. **Pass `serverClientId` on iOS too** — change line 244 from excluding it on iOS to always including it:
-   ```typescript
-   await googleAuthPlugin.initialize({
-     clientId: platform === "ios" ? IOS_CLIENT_ID : WEB_CLIENT_ID,
-     serverClientId: WEB_CLIENT_ID,  // ALWAYS pass this
-     scopes: ["profile", "email"],
-     grantOfflineAccess: true,
-   });
-   ```
+**3. Add `browserFinished` listener for iOS**
+In `DeepLinkHandler.tsx`, add a listener for the Browser plugin's `browserFinished` event. When the in-app browser closes, check if a session was established (via `supabase.auth.getSession()`) and navigate to dashboard if so. This provides a safety net if the `appUrlOpen` event is missed.
 
-2. **Remove the silent browser fallback** — if the native plugin is found but `signIn()` fails with a real error, show the error to the user instead of silently falling through to browser OAuth. Only fall back to browser if the native plugin is genuinely not available (`googleAuthPlugin` is null).
+**4. Add startup URL fallback in DeepLinkHandler**
+On mount, also check `window.location.href` for auth params (`code=`, `access_token=`). This catches edge cases where the WebView itself receives the redirect URL rather than going through the custom scheme.
 
-3. **Add detailed error logging** — log the full error object when native sign-in fails so you can diagnose on-device.
-
-### Summary
-
-The fix is a one-line change: always pass `serverClientId: WEB_CLIENT_ID` in the `initialize()` call regardless of platform. The current code deliberately strips it on iOS, which is why the native flow never works.
+### Files to Change
+- `ios/App/CapApp-SPM/Package.swift` — remove google-auth dependency
+- `src/pages/Auth.tsx` — remove iOS external Safari hack in `openOAuthUrl()`
+- `src/components/DeepLinkHandler.tsx` — add `browserFinished` listener + startup URL check
 
