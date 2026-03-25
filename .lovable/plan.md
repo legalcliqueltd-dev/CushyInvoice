@@ -1,47 +1,38 @@
 
 
-## Fix: Native Google Sign-In Still Redirecting to Browser on iOS
+## Fix: Native Google Sign-In on iOS — Root Cause & Solution
 
-### Problem
-The `@deldev/capacitor-google-auth` plugin is not registering at runtime because it's missing its required configuration in `capacitor.config.ts`. Without a `plugins.GoogleAuth` block, the native iOS plugin never initializes, so the JS code falls through to the browser OAuth fallback every time.
+### Root Cause
 
-Additionally, `Info.plist` is missing the `GIDClientID` key that the Google Sign-In SDK on iOS reads at launch to configure itself natively.
+**Line 244 in `src/pages/Auth.tsx`** explicitly removes `serverClientId` on iOS:
 
-### Plan
-
-**1. Add GoogleAuth plugin config to `capacitor.config.ts`**
-
-Add to the `plugins` section:
 ```typescript
-GoogleAuth: {
-  scopes: ['profile', 'email'],
-  clientId: '261698725488-qsbo20fl2qi11frd50aab93f0r39lckn.apps.googleusercontent.com', // iOS
-  serverClientId: '261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com', // Web
-  iosClientId: '261698725488-qsbo20fl2qi11frd50aab93f0r39lckn.apps.googleusercontent.com',
-  forceCodeForRefreshToken: true,
-}
+...(platform === "ios" ? {} : { serverClientId: WEB_CLIENT_ID }),
 ```
 
-**2. Add `GIDClientID` to `ios/App/App/Info.plist`**
+This means the native plugin initializes without a `serverClientId`, so it **cannot return an ID token** that Supabase can verify. The `signIn()` call either fails or returns no `idToken`, causing the code to fall through to the browser OAuth fallback on line 282.
 
-The Google Sign-In iOS SDK reads this key at app launch:
-```xml
-<key>GIDClientID</key>
-<string>261698725488-qsbo20fl2qi11frd50aab93f0r39lckn.apps.googleusercontent.com</string>
-```
+**Second issue:** After the browser OAuth completes and redirects back, the session is never restored because the `DeepLinkHandler` depends on `@capacitor/app`'s `appUrlOpen` event, but the redirect goes to `auth-mobile-callback.html` which tries to redirect via `cushyinvoice://` custom scheme — and the app may not pick it up reliably.
 
-**3. Simplify native plugin access in `src/pages/Auth.tsx`**
+### Fix
 
-With the config in place, the plugin should register automatically. Update `handleGoogleSignIn` to:
-- Remove the `initialize()` call (config is now read from `capacitor.config.ts` at native layer)
-- Keep dynamic import as fallback for plugin discovery
-- Add a console log showing whether the plugin was found, to aid debugging
+**File: `src/pages/Auth.tsx`**
 
-### Files to modify
-- `capacitor.config.ts` — add GoogleAuth plugin block
-- `ios/App/App/Info.plist` — add GIDClientID
-- `src/pages/Auth.tsx` — simplify native init, remove redundant initialize() call
+1. **Pass `serverClientId` on iOS too** — change line 244 from excluding it on iOS to always including it:
+   ```typescript
+   await googleAuthPlugin.initialize({
+     clientId: platform === "ios" ? IOS_CLIENT_ID : WEB_CLIENT_ID,
+     serverClientId: WEB_CLIENT_ID,  // ALWAYS pass this
+     scopes: ["profile", "email"],
+     grantOfflineAccess: true,
+   });
+   ```
 
-### After implementation
-Pull changes, run `npx cap sync ios`, rebuild in Xcode, test on device.
+2. **Remove the silent browser fallback** — if the native plugin is found but `signIn()` fails with a real error, show the error to the user instead of silently falling through to browser OAuth. Only fall back to browser if the native plugin is genuinely not available (`googleAuthPlugin` is null).
+
+3. **Add detailed error logging** — log the full error object when native sign-in fails so you can diagnose on-device.
+
+### Summary
+
+The fix is a one-line change: always pass `serverClientId: WEB_CLIENT_ID` in the `initialize()` call regardless of platform. The current code deliberately strips it on iOS, which is why the native flow never works.
 
