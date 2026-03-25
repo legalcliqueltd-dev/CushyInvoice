@@ -266,19 +266,21 @@ export default function Auth() {
           const code = String(error?.code ?? "");
           const isCancelled = code === "USER_CANCELLED" || message.includes("popup_closed") || message.includes("canceled");
 
+          console.error("[GoogleAuth] Native signIn error:", JSON.stringify(error, null, 2));
+
           if (isCancelled) {
             setLoading(false);
             return;
           }
 
-          // For any non-cancellation native error, fall through to browser fallback
-          if (import.meta.env.DEV) {
-            console.warn("Native Google Sign-In failed, falling back to browser:", message);
-          }
+          // Native plugin exists but failed — show error, don't silently fall back to browser
+          toast({ title: "Google Sign-In Error", description: message, variant: "destructive" });
+          setLoading(false);
+          return;
         }
       }
 
-      // Browser OAuth fallback — only reached if native plugin unavailable or failed
+      // Browser OAuth fallback — ONLY reached if native plugin is not available at all
       const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
