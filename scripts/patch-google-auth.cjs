@@ -39,6 +39,34 @@ patchGradleFile(googleAuthGradle, "@deldev/capacitor-google-auth", (content) => 
   return next;
 });
 
+// Create stub ios directory for @deldev/capacitor-google-auth so cap sync doesn't crash
+const googleAuthIosDir = path.join(
+  process.cwd(), "node_modules", "@deldev", "capacitor-google-auth", "ios"
+);
+if (!fs.existsSync(googleAuthIosDir)) {
+  fs.mkdirSync(googleAuthIosDir, { recursive: true });
+  console.log("[patch] Created stub ios directory for @deldev/capacitor-google-auth.");
+} else {
+  console.log("[patch] @deldev/capacitor-google-auth ios directory already exists.");
+}
+
+// Also remove iOS from the plugin's capacitor declaration so cap sync doesn't try to process it
+const googleAuthPkgPath = path.join(
+  process.cwd(), "node_modules", "@deldev", "capacitor-google-auth", "package.json"
+);
+if (fs.existsSync(googleAuthPkgPath)) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(googleAuthPkgPath, "utf8"));
+    if (pkg.capacitor && pkg.capacitor.ios) {
+      delete pkg.capacitor.ios;
+      fs.writeFileSync(googleAuthPkgPath, JSON.stringify(pkg, null, 2) + "\n");
+      console.log("[patch] Removed iOS platform declaration from @deldev/capacitor-google-auth.");
+    }
+  } catch (e) {
+    console.log("[patch] Could not patch google-auth package.json:", e.message);
+  }
+}
+
 // Patch @capacitor/browser
 const browserGradle = path.join(
   process.cwd(), "node_modules", "@capacitor", "browser", "android", "build.gradle"
