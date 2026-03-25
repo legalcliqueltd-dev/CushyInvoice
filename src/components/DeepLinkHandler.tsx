@@ -14,7 +14,7 @@ export default function DeepLinkHandler() {
   const handledRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const isCapacitor = !!(window as any).Capacitor;
+    const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.();
     if (!isCapacitor) return;
 
     let cleanup: (() => void) | null = null;
@@ -27,6 +27,8 @@ export default function DeepLinkHandler() {
 
       if (!isCallback || handledRef.current === url) return;
       handledRef.current = url;
+
+      console.log("[DeepLink] Processing URL:", url);
 
       try {
         // Close any in-app browser overlay
@@ -51,23 +53,28 @@ export default function DeepLinkHandler() {
         let sessionOk = false;
 
         if (code) {
+          console.log("[DeepLink] Exchanging code for session");
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
           sessionOk = true;
         } else if (accessToken && refreshToken) {
+          console.log("[DeepLink] Setting session from tokens");
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
           if (error) throw error;
           sessionOk = true;
+        } else {
+          console.log("[DeepLink] No usable auth params found in URL");
         }
 
         if (sessionOk) {
+          console.log("[DeepLink] Session established, navigating to dashboard");
           navigate("/dashboard", { replace: true });
         }
       } catch (error: any) {
-        console.error("Deep-link OAuth error:", error);
+        console.error("[DeepLink] OAuth error:", error);
         toast({
           title: "Sign-in failed",
           description: error?.message || "Could not complete sign-in. Please try again.",
@@ -80,6 +87,7 @@ export default function DeepLinkHandler() {
     import("@capacitor/app")
       .then(async ({ App }) => {
         const listener = await App.addListener("appUrlOpen", (event) => {
+          console.log("[DeepLink] appUrlOpen:", event.url);
           handleOAuthUrl(event.url);
         });
 
@@ -88,10 +96,13 @@ export default function DeepLinkHandler() {
         // Cold-start: check if app was launched via a URL
         const launchUrl = await App.getLaunchUrl();
         if (launchUrl?.url) {
+          console.log("[DeepLink] Cold-start launch URL:", launchUrl.url);
           handleOAuthUrl(launchUrl.url);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("[DeepLink] Failed to init App plugin:", err);
+      });
 
     return () => {
       cleanup?.();

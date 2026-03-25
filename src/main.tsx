@@ -25,22 +25,9 @@ setTimeout(() => {
   setTimeout(() => splash.remove(), 400);
 }, 1500);
 
-// Hide native splash screen and initialize Google Auth in Capacitor
-if ((window as any).Capacitor) {
-  const { SplashScreen } = (window as any).Capacitor.Plugins;
-  if (SplashScreen) {
-    SplashScreen.hide();
-  }
-
-  // Initialize native Google Sign-In via Capacitor bridge
-  const googleAuthPlugin = (window as any).Capacitor?.Plugins?.GoogleAuth;
-  if (googleAuthPlugin?.initialize) {
-    Promise.resolve(
-      googleAuthPlugin.initialize({
-        clientId: "261698725488-o5bgnrchhborkjp2gc7nguidc4b3bbma.apps.googleusercontent.com",
-        scopes: ["profile", "email"],
-        grantOfflineAccess: true,
-      })
-    ).catch(() => {});
-  }
+// Hide native splash screen safely (Capacitor v8+)
+if ((window as any).Capacitor?.isNativePlatform?.()) {
+  import("@capacitor/splash-screen")
+    .then(({ SplashScreen }) => SplashScreen.hide())
+    .catch(() => {});
 }
