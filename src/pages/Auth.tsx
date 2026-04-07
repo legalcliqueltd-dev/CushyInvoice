@@ -285,9 +285,18 @@ export default function Auth() {
       return;
     }
 
-    const oauthError = await startManagedGoogleSignIn();
-    if (oauthError) {
-      toast({ title: "Google Sign-In Error", description: oauthError.message, variant: "destructive" });
+    // Web: use direct Supabase OAuth (managed /~oauth doesn't work on custom domains)
+    const { error: webOauthErr } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${APP_DOMAIN}/auth`,
+        queryParams: {
+          prompt: "select_account",
+        },
+      },
+    });
+    if (webOauthErr) {
+      toast({ title: "Google Sign-In Error", description: webOauthErr.message, variant: "destructive" });
       setLoading(false);
     }
   };
