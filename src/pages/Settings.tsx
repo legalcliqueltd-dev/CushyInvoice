@@ -69,6 +69,8 @@ export default function Settings() {
   const [logoDialogOpen, setLogoDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [deleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
+  const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
   const { 
     subscription, 
     loading: subscriptionLoading, 
@@ -984,6 +986,37 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Delete Account */}
+            <Card className="neo-card-subtle border-destructive/20">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <Trash2 className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg text-destructive">Delete Account</CardTitle>
+                    <CardDescription>
+                      Permanently delete your account and all data
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-6 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  This action is <strong>permanent and irreversible</strong>. All your invoices, clients, products, templates, and profile data will be deleted.
+                </p>
+                <Button
+                  variant="destructive"
+                  onClick={() => setDeleteAccountDialogOpen(true)}
+                  className="w-full sm:w-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete My Account
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
@@ -1018,6 +1051,43 @@ export default function Settings() {
                 }}
               >
                 Continue to Cancel
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Account Dialog */}
+        <AlertDialog open={deleteAccountDialogOpen} onOpenChange={setDeleteAccountDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Account Permanently</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete your account and all associated data including invoices, clients, products, expenses, templates, and payment records. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteAccountLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive hover:bg-destructive/90"
+                disabled={deleteAccountLoading}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setDeleteAccountLoading(true);
+                  try {
+                    const { error } = await supabase.functions.invoke("delete-account");
+                    if (error) throw error;
+                    await supabase.auth.signOut();
+                    toast({ title: "Account deleted", description: "Your account and all data have been permanently deleted." });
+                    window.location.href = "/";
+                  } catch (err: any) {
+                    toast({ title: "Error", description: err.message || "Failed to delete account", variant: "destructive" });
+                  } finally {
+                    setDeleteAccountLoading(false);
+                    setDeleteAccountDialogOpen(false);
+                  }
+                }}
+              >
+                {deleteAccountLoading ? "Deleting..." : "Delete Permanently"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

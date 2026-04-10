@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Zap, Star, Shield, CreditCard, Globe } from "lucide-react";
+import { CheckCircle, Zap, Star, Shield, CreditCard, Globe, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -66,8 +66,16 @@ const PLANS = [
 const Subscribe = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [provider, setProvider] = useState<PaymentProvider>("stripe");
+  const [isIOSNative, setIsIOSNative] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const cap = (window as any).Capacitor;
+    if (cap?.getPlatform?.() === "ios") {
+      setIsIOSNative(true);
+    }
+  }, []);
 
   const handleSubscribe = async (planId: string) => {
     try {
@@ -138,105 +146,116 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {/* Payment Provider Toggle */}
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-1 p-1 rounded-full bg-muted neo-card-subtle">
-            <button
-              onClick={() => setProvider("stripe")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                provider === "stripe"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <CreditCard className="h-4 w-4" />
-              <span>Stripe (International)</span>
-            </button>
-            <button
-              onClick={() => setProvider("paystack")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                provider === "paystack"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Globe className="h-4 w-4" />
-              <span>Paystack (Africa)</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Plan Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {PLANS.map((plan) => {
-            const Icon = plan.icon;
-            const pricing = provider === "stripe" ? plan.stripe : plan.paystack;
-            return (
-              <div
-                key={plan.id}
-                className={`relative neo-card-subtle rounded-xl bg-card p-6 flex flex-col gap-6 ${
-                  plan.popular ? "border-primary" : ""
+        {/* Payment Provider Toggle — hidden on iOS */}
+        {!isIOSNative && (
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-muted neo-card-subtle">
+              <button
+                onClick={() => setProvider("stripe")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                  provider === "stripe"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {/* Popular badge */}
-                {plan.popular && (
-                  <div className="absolute -top-3 right-4">
-                    <span className="neo-btn-subtle rounded-full bg-primary text-primary-foreground px-4 py-1 text-xs font-bold uppercase tracking-wide">
-                      Popular
-                    </span>
-                  </div>
-                )}
+                <CreditCard className="h-4 w-4" />
+                <span>Stripe (International)</span>
+              </button>
+              <button
+                onClick={() => setProvider("paystack")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                  provider === "paystack"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Globe className="h-4 w-4" />
+                <span>Paystack (Africa)</span>
+              </button>
+            </div>
+          </div>
+        )}
 
-                {/* Icon + Name */}
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h2 className="text-xl font-bold text-foreground">{plan.name}</h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{plan.subtitle}</p>
-                </div>
-
-                {/* Price */}
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-foreground">{pricing.price}</span>
-                  <span className="text-muted-foreground text-lg">{pricing.period}</span>
-                </div>
-
-                {/* Trial bar */}
-                <div className="w-full rounded-full bg-success/90 py-2 px-4 text-center">
-                  <span className="text-sm font-semibold text-white">7 days free</span>
-                </div>
-
-                {/* Features */}
-                <ul className="space-y-3 flex-1">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA */}
-                <div className="space-y-2">
-                  <Button
-                    className="w-full neo-btn-subtle bg-foreground text-background hover:bg-foreground/90 font-semibold"
-                    size="lg"
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={loading !== null}
-                  >
-                    {loading === plan.id ? "Processing..." : "Start 7-Day Free Trial"}
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    No credit card required • Cancel anytime
-                  </p>
-                </div>
+        {/* iOS native message */}
+        {isIOSNative && (
+          <div className="neo-card-subtle rounded-xl bg-card p-6 text-center space-y-3">
+            <div className="flex justify-center">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Info className="h-6 w-6 text-primary" />
               </div>
-            );
-          })}
-        </div>
+            </div>
+            <h2 className="text-xl font-bold text-foreground">Subscribe via Web</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              To subscribe to CushyInvoice, please visit <strong>cushyinvoice.com</strong> from your browser. Subscriptions purchased on the web will automatically activate in the app.
+            </p>
+            <Button variant="outline" onClick={() => navigate("/dashboard")}>
+              Back to Dashboard
+            </Button>
+          </div>
+        )}
+
+        {/* Plan Cards — hidden on iOS native */}
+        {!isIOSNative && (
+          <div className="grid md:grid-cols-2 gap-6">
+            {PLANS.map((plan) => {
+              const Icon = plan.icon;
+              const pricing = provider === "stripe" ? plan.stripe : plan.paystack;
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative neo-card-subtle rounded-xl bg-card p-6 flex flex-col gap-6 ${
+                    plan.popular ? "border-primary" : ""
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 right-4">
+                      <span className="neo-btn-subtle rounded-full bg-primary text-primary-foreground px-4 py-1 text-xs font-bold uppercase tracking-wide">
+                        Popular
+                      </span>
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <h2 className="text-xl font-bold text-foreground">{plan.name}</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{plan.subtitle}</p>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-foreground">{pricing.price}</span>
+                    <span className="text-muted-foreground text-lg">{pricing.period}</span>
+                  </div>
+                  <div className="w-full rounded-full bg-success/90 py-2 px-4 text-center">
+                    <span className="text-sm font-semibold text-white">7 days free</span>
+                  </div>
+                  <ul className="space-y-3 flex-1">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="space-y-2">
+                    <Button
+                      className="w-full neo-btn-subtle bg-foreground text-background hover:bg-foreground/90 font-semibold"
+                      size="lg"
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={loading !== null}
+                    >
+                      {loading === plan.id ? "Processing..." : "Start 7-Day Free Trial"}
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      No credit card required • Cancel anytime
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Back link */}
         <div className="text-center">
