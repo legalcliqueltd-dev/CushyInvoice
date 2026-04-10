@@ -146,33 +146,35 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {/* Payment Provider Toggle */}
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-1 p-1 rounded-full bg-muted neo-card-subtle">
-            <button
-              onClick={() => setProvider("stripe")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                provider === "stripe"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <CreditCard className="h-4 w-4" />
-              <span>Stripe (International)</span>
-            </button>
-            <button
-              onClick={() => setProvider("paystack")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                provider === "paystack"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Globe className="h-4 w-4" />
-              <span>Paystack (Africa)</span>
-            </button>
+        {/* Payment Provider Toggle — hidden on iOS */}
+        {!isIOSNative && (
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-muted neo-card-subtle">
+              <button
+                onClick={() => setProvider("stripe")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                  provider === "stripe"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <CreditCard className="h-4 w-4" />
+                <span>Stripe (International)</span>
+              </button>
+              <button
+                onClick={() => setProvider("paystack")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                  provider === "paystack"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Globe className="h-4 w-4" />
+                <span>Paystack (Africa)</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* iOS native message */}
         {isIOSNative && (
