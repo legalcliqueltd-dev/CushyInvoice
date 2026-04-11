@@ -303,8 +303,31 @@ export default function Auth() {
 
   const handleAppleSignIn = async () => {
     setLoading(true);
+    const isCapacitor = !!(window as any).Capacitor;
 
     try {
+      if (isCapacitor) {
+        // Native: use Supabase OAuth with browser redirect (same pattern as Google fallback)
+        const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
+          provider: "apple",
+          options: {
+            redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (oauthErr) {
+          toast({ title: "Apple Sign-In Error", description: oauthErr.message, variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+        if (data?.url) {
+          await openOAuthUrl(data.url);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Web: use Lovable managed OAuth
       const result = await lovable.auth.signInWithOAuth("apple", {
         redirect_uri: `${APP_DOMAIN}/auth`,
       });
@@ -316,12 +339,10 @@ export default function Auth() {
       }
 
       if (result.redirected) {
-        // Browser will redirect to Apple — just return
         return;
       }
 
-      // Tokens received and session set — user is authenticated
-      // onAuthStateChange will handle navigation
+      // Tokens received and session set — onAuthStateChange handles navigation
     } catch (error: any) {
       toast({ title: "Apple Sign-In Error", description: error.message || "An unexpected error occurred.", variant: "destructive" });
     } finally {
