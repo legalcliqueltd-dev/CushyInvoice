@@ -318,7 +318,7 @@ export default function Auth() {
 
         const params = new URLSearchParams({
           provider: "apple",
-          redirect_uri: `${APP_DOMAIN}/auth-mobile-callback.html`,
+          redirect_uri: `https://cushyinvoice.lovable.app/auth-mobile-callback.html`,
           state,
         });
 
