@@ -305,15 +305,40 @@ export default function Auth() {
     setLoading(true);
     const isCapacitor = !!(window as any).Capacitor;
 
-    // Use Lovable managed OAuth for Apple on all platforms.
-    // On native Capacitor, redirect back to the webview's own origin (preview URL)
-    // so the session tokens are received in the same context.
-    // On web, redirect to the custom domain.
-    const redirectUri = isCapacitor ? window.location.origin : `${APP_DOMAIN}/auth`;
+    if (isCapacitor) {
+      // Native: Use Supabase OAuth with browser-based flow (same pattern as Google fallback).
+      // Redirect to the static mobile callback page which forwards tokens via custom scheme.
+      try {
+        const result = await lovable.auth.signInWithOAuth("apple", {
+          redirect_uri: `${APP_DOMAIN}/auth-mobile-callback.html`,
+        });
 
+        if (result.error) {
+          toast({ title: "Apple Sign-In Error", description: result.error.message || "Failed to sign in with Apple.", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+
+        if (result.redirected) {
+          // The managed OAuth will redirect the webview — but on native we need to 
+          // intercept and open in external browser instead. This is handled automatically
+          // by the Lovable SDK redirect. The callback page will forward back via custom scheme.
+          return;
+        }
+
+        // Tokens received directly — session set by lovable module
+      } catch (error: any) {
+        toast({ title: "Apple Sign-In Error", description: error.message || "An unexpected error occurred.", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Web: use Lovable managed OAuth with custom domain redirect
     try {
       const result = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: redirectUri,
+        redirect_uri: `${APP_DOMAIN}/auth`,
       });
 
       if (result.error) {
@@ -323,11 +348,8 @@ export default function Auth() {
       }
 
       if (result.redirected) {
-        // Browser/webview will redirect to Apple — just return
         return;
       }
-
-      // Tokens received and session set — onAuthStateChange handles navigation
     } catch (error: any) {
       toast({ title: "Apple Sign-In Error", description: error.message || "An unexpected error occurred.", variant: "destructive" });
     } finally {
