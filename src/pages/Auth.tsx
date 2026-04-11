@@ -305,31 +305,15 @@ export default function Auth() {
     setLoading(true);
     const isCapacitor = !!(window as any).Capacitor;
 
-    try {
-      if (isCapacitor) {
-        // Native: use Supabase OAuth with browser redirect (same pattern as Google fallback)
-        const { data, error: oauthErr } = await supabase.auth.signInWithOAuth({
-          provider: "apple",
-          options: {
-            redirectTo: `${APP_DOMAIN}/auth-mobile-callback.html`,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (oauthErr) {
-          toast({ title: "Apple Sign-In Error", description: oauthErr.message, variant: "destructive" });
-          setLoading(false);
-          return;
-        }
-        if (data?.url) {
-          await openOAuthUrl(data.url);
-        }
-        setLoading(false);
-        return;
-      }
+    // Use Lovable managed OAuth for Apple on all platforms.
+    // On native Capacitor, redirect back to the webview's own origin (preview URL)
+    // so the session tokens are received in the same context.
+    // On web, redirect to the custom domain.
+    const redirectUri = isCapacitor ? window.location.origin : `${APP_DOMAIN}/auth`;
 
-      // Web: use Lovable managed OAuth
+    try {
       const result = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: `${APP_DOMAIN}/auth`,
+        redirect_uri: redirectUri,
       });
 
       if (result.error) {
@@ -339,6 +323,7 @@ export default function Auth() {
       }
 
       if (result.redirected) {
+        // Browser/webview will redirect to Apple — just return
         return;
       }
 
