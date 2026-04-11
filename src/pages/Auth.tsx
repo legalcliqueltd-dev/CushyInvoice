@@ -306,27 +306,29 @@ export default function Auth() {
     const isCapacitor = !!(window as any).Capacitor;
 
     if (isCapacitor) {
-      // Native: Use Supabase OAuth with browser-based flow (same pattern as Google fallback).
-      // Redirect to the static mobile callback page which forwards tokens via custom scheme.
+      // Native: Manually construct the Lovable OAuth broker URL and open it
+      // in an external browser via @capacitor/browser. The lovable SDK's
+      // signInWithOAuth() navigates the webview to /~oauth/initiate which
+      // causes a 404 because that path is only handled by Lovable's proxy.
+      // Instead, we build the full URL with the published domain and open externally.
       try {
-        const result = await lovable.auth.signInWithOAuth("apple", {
+        const state = [...crypto.getRandomValues(new Uint8Array(16))]
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+
+        const params = new URLSearchParams({
+          provider: "apple",
           redirect_uri: `${APP_DOMAIN}/auth-mobile-callback.html`,
+          state,
         });
 
-        if (result.error) {
-          toast({ title: "Apple Sign-In Error", description: result.error.message || "Failed to sign in with Apple.", variant: "destructive" });
-          setLoading(false);
-          return;
-        }
+        const oauthUrl = `${APP_DOMAIN}/~oauth/initiate?${params.toString()}`;
+        console.log("[AppleAuth] Opening OAuth URL in external browser:", oauthUrl);
 
-        if (result.redirected) {
-          // The managed OAuth will redirect the webview — but on native we need to 
-          // intercept and open in external browser instead. This is handled automatically
-          // by the Lovable SDK redirect. The callback page will forward back via custom scheme.
-          return;
-        }
-
-        // Tokens received directly — session set by lovable module
+        await openOAuthUrl(oauthUrl);
+        // The external browser will complete Apple auth, redirect to
+        // auth-mobile-callback.html, which forwards tokens via cushyinvoice:// scheme.
+        // DeepLinkHandler picks up the deep link and establishes the session.
       } catch (error: any) {
         toast({ title: "Apple Sign-In Error", description: error.message || "An unexpected error occurred.", variant: "destructive" });
       } finally {
