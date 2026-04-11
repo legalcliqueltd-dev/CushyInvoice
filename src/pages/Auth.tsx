@@ -322,7 +322,8 @@ export default function Auth() {
           state,
         });
 
-        const oauthUrl = `${APP_DOMAIN}/~oauth/initiate?${params.toString()}`;
+        // Use .lovable.app domain for OAuth broker — /~oauth/ only works on Lovable's proxy, not custom domains
+        const oauthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?${params.toString()}`;
         console.log("[AppleAuth] Opening OAuth URL in external browser:", oauthUrl);
 
         await openOAuthUrl(oauthUrl);
