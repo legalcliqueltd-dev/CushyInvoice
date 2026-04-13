@@ -333,6 +333,23 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
 
           <Button
             variant="outline"
+            className="w-full justify-start h-12 border-primary/30 bg-primary/5"
+            onClick={handleCopyPaymentLink}
+            disabled={loading !== null}
+          >
+            {loading === 'pay-link' ? (
+              <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+            ) : (
+              <CreditCard className="h-5 w-5 mr-3 text-primary" />
+            )}
+            <div className="text-left">
+              <div className="font-medium">Copy Payment Link</div>
+              <div className="text-xs text-muted-foreground">Send this link so clients can pay online (Apple Pay supported)</div>
+            </div>
+          </Button>
+
+          <Button
+            variant="outline"
             className="w-full justify-start h-12"
             onClick={handleCopyLink}
             disabled={loading !== null}
