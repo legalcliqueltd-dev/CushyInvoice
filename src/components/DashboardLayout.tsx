@@ -102,9 +102,31 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     });
   };
 
-  const userInitials = session?.user?.email
-    ? session.user.email.substring(0, 2).toUpperCase()
-    : "U";
+  const getUserDisplayName = () => {
+    const meta = session?.user?.user_metadata;
+    const provider = session?.user?.app_metadata?.provider;
+    
+    if (provider === "apple") {
+      return meta?.full_name || meta?.name || "Apple Account";
+    }
+    
+    return meta?.full_name || meta?.name || session?.user?.email || "";
+  };
+
+  const displayName = getUserDisplayName();
+
+  const userInitials = (() => {
+    const meta = session?.user?.user_metadata;
+    const name = meta?.full_name || meta?.name;
+    if (name) {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+      return name.substring(0, 2).toUpperCase();
+    }
+    return session?.user?.email
+      ? session.user.email.substring(0, 2).toUpperCase()
+      : "U";
+  })();
 
   if (loading) {
     return (
