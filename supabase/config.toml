@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.manage-paystack-subscription]
 verify_jwt = false
+
+[functions.test-payment]
+verify_jwt = false
