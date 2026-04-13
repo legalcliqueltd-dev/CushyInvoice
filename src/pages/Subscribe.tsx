@@ -77,6 +77,20 @@ const Subscribe = () => {
     }
   }, []);
 
+  const openPaymentUrl = async (url: string) => {
+    const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
+    if (isNative) {
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url });
+      } catch {
+        window.location.href = url;
+      }
+    } else {
+      window.open(url, "_blank");
+    }
+  };
+
   const handleSubscribe = async (planId: string) => {
     try {
       setLoading(planId);
@@ -95,13 +109,13 @@ const Subscribe = () => {
           body: { priceId: plan.stripe.priceId },
         });
         if (error) throw error;
-        if (data?.url) window.open(data.url, "_blank");
+        if (data?.url) await openPaymentUrl(data.url);
       } else {
         const { data, error } = await supabase.functions.invoke("create-paystack-subscription", {
           body: { planCode: plan.paystack.planCode, amount: plan.paystack.amountInKobo },
         });
         if (error) throw error;
-        if (data?.url) window.open(data.url, "_blank");
+        if (data?.url) await openPaymentUrl(data.url);
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
