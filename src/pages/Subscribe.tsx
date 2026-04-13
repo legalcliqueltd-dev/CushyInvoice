@@ -67,8 +67,40 @@ const Subscribe = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [provider, setProvider] = useState<PaymentProvider>("stripe");
   const [isIOSNative, setIsIOSNative] = useState(false);
+  const [testEmail, setTestEmail] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkTestUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email === "akebinary@gmail.com") {
+        setTestEmail(user.email);
+      }
+    };
+    checkTestUser();
+  }, []);
+
+  const handleTestPayment = async () => {
+    try {
+      setLoading("test");
+      const { data, error } = await supabase.functions.invoke("test-payment");
+      if (error) throw error;
+      toast({
+        title: "Test Payment Activated",
+        description: data?.message || "Premium access granted for 24 hours",
+      });
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Test payment failed",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
 
   useEffect(() => {
     const cap = (window as any).Capacitor;
