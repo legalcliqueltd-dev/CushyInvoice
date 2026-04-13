@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Share2, MessageCircle, Mail, Copy, Download, Loader2, Lock, CreditCard } from "lucide-react";
+import { Share2, MessageCircle, Mail, Copy, Download, Loader2, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
 import { supabase } from "@/integrations/supabase/client";
