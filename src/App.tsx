@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import DeleteAccount from "./pages/DeleteAccount";
 import MobileAuthCallback from "./pages/MobileAuthCallback";
+import PayInvoice from "./pages/PayInvoice";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import DeepLinkHandler from "./components/DeepLinkHandler";
@@ -98,6 +99,7 @@ const App = () => (
             <Route path="/subscribe" element={<Subscribe />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-failed" element={<PaymentFailed />} />
+            <Route path="/pay/:invoiceId" element={<PayInvoice />} />
             
             {/* Protected routes - require authentication */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
