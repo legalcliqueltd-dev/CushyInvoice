@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Share2, MessageCircle, Mail, Copy, Download, Loader2, Lock } from "lucide-react";
+import { Share2, MessageCircle, Mail, Copy, Download, Loader2, Lock, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateInvoicePdf, downloadPdf } from "@/lib/generateInvoicePdf";
 import { supabase } from "@/integrations/supabase/client";
@@ -176,6 +176,27 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
     }
   };
 
+  const paymentLink = `${window.location.origin}/pay/${invoice.id}`;
+
+  const handleCopyPaymentLink = async () => {
+    setLoading('pay-link');
+    try {
+      await navigator.clipboard.writeText(paymentLink);
+      toast({
+        title: "Payment Link Copied",
+        description: "Clients can use this link to pay the invoice online.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const handleCopyLink = async () => {
     setLoading('copy');
     try {
@@ -307,6 +328,23 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
             <div className="text-left">
               <div className="font-medium">Share via WhatsApp</div>
               <div className="text-xs text-muted-foreground">Open WhatsApp with invoice details</div>
+            </div>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full justify-start h-12 border-primary/30 bg-primary/5"
+            onClick={handleCopyPaymentLink}
+            disabled={loading !== null}
+          >
+            {loading === 'pay-link' ? (
+              <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+            ) : (
+              <CreditCard className="h-5 w-5 mr-3 text-primary" />
+            )}
+            <div className="text-left">
+              <div className="font-medium">Copy Payment Link</div>
+              <div className="text-xs text-muted-foreground">Send this link so clients can pay online (Apple Pay supported)</div>
             </div>
           </Button>
 
