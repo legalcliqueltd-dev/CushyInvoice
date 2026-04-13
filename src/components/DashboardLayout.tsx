@@ -206,7 +206,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Signed in as</p>
                 <p className="text-sm font-medium truncate">
-                  {session?.user?.email}
+                  {displayName}
                 </p>
               </div>
             </div>
