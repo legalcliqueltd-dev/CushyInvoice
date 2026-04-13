@@ -203,6 +203,23 @@ const Subscribe = () => {
         )}
 
 
+        {/* iOS Native Redirect Notice */}
+        {isIOSNative && (
+          <div className="neo-card-subtle rounded-xl bg-card p-6 text-center space-y-3">
+            <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary/10">
+              <Globe className="h-6 w-6 text-primary" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Subscribe via Browser</h2>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              You'll be redirected to <strong>cushyinvoice.com</strong> in your browser to complete your subscription. 
+              If you don't have an account yet, you'll need to <strong>sign up first</strong> before subscribing.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              After subscribing, return to the app and your premium access will be activated automatically.
+            </p>
+          </div>
+        )}
+
         {/* Plan Cards */}
         <div className="grid md:grid-cols-2 gap-6">
 
