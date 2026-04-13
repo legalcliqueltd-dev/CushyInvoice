@@ -338,24 +338,13 @@ export default function Auth() {
       return;
     }
 
-    // Web: use Lovable managed OAuth with custom domain redirect
+    // Web: manually redirect to .lovable.app OAuth broker (custom domains don't proxy /~oauth/)
     try {
-      const result = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: `${APP_DOMAIN}/auth`,
-      });
-
-      if (result.error) {
-        toast({ title: "Apple Sign-In Error", description: result.error.message || "Failed to sign in with Apple.", variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-
-      if (result.redirected) {
-        return;
-      }
+      const appleOAuthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(`${APP_DOMAIN}/auth`)}`;
+      window.location.href = appleOAuthUrl;
+      return;
     } catch (error: any) {
       toast({ title: "Apple Sign-In Error", description: error.message || "An unexpected error occurred.", variant: "destructive" });
-    } finally {
       setLoading(false);
     }
   };

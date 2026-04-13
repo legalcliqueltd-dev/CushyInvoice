@@ -102,12 +102,25 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     });
   };
 
+  const isGarbledName = (name?: string): boolean => {
+    if (!name) return true;
+    if (name.includes("privaterelay.appleid.com")) return true;
+    // Check if name is just an email address
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(name)) return true;
+    // Check if name is mostly non-alphabetic (garbled IDs)
+    const alphaRatio = (name.match(/[a-zA-Z\s]/g) || []).length / name.length;
+    if (alphaRatio < 0.5 && name.length > 4) return true;
+    return false;
+  };
+
   const getUserDisplayName = () => {
     const meta = session?.user?.user_metadata;
     const provider = session?.user?.app_metadata?.provider;
     
     if (provider === "apple") {
-      return meta?.full_name || meta?.name || "Apple Account";
+      const name = meta?.full_name || meta?.name;
+      if (!name || isGarbledName(name)) return "Apple Account";
+      return name;
     }
     
     return meta?.full_name || meta?.name || session?.user?.email || "";
@@ -116,9 +129,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const displayName = getUserDisplayName();
 
   const userInitials = (() => {
+    const provider = session?.user?.app_metadata?.provider;
     const meta = session?.user?.user_metadata;
     const name = meta?.full_name || meta?.name;
-    if (name) {
+    
+    if (provider === "apple" && (!name || isGarbledName(name))) {
+      return "AA"; // Apple Account
+    }
+    
+    if (name && !isGarbledName(name)) {
       const parts = name.trim().split(/\s+/);
       if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
       return name.substring(0, 2).toUpperCase();

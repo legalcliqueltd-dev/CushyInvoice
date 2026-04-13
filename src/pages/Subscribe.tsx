@@ -190,23 +190,6 @@ const Subscribe = () => {
           </div>
         )}
 
-        {/* iOS native message */}
-        {isIOSNative && (
-          <div className="neo-card-subtle rounded-xl bg-card p-6 text-center space-y-3">
-            <div className="flex justify-center">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Info className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-foreground">Subscribe via Web</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              To subscribe to CushyInvoice, please visit <strong>cushyinvoice.com</strong> from your browser. Subscriptions purchased on the web will automatically activate in the app.
-            </p>
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
-              Back to Dashboard
-            </Button>
-          </div>
-        )}
 
         {/* Plan Cards — hidden on iOS native */}
         {!isIOSNative && (
