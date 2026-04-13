@@ -314,6 +314,25 @@ const Subscribe = () => {
             })}
           </div>
 
+        {/* Test Payment - Only for admin */}
+        {testEmail && (
+          <div className="neo-card-subtle rounded-xl bg-card p-4 text-center space-y-3 border-dashed border-2 border-yellow-500/30">
+            <div className="flex items-center justify-center gap-2 text-yellow-600 dark:text-yellow-400">
+              <FlaskConical className="h-4 w-4" />
+              <span className="text-sm font-semibold">Developer Test Mode</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Activate 24h premium without payment (one-time test)</p>
+            <Button
+              variant="outline"
+              className="border-yellow-500/50 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+              onClick={handleTestPayment}
+              disabled={loading !== null}
+            >
+              {loading === "test" ? "Activating..." : "Activate Test Premium (24h)"}
+            </Button>
+          </div>
+        )}
+
         {/* Back link */}
         <div className="text-center">
           <Button variant="ghost" onClick={() => navigate("/")}>
