@@ -104,7 +104,7 @@ serve(async (req) => {
       }
 
       let planType = profile?.plan_type || 'trial';
-      let isPremium = false;
+      let trialActive = false;
       
       // Check if trial has expired
       if (planType === 'trial' && profile?.trial_end_date) {
@@ -120,15 +120,15 @@ serve(async (req) => {
             })
             .eq('id', user.id);
         } else {
-          isPremium = true;
+          trialActive = true;
         }
       }
 
       return new Response(JSON.stringify({ 
-        subscribed: isPremium,
+        subscribed: false,
         status: 'inactive',
         plan_type: planType,
-        is_premium: isPremium,
+        is_premium: trialActive,
         trial_end: profile?.trial_end_date
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

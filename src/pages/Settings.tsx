@@ -682,7 +682,7 @@ export default function Settings() {
                 </div>
 
                 <div className="pt-4 border-t space-y-3">
-                  {subscription.subscribed ? (
+                  {subscription.subscribed && (subscription.provider === "stripe" || subscription.provider === "paystack") ? (
                     <>
                       <div className="flex flex-wrap gap-2">
                         {subscription.provider === "paystack" ? (
@@ -733,6 +733,19 @@ export default function Settings() {
                         }
                       </p>
                     </>
+                  ) : subscription.subscribed ? (
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        onClick={checkSubscription} 
+                        variant="outline"
+                        size="icon"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Your premium access is active
+                      </p>
+                    </div>
                   ) : (
                     <>
                       <Button 
