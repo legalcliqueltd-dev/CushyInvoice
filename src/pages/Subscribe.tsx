@@ -95,6 +95,18 @@ const Subscribe = () => {
     try {
       setLoading(planId);
 
+      // On iOS native, open the web subscribe page in Safari
+      if (isIOSNative) {
+        try {
+          const { Browser } = await import("@capacitor/browser");
+          await Browser.open({ url: "https://cushyinvoice.com/subscribe" });
+        } catch {
+          window.location.href = "https://cushyinvoice.com/subscribe";
+        }
+        setLoading(null);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/auth");
@@ -191,9 +203,9 @@ const Subscribe = () => {
         )}
 
 
-        {/* Plan Cards — hidden on iOS native */}
-        {!isIOSNative && (
-          <div className="grid md:grid-cols-2 gap-6">
+        {/* Plan Cards */}
+        <div className="grid md:grid-cols-2 gap-6">
+
             {PLANS.map((plan) => {
               const Icon = plan.icon;
               const pricing = provider === "stripe" ? plan.stripe : plan.paystack;
