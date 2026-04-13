@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Zap, Star, Shield, CreditCard, Globe } from "lucide-react";
+import { CheckCircle, Zap, Star, Shield, CreditCard, Globe, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -67,8 +67,40 @@ const Subscribe = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [provider, setProvider] = useState<PaymentProvider>("stripe");
   const [isIOSNative, setIsIOSNative] = useState(false);
+  const [testEmail, setTestEmail] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkTestUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email === "akebinary@gmail.com") {
+        setTestEmail(user.email);
+      }
+    };
+    checkTestUser();
+  }, []);
+
+  const handleTestPayment = async () => {
+    try {
+      setLoading("test");
+      const { data, error } = await supabase.functions.invoke("test-payment");
+      if (error) throw error;
+      toast({
+        title: "Test Payment Activated",
+        description: data?.message || "Premium access granted for 24 hours",
+      });
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Test payment failed",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
 
   useEffect(() => {
     const cap = (window as any).Capacitor;
@@ -203,6 +235,23 @@ const Subscribe = () => {
         )}
 
 
+        {/* iOS Native Redirect Notice */}
+        {isIOSNative && (
+          <div className="neo-card-subtle rounded-xl bg-card p-6 text-center space-y-3">
+            <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary/10">
+              <Globe className="h-6 w-6 text-primary" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Subscribe via Browser</h2>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              You'll be redirected to <strong>cushyinvoice.com</strong> in your browser to complete your subscription. 
+              If you don't have an account yet, you'll need to <strong>sign up first</strong> before subscribing.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              After subscribing, return to the app and your premium access will be activated automatically.
+            </p>
+          </div>
+        )}
+
         {/* Plan Cards */}
         <div className="grid md:grid-cols-2 gap-6">
 
@@ -264,6 +313,25 @@ const Subscribe = () => {
               );
             })}
           </div>
+
+        {/* Test Payment - Only for admin */}
+        {testEmail && (
+          <div className="neo-card-subtle rounded-xl bg-card p-4 text-center space-y-3 border-dashed border-2 border-yellow-500/30">
+            <div className="flex items-center justify-center gap-2 text-yellow-600 dark:text-yellow-400">
+              <FlaskConical className="h-4 w-4" />
+              <span className="text-sm font-semibold">Developer Test Mode</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Activate 24h premium without payment (one-time test)</p>
+            <Button
+              variant="outline"
+              className="border-yellow-500/50 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+              onClick={handleTestPayment}
+              disabled={loading !== null}
+            >
+              {loading === "test" ? "Activating..." : "Activate Test Premium (24h)"}
+            </Button>
+          </div>
+        )}
 
         {/* Back link */}
         <div className="text-center">
