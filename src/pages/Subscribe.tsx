@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Zap, Star, Shield, CreditCard, Globe, Info } from "lucide-react";
+import { CheckCircle, Zap, Star, Shield, CreditCard, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -94,6 +94,18 @@ const Subscribe = () => {
   const handleSubscribe = async (planId: string) => {
     try {
       setLoading(planId);
+
+      // On iOS native, open the web subscribe page in Safari
+      if (isIOSNative) {
+        try {
+          const { Browser } = await import("@capacitor/browser");
+          await Browser.open({ url: "https://cushyinvoice.com/subscribe" });
+        } catch {
+          window.location.href = "https://cushyinvoice.com/subscribe";
+        }
+        setLoading(null);
+        return;
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -190,27 +202,10 @@ const Subscribe = () => {
           </div>
         )}
 
-        {/* iOS native message */}
-        {isIOSNative && (
-          <div className="neo-card-subtle rounded-xl bg-card p-6 text-center space-y-3">
-            <div className="flex justify-center">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Info className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-foreground">Subscribe via Web</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              To subscribe to CushyInvoice, please visit <strong>cushyinvoice.com</strong> from your browser. Subscriptions purchased on the web will automatically activate in the app.
-            </p>
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
-              Back to Dashboard
-            </Button>
-          </div>
-        )}
 
-        {/* Plan Cards — hidden on iOS native */}
-        {!isIOSNative && (
-          <div className="grid md:grid-cols-2 gap-6">
+        {/* Plan Cards */}
+        <div className="grid md:grid-cols-2 gap-6">
+
             {PLANS.map((plan) => {
               const Icon = plan.icon;
               const pricing = provider === "stripe" ? plan.stripe : plan.paystack;
@@ -269,7 +264,6 @@ const Subscribe = () => {
               );
             })}
           </div>
-        )}
 
         {/* Back link */}
         <div className="text-center">
