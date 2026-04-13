@@ -264,7 +264,6 @@ const Subscribe = () => {
               );
             })}
           </div>
-        )}
 
         {/* Back link */}
         <div className="text-center">
