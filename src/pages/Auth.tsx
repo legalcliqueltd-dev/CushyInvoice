@@ -340,7 +340,7 @@ export default function Auth() {
 
     // Web: manually redirect to .lovable.app OAuth broker (custom domains don't proxy /~oauth/)
     try {
-      const appleOAuthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(`${APP_DOMAIN}/auth`)}`;
+      const appleOAuthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(`https://cushyinvoice.lovable.app/auth`)}`;
       window.location.href = appleOAuthUrl;
       return;
     } catch (error: any) {
