@@ -77,6 +77,20 @@ const Subscribe = () => {
     }
   }, []);
 
+  const openPaymentUrl = async (url: string) => {
+    const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
+    if (isNative) {
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url });
+      } catch {
+        window.location.href = url;
+      }
+    } else {
+      window.open(url, "_blank");
+    }
+  };
+
   const handleSubscribe = async (planId: string) => {
     try {
       setLoading(planId);
