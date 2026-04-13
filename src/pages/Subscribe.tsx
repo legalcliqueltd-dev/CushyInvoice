@@ -95,13 +95,13 @@ const Subscribe = () => {
           body: { priceId: plan.stripe.priceId },
         });
         if (error) throw error;
-        if (data?.url) window.open(data.url, "_blank");
+        if (data?.url) await openPaymentUrl(data.url);
       } else {
         const { data, error } = await supabase.functions.invoke("create-paystack-subscription", {
           body: { planCode: plan.paystack.planCode, amount: plan.paystack.amountInKobo },
         });
         if (error) throw error;
-        if (data?.url) window.open(data.url, "_blank");
+        if (data?.url) await openPaymentUrl(data.url);
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
