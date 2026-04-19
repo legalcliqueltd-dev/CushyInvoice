@@ -310,19 +310,15 @@ const Subscribe = () => {
         )}
 
 
-        {/* iOS Native Redirect Notice */}
+        {/* iOS App Store Notice */}
         {isIOSNative && (
-          <div className="neo-card-subtle rounded-xl bg-card p-6 text-center space-y-3">
-            <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary/10">
-              <Globe className="h-6 w-6 text-primary" />
+          <div className="neo-card-subtle rounded-xl bg-card p-4 text-center space-y-2">
+            <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary/10">
+              <CreditCard className="h-5 w-5 text-primary" />
             </div>
-            <h2 className="text-lg font-semibold text-foreground">Subscribe via Browser</h2>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              You'll be redirected to <strong>cushyinvoice.com</strong> in your browser to complete your subscription. 
-              If you don't have an account yet, you'll need to <strong>sign up first</strong> before subscribing.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              After subscribing, return to the app and your premium access will be activated automatically.
+            <h2 className="text-base font-semibold text-foreground">Secure In-App Purchase</h2>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Billed through your Apple ID. Manage or cancel anytime in iPhone Settings → Apple ID → Subscriptions.
             </p>
           </div>
         )}
@@ -332,7 +328,23 @@ const Subscribe = () => {
 
             {PLANS.map((plan) => {
               const Icon = plan.icon;
-              const pricing = provider === "stripe" ? plan.stripe : plan.paystack;
+              let pricing: { price: string; period: string };
+
+              if (isIOSNative) {
+                const targetId = plan.id === "yearly" ? "$rc_annual" : "$rc_monthly";
+                const pkg =
+                  rc.offering?.availablePackages.find((p: any) => p.identifier === targetId) ||
+                  rc.offering?.availablePackages.find((p: any) =>
+                    plan.id === "yearly" ? p.packageType === "ANNUAL" : p.packageType === "MONTHLY"
+                  );
+                pricing = {
+                  price: pkg?.product?.priceString ?? plan.stripe.price,
+                  period: plan.id === "yearly" ? "/year" : "/month",
+                };
+              } else {
+                pricing = provider === "stripe" ? plan.stripe : plan.paystack;
+              }
+
               return (
                 <div
                   key={plan.id}
@@ -376,9 +388,13 @@ const Subscribe = () => {
                       className="w-full neo-btn-subtle bg-foreground text-background hover:bg-foreground/90 font-semibold"
                       size="lg"
                       onClick={() => handleSubscribe(plan.id)}
-                      disabled={loading !== null}
+                      disabled={loading !== null || (isIOSNative && !rc.ready)}
                     >
-                      {loading === plan.id ? "Processing..." : "Start 7-Day Free Trial"}
+                      {loading === plan.id
+                        ? "Processing..."
+                        : isIOSNative && !rc.ready
+                          ? "Loading..."
+                          : "Start 7-Day Free Trial"}
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">
                       No credit card required • Cancel anytime
@@ -388,6 +404,22 @@ const Subscribe = () => {
               );
             })}
           </div>
+
+        {/* Restore Purchases — required by Apple */}
+        {isIOSNative && (
+          <div className="text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRestore}
+              disabled={loading !== null}
+              className="text-muted-foreground"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading === "restore" ? "animate-spin" : ""}`} />
+              {loading === "restore" ? "Restoring..." : "Restore Purchases"}
+            </Button>
+          </div>
+        )}
 
         {/* Test Payment - Only for admin */}
         {testEmail && (
