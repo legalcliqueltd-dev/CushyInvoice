@@ -40,10 +40,24 @@ export const useSubscription = () => {
         return;
       }
 
+      // On iOS native, check RevenueCat entitlement first and sync if active
+      if (isIOSNative()) {
+        try {
+          await initRevenueCat(user.id);
+          const info = await getCustomerInfo();
+          if (hasPremiumEntitlement(info)) {
+            // Sync to backend so other devices/web see the premium status
+            await supabase.functions.invoke("revenuecat-sync");
+          }
+        } catch (err) {
+          if (import.meta.env.DEV) console.warn("[useSubscription] RC check failed:", err);
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke("check-subscription");
-      
+
       if (error) throw error;
-      
+
       if (data) {
         setSubscription({
           subscribed: data.subscribed || false,
