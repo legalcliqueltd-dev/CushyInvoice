@@ -71,6 +71,7 @@ const Subscribe = () => {
   const [testEmail, setTestEmail] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const rc = useRevenueCat();
 
   useEffect(() => {
     const checkTestUser = async () => {
@@ -124,21 +125,94 @@ const Subscribe = () => {
     }
   };
 
-  const handleSubscribe = async (planId: string) => {
+  /** iOS in-app purchase via RevenueCat */
+  const handleIOSPurchase = async (planId: string) => {
+    if (!rc.offering) {
+      toast({
+        title: "Unavailable",
+        description: "Subscription products are not yet configured. Please try again later.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Match package by identifier — RevenueCat standard: $rc_monthly, $rc_annual
+    const targetId = planId === "yearly" ? "$rc_annual" : "$rc_monthly";
+    const pkg =
+      rc.offering.availablePackages.find((p: any) => p.identifier === targetId) ||
+      rc.offering.availablePackages.find((p: any) =>
+        planId === "yearly" ? p.packageType === "ANNUAL" : p.packageType === "MONTHLY"
+      );
+
+    if (!pkg) {
+      toast({
+        title: "Plan unavailable",
+        description: "This plan is not available right now.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(planId);
-
-      // On iOS native, open the web subscribe page in Safari
-      if (isIOSNative) {
-        try {
-          const { Browser } = await import("@capacitor/browser");
-          await Browser.open({ url: "https://cushyinvoice.com/subscribe" });
-        } catch {
-          window.location.href = "https://cushyinvoice.com/subscribe";
-        }
-        setLoading(null);
+      const result = await rc.purchase(pkg);
+      if (result.success) {
+        toast({ title: "Welcome to Premium!", description: "Your subscription is now active." });
+        setTimeout(() => navigate("/dashboard"), 1500);
+      } else {
+        toast({
+          title: "Purchase incomplete",
+          description: "We couldn't verify your subscription. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      // User cancelled is not an error
+      if (err?.code === "1" || err?.userCancelled) {
         return;
       }
+      toast({
+        title: "Purchase failed",
+        description: err?.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      setLoading("restore");
+      const result = await rc.restore();
+      if (result.success) {
+        toast({ title: "Purchases restored", description: "Your subscription is active." });
+        setTimeout(() => navigate("/dashboard"), 1500);
+      } else {
+        toast({
+          title: "No purchases found",
+          description: "We couldn't find an active subscription on this Apple ID.",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Restore failed",
+        description: err?.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleSubscribe = async (planId: string) => {
+    // iOS native → use RevenueCat in-app purchase
+    if (isIOSNative) {
+      await handleIOSPurchase(planId);
+      return;
+    }
+
+    try {
+      setLoading(planId);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
