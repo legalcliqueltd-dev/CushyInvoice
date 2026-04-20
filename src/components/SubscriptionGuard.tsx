@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode } from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,6 @@ export const SubscriptionGuard = ({
 }: SubscriptionGuardProps) => {
   const { subscription, loading } = useSubscription();
   const navigate = useNavigate();
-  const [isIOSNative, setIsIOSNative] = useState(false);
-
-  useEffect(() => {
-    const cap = (window as any).Capacitor;
-    if (cap?.getPlatform?.() === "ios") setIsIOSNative(true);
-  }, []);
 
   if (loading) {
     return (
@@ -42,20 +36,14 @@ export const SubscriptionGuard = ({
       <Alert className="neo-card-subtle border-primary/20">
         <Crown className="h-5 w-5 text-primary" />
         <AlertDescription className="flex items-center justify-between gap-4">
-          <span className="flex-1">
-            {isIOSNative
-              ? "This feature requires a premium subscription. Visit cushyinvoice.com to subscribe."
-              : message}
-          </span>
-          {!isIOSNative && (
-            <Button 
-              size="sm" 
-              onClick={() => navigate('/subscribe')}
-              className="neo-btn-subtle"
-            >
-              Upgrade Now
-            </Button>
-          )}
+          <span className="flex-1">{message}</span>
+          <Button
+            size="sm"
+            onClick={() => navigate('/subscribe')}
+            className="neo-btn-subtle"
+          >
+            Upgrade Now
+          </Button>
         </AlertDescription>
       </Alert>
     );

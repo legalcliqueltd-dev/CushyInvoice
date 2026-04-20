@@ -14,6 +14,32 @@ export const useRevenueCat = () => {
   const [offering, setOffering] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  const refetchOfferings = useCallback(async () => {
+    if (!isIOSNative()) return null;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      await initRevenueCat(user.id);
+      const current = await getCurrentOffering();
+      console.log("[RevenueCat] offering fetched:", {
+        hasOffering: !!current,
+        identifier: current?.identifier,
+        packageCount: current?.availablePackages?.length ?? 0,
+        packages: current?.availablePackages?.map((p: any) => ({
+          id: p.identifier,
+          type: p.packageType,
+          productId: p.product?.identifier,
+          price: p.product?.priceString,
+        })),
+      });
+      setOffering(current);
+      return current;
+    } catch (err) {
+      console.error("[RevenueCat] fetch offerings failed:", err);
+      return null;
+    }
+  }, []);
+
   useEffect(() => {
     if (!isIOSNative()) {
       setReady(true);
@@ -21,22 +47,19 @@ export const useRevenueCat = () => {
     }
     let cancelled = false;
     (async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user || cancelled) return;
-        await initRevenueCat(user.id);
-        const current = await getCurrentOffering();
-        if (!cancelled) {
-          setOffering(current);
-          setReady(true);
-        }
-      } catch (err) {
-        if (import.meta.env.DEV) console.error("[RevenueCat] init failed:", err);
-        if (!cancelled) setReady(true);
+      // First attempt
+      const first = await refetchOfferings();
+      if (cancelled) return;
+      // Auto-retry once after a short delay if no offering returned
+      if (!first) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (cancelled) return;
+        await refetchOfferings();
       }
+      if (!cancelled) setReady(true);
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [refetchOfferings]);
 
   const syncToBackend = useCallback(async () => {
     try {
@@ -70,5 +93,5 @@ export const useRevenueCat = () => {
     }
   }, [syncToBackend]);
 
-  return { ready, offering, loading, purchase, restore, isIOSNative: isIOSNative() };
+  return { ready, offering, loading, purchase, restore, refetchOfferings, isIOSNative: isIOSNative() };
 };
