@@ -1,81 +1,92 @@
 
 
-# Comprehensive Fix Plan for CushyInvoice
+## Goal
 
-## Overview
-This plan covers all outstanding fixes discussed in our conversation: Apple Sign-In 404 on web, garbled display names, iOS subscription redirect, and Lovable branding removal.
+Fix four issues across the iOS app and the dashboard:
 
----
-
-## Fix 1: Apple Sign-In 404 on Custom Domain (Web)
-
-**Problem:** Clicking "Sign in with Apple" on `cushyinvoice.com` hits a 404 because `/~oauth/initiate` only works on `*.lovable.app` domains.
-
-**Current code (Auth.tsx ~line 343):** Uses `lovable.auth.signInWithOAuth("apple", ...)` which constructs the URL using the current origin (`cushyinvoice.com`).
-
-**Fix:** For web Apple Sign-In, manually redirect to the OAuth broker on the `.lovable.app` domain:
-```typescript
-const appleOAuthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(`${APP_DOMAIN}/auth`)}`;
-window.location.href = appleOAuthUrl;
-return;
-```
-The user lands back on `cushyinvoice.com/auth` after authentication, and the existing `onAuthStateChange` listener picks up the session.
-
-**File:** `src/pages/Auth.tsx` (lines 341-360)
+1. RevenueCat error "Subscription products are not yet configured" still shows on the real iOS device.
+2. Subscription dialogs (`SubscriptionGuard`, `TrialBanner`) still tell iOS users to "visit cushyinvoice.com" — this should now use the in-app purchase flow.
+3. Add a small "Current Plan" card on the Dashboard with a one-tap subscribe/manage button (all platforms).
+4. Add a back arrow at the top-left of the `/subscribe` page.
 
 ---
 
-## Fix 2: Garbled Display Name for Apple Sign-In Users
+## 1. Fix the iOS "products not configured" error
 
-**Problem:** Apple hides user names by default. When a user signs in with Apple, `user_metadata.full_name` is often empty or garbled, resulting in random characters shown as the display name.
+The error message comes from `Subscribe.tsx` when `rc.offering` is `null`. The Xcode logs show **why**: all four App Store products are still in **`READY_TO_SUBMIT`** status. RevenueCat cannot fetch them from App Store Connect until they're either:
 
-**Current code (DashboardLayout.tsx ~line 109):** Already returns "Apple Account" as fallback, but only when provider is `apple` AND `full_name`/`name` are both empty. The issue is that Apple sometimes returns an obfuscated string that isn't empty.
+- **Approved** (submitted with an app build that goes through Apple review), OR
+- **Marked "Ready for Review"** with all required metadata complete
 
-**Fix:** Update `getUserDisplayName` and `ensureProfileExists` to:
-1. First check the `profiles` table for a stored `full_name` (set during email/password signup or manually).
-2. For Apple provider, if the metadata name looks like a relay email or garbled ID (e.g., contains `privaterelay.appleid.com` or is just alphanumeric noise), fall back to "Apple Account".
-3. For Google provider, trust `user_metadata.full_name` or `name` as-is (Google always provides real names).
+This is a **configuration issue in App Store Connect**, not a code bug. To make the app usable while products are pending review, we'll improve the iOS flow:
 
-**Files:** `src/components/DashboardLayout.tsx` (lines 105-129), `src/pages/Auth.tsx` (lines 59-90)
+- **Auto-retry** loading offerings on mount (sometimes the first call fails before StoreKit is ready).
+- **Show a clear, friendly state** when offerings are unavailable — explaining products are pending Apple review — instead of a generic error toast.
+- **Add a "Refresh" button** so users can retry once products are approved without restarting the app.
+- **Log more detail** to console so you can see exactly what RevenueCat returned.
 
----
-
-## Fix 3: iOS Subscription — Redirect to Web Payment Instead of Static Message
-
-**Problem:** On iOS native, the subscribe page shows a static "Subscribe via Web" message instead of actually redirecting users to pay.
-
-**Fix:** Replace the static message with a functional flow:
-1. On iOS native, show the plan cards normally (remove `!isIOSNative` guards on plan cards).
-2. When user taps "Start 7-Day Free Trial", use `@capacitor/browser` to open `https://cushyinvoice.com/subscribe` in Safari.
-3. User completes payment on the web (Stripe/Paystack handles checkout).
-4. After payment, Stripe/Paystack redirects to `https://cushyinvoice.com/payment-success`.
-5. User manually returns to the app; subscription status syncs automatically via the database.
-
-**Key considerations:**
-- Hide the provider toggle on iOS (web page handles that).
-- The "return to app" step is manual — user closes Safari and reopens the app. No custom-scheme deep link is needed because the subscription status is stored in the database and checked on app launch.
-- No bridge page needed; the payment success page stays in Safari and the app checks subscription status independently.
-
-**File:** `src/pages/Subscribe.tsx` (lines 69-78, 163-209)
+The user-facing fix in App Store Connect (you must do this manually):
+- App Store Connect → My Apps → CushyInvoice → **In-App Purchases**
+- For each product (`cushyinvoice_premium_monthly`, `cushyinvoice_yearly`):
+  - Add localization (display name + description in English)
+  - Add a 1024×1024 review screenshot
+  - Click **"Submit for Review"** (they'll attach to your next app submission)
+  - For sandbox testing, the status only needs to be **"Waiting for Review"** — sandbox doesn't require approval
 
 ---
 
-## Fix 4: Hide "Edit with Lovable" Badge
+## 2. Update dialogs to use in-app purchases on iOS
 
-**Problem:** The Lovable badge is visible on the published site at `cushyinvoice.com`.
+Now that RevenueCat IAP is wired up, iOS users **can** subscribe inside the app — Apple compliance is satisfied. Update the two components that still send users to the browser:
 
-**Fix:** Use the `set_badge_visibility` tool to hide the badge (requires Pro plan or higher, which the project has).
+**`src/components/SubscriptionGuard.tsx`**
+- Remove the iOS-specific "visit cushyinvoice.com" text.
+- Always show the **"Upgrade Now"** button on all platforms — it navigates to `/subscribe`, which already routes to RevenueCat IAP on iOS.
 
-**No code changes needed** — this is a platform setting.
+**`src/components/TrialBanner.tsx`**
+- Same change: remove the iOS browser message and always show **"Upgrade Now"** → `/subscribe`.
 
 ---
 
-## Summary of File Changes
+## 3. Add a "Current Plan" card to the Dashboard
+
+Insert a compact card on the Dashboard (above the stats grid, below `TrialBanner`) that shows:
+
+- **Plan badge**: "Free Trial" / "Premium Monthly" / "Premium Yearly" / "Expired"
+- **Status detail**: Days left in trial, or renewal/expiry date for premium
+- **Action button**:
+  - Free trial / expired → **"Upgrade"** → navigates to `/subscribe`
+  - Active premium → **"Manage"** → navigates to `/settings` (billing tab) on web/Android, or opens iOS Settings → Apple ID → Subscriptions on iOS
+
+Visual: small horizontal card, primary-tinted icon (Crown or Zap), name + status on the left, action button on the right. Matches the existing `neo-card-subtle` style. Same UI on iOS, Android, and web.
+
+---
+
+## 4. Back arrow on `/subscribe`
+
+Add a back button in the top-left corner of the Subscribe page that calls `navigate(-1)` to return to the previous page. It will use the `ArrowLeft` icon and respect iOS safe-area-inset-top so it doesn't collide with the notch.
+
+The existing "Back to Home" button at the bottom will be removed (replaced by the top-left arrow).
+
+---
+
+## Files to change
 
 | File | Change |
-|------|--------|
-| `src/pages/Auth.tsx` | Web Apple Sign-In: manual redirect via `.lovable.app` domain |
-| `src/components/DashboardLayout.tsx` | Smarter display name logic for Apple users |
-| `src/pages/Subscribe.tsx` | iOS: redirect to web subscribe page via in-app browser |
-| Platform setting | Hide Lovable badge |
+|---|---|
+| `src/pages/Subscribe.tsx` | Add top-left back arrow (safe-area aware), remove bottom "Back to Home", improve iOS empty-offering state with retry button + clearer message, add console logging |
+| `src/components/SubscriptionGuard.tsx` | Remove iOS browser message, always show Upgrade button |
+| `src/components/TrialBanner.tsx` | Remove iOS browser message, always show Upgrade button |
+| `src/pages/Dashboard.tsx` | Add `<CurrentPlanCard />` above stats grid |
+| `src/components/CurrentPlanCard.tsx` (new) | Compact card showing plan + Upgrade/Manage button, platform-aware |
+
+No backend or database changes. No new dependencies.
+
+---
+
+## Technical notes
+
+- iOS plan detection: `useSubscription` already exposes `subscription.subscribed`, `current_plan`, `trial_end`. The card derives display state from these.
+- For the iOS "Manage" action, we use `App.openUrl({ url: "itms-apps://apps.apple.com/account/subscriptions" })` from `@capacitor/app` (already installed) which opens the Apple Subscriptions screen directly.
+- The retry on Subscribe re-runs the `getCurrentOffering()` call — no SDK re-init needed.
 
