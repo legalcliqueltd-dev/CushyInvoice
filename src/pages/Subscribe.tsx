@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Zap, Star, Shield, CreditCard, Globe, FlaskConical, RefreshCw } from "lucide-react";
+import { CheckCircle, Zap, Star, Shield, CreditCard, Globe, FlaskConical, RefreshCw, ArrowLeft, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
