@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { TrialBanner } from "@/components/TrialBanner";
 import { WelcomeTutorial } from "@/components/WelcomeTutorial";
+import { CurrentPlanCard } from "@/components/CurrentPlanCard";
 import { useSubscription } from "@/hooks/useSubscription";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -221,6 +222,9 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Current Plan */}
+        <CurrentPlanCard />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

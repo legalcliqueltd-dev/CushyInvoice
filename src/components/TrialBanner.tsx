@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -8,12 +7,6 @@ import { useNavigate } from "react-router-dom";
 export const TrialBanner = () => {
   const { subscription, trialExpired } = useSubscription();
   const navigate = useNavigate();
-  const [isIOSNative, setIsIOSNative] = useState(false);
-
-  useEffect(() => {
-    const cap = (window as any).Capacitor;
-    if (cap?.getPlatform?.() === "ios") setIsIOSNative(true);
-  }, []);
 
   if (subscription.subscribed) return null;
 
@@ -22,16 +15,10 @@ export const TrialBanner = () => {
       <Alert className="mb-6 bg-destructive/10 border-destructive/20">
         <AlertTriangle className="h-4 w-4 text-destructive" />
         <AlertDescription className="flex items-center justify-between gap-4">
-          <span>
-            {isIOSNative
-              ? "Your trial has expired. Visit cushyinvoice.com from your browser to subscribe."
-              : "Your trial has expired. Subscribe to continue downloading and sharing invoices."}
-          </span>
-          {!isIOSNative && (
-            <Button size="sm" onClick={() => navigate("/subscribe")} className="shrink-0">
-              Upgrade Now
-            </Button>
-          )}
+          <span>Your trial has expired. Subscribe to continue downloading and sharing invoices.</span>
+          <Button size="sm" onClick={() => navigate("/subscribe")} className="shrink-0">
+            Upgrade Now
+          </Button>
         </AlertDescription>
       </Alert>
     );
@@ -50,9 +37,7 @@ export const TrialBanner = () => {
       <Clock className="h-4 w-4" />
       <AlertDescription>
         You have <strong>{daysLeft}</strong> {daysLeft === 1 ? "day" : "days"} left in your free trial.
-        {isIOSNative
-          ? " Visit cushyinvoice.com from your browser to subscribe."
-          : " Subscribe before it ends to keep downloading and sharing invoices."}
+        {" "}Subscribe before it ends to keep downloading and sharing invoices.
       </AlertDescription>
     </Alert>
   );
