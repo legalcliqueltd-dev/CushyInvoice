@@ -62,10 +62,9 @@ export const CurrentPlanCard = () => {
   const handleManage = async () => {
     if (isIOSNative) {
       try {
-        const { App } = await import("@capacitor/app");
-        await App.openUrl({ url: "itms-apps://apps.apple.com/account/subscriptions" });
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url: "itms-apps://apps.apple.com/account/subscriptions" });
       } catch {
-        // Fallback: open subscribe page
         navigate("/subscribe");
       }
       return;

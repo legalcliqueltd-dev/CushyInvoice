@@ -249,8 +249,16 @@ const Subscribe = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
-      <div className="max-w-4xl w-full space-y-10">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
+      {/* Back arrow */}
+      <button
+        onClick={() => navigate(-1)}
+        aria-label="Go back"
+        className="fixed left-4 top-[calc(env(safe-area-inset-top)+1rem)] z-50 h-10 w-10 rounded-full bg-card neo-card-subtle flex items-center justify-center text-foreground hover:bg-muted transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+      <div className="max-w-4xl w-full mx-auto space-y-10">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full neo-card-subtle">
@@ -320,6 +328,48 @@ const Subscribe = () => {
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
               Billed through your Apple ID. Manage or cancel anytime in iPhone Settings → Apple ID → Subscriptions.
             </p>
+          </div>
+        )}
+
+        {/* iOS: products pending Apple review */}
+        {isIOSNative && rc.ready && !rc.offering && (
+          <div className="neo-card-subtle rounded-xl bg-card p-5 space-y-3 border-primary/20">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-semibold text-foreground">Subscriptions pending review</h3>
+                <p className="text-xs text-muted-foreground mt-1 break-words">
+                  Our subscription products are currently being reviewed by Apple. They'll be available shortly. Tap refresh to check again.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                setLoading("refresh");
+                try {
+                  const result = await rc.refetchOfferings?.();
+                  if (result) {
+                    toast({ title: "Updated", description: "Subscriptions are now available." });
+                  } else {
+                    toast({
+                      title: "Still pending",
+                      description: "Products are not yet available. Please try again later.",
+                    });
+                  }
+                } finally {
+                  setLoading(null);
+                }
+              }}
+              disabled={loading !== null}
+              className="w-full"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading === "refresh" ? "animate-spin" : ""}`} />
+              {loading === "refresh" ? "Checking..." : "Refresh"}
+            </Button>
           </div>
         )}
 
@@ -440,12 +490,6 @@ const Subscribe = () => {
           </div>
         )}
 
-        {/* Back link */}
-        <div className="text-center">
-          <Button variant="ghost" onClick={() => navigate("/")}>
-            Back to Home
-          </Button>
-        </div>
       </div>
     </div>
   );
