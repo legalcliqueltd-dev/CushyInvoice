@@ -700,7 +700,40 @@ export default function Settings() {
                 </div>
 
                 <div className="pt-4 border-t space-y-3">
-                  {subscription.subscribed && (subscription.provider === "stripe" || subscription.provider === "paystack") ? (
+                  {isIOSNative && subscription.subscribed ? (
+                    /* iOS: Apple requires all subscription management to go through Apple ID Settings */
+                    <>
+                      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+                        <h4 className="font-semibold text-sm flex items-center gap-2">
+                          <Crown className="h-4 w-4 text-primary" />
+                          Manage your subscription
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          Your subscription is billed through your Apple ID. To change your plan, update
+                          your payment method, or cancel, please use Apple's subscription settings.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={openAppleSubscriptions}
+                        className="w-full sm:w-auto"
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Open Apple Subscription Settings
+                      </Button>
+                      <Button
+                        onClick={checkSubscription}
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Refresh status
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Settings → Apple ID → Subscriptions → CushyInvoice
+                      </p>
+                    </>
+                  ) : subscription.subscribed && (subscription.provider === "stripe" || subscription.provider === "paystack") ? (
                     <>
                       <div className="flex flex-wrap gap-2">
                         {subscription.provider === "paystack" ? (
