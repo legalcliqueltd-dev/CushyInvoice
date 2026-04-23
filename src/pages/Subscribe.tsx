@@ -455,7 +455,7 @@ const Subscribe = () => {
                           : "Start 7-Day Free Trial"}
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">
-                      No credit card required • Cancel anytime
+                      {isIOSNative ? "Cancel anytime in Settings" : "No credit card required • Cancel anytime"}
                     </p>
                   </div>
                 </div>
@@ -476,6 +476,42 @@ const Subscribe = () => {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading === "restore" ? "animate-spin" : ""}`} />
               {loading === "restore" ? "Restoring..." : "Restore Purchases"}
             </Button>
+          </div>
+        )}
+
+        {/* Apple-required subscription disclosures (iOS only) */}
+        {isIOSNative && (
+          <div className="neo-card-subtle rounded-xl bg-card p-5 space-y-3 text-xs text-muted-foreground leading-relaxed">
+            <h3 className="text-sm font-semibold text-foreground">Subscription details</h3>
+            <ul className="space-y-2 list-disc pl-4">
+              <li>
+                Your free 7-day trial converts to a paid subscription automatically. The Monthly Plan
+                renews every 1 month and the Yearly Plan renews every 1 year at the price shown above.
+              </li>
+              <li>
+                Payment is charged to your Apple ID account at confirmation of purchase, and at the end
+                of the free trial period unless cancelled at least 24 hours before the end of the
+                current period.
+              </li>
+              <li>
+                Your subscription automatically renews unless auto-renew is turned off at least 24
+                hours before the end of the current period. Your account will be charged for renewal
+                within 24 hours prior to the end of the current period.
+              </li>
+              <li>
+                You can manage and cancel your subscription at any time by going to your Apple ID
+                Account Settings on your device after purchase.
+              </li>
+            </ul>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-2 text-xs">
+              <Link to="/terms" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                Terms of Use (EULA)
+              </Link>
+              <span aria-hidden="true">•</span>
+              <Link to="/privacy" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                Privacy Policy
+              </Link>
+            </div>
           </div>
         )}
 
