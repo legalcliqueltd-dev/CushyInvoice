@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Zap, Star, Shield, CreditCard, Globe, FlaskConical, RefreshCw, ArrowLeft, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useRevenueCat } from "@/hooks/useRevenueCat";
 
 type PaymentProvider = "stripe" | "paystack";
