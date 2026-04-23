@@ -71,6 +71,7 @@ export default function Settings() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [deleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
+  const [isIOSNative, setIsIOSNative] = useState(false);
   const { 
     subscription, 
     loading: subscriptionLoading, 
@@ -84,6 +85,23 @@ export default function Settings() {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  useEffect(() => {
+    const cap = (window as any).Capacitor;
+    if (cap?.getPlatform?.() === "ios") {
+      setIsIOSNative(true);
+    }
+  }, []);
+
+  const openAppleSubscriptions = async () => {
+    const url = "https://apps.apple.com/account/subscriptions";
+    try {
+      const { Browser } = await import("@capacitor/browser");
+      await Browser.open({ url });
+    } catch {
+      window.location.href = url;
+    }
+  };
 
   const fetchProfile = async () => {
     try {
