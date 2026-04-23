@@ -1102,6 +1102,10 @@ export default function Settings() {
                 className="bg-destructive hover:bg-destructive/90"
                 onClick={async () => {
                   setCancelDialogOpen(false);
+                  if (isIOSNative) {
+                    await openAppleSubscriptions();
+                    return;
+                  }
                   if (subscription.provider === "paystack") {
                     setCancelLoading(true);
                     try {
