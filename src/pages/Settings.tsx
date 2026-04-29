@@ -71,7 +71,11 @@ export default function Settings() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [deleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
-  const [isIOSNative, setIsIOSNative] = useState(false);
+  const [isIOSNative] = useState<boolean>(() => {
+    const cap = (window as any).Capacitor;
+    const platform = cap?.getPlatform?.();
+    return platform === "ios" || platform === "ipad" || (cap?.isNativePlatform?.() ?? false);
+  });
   const { 
     subscription, 
     loading: subscriptionLoading, 
@@ -84,13 +88,6 @@ export default function Settings() {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    const cap = (window as any).Capacitor;
-    if (cap?.getPlatform?.() === "ios") {
-      setIsIOSNative(true);
-    }
   }, []);
 
   const openAppleSubscriptions = async () => {
@@ -448,7 +445,7 @@ export default function Settings() {
                 </div>
               </CardHeader>
               <Separator />
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 space-y-2">
                 <button
                   onClick={() => {
                     const securityTab = document.querySelector('[value="security"]') as HTMLButtonElement;
@@ -461,6 +458,16 @@ export default function Settings() {
                     <span className="text-sm font-medium">Change Password</span>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                </button>
+                <button
+                  onClick={() => setDeleteAccountDialogOpen(true)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg border border-destructive/30 hover:bg-destructive/5 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <span className="text-sm font-medium text-destructive">Delete Account</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-destructive/60 group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </CardContent>
             </Card>

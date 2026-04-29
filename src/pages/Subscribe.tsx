@@ -67,7 +67,11 @@ const PLANS = [
 const Subscribe = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [provider, setProvider] = useState<PaymentProvider>("stripe");
-  const [isIOSNative, setIsIOSNative] = useState(false);
+  const [isIOSNative] = useState<boolean>(() => {
+    const cap = (window as any).Capacitor;
+    const platform = cap?.getPlatform?.();
+    return platform === "ios" || platform === "ipad" || (cap?.isNativePlatform?.() ?? false);
+  });
   const [testEmail, setTestEmail] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -103,13 +107,6 @@ const Subscribe = () => {
       setLoading(null);
     }
   };
-
-  useEffect(() => {
-    const cap = (window as any).Capacitor;
-    if (cap?.getPlatform?.() === "ios") {
-      setIsIOSNative(true);
-    }
-  }, []);
 
   const openPaymentUrl = async (url: string) => {
     const isNative = !!(window as any).Capacitor?.isNativePlatform?.();

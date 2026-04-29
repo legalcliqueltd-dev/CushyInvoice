@@ -326,7 +326,8 @@ export default function Auth() {
         const oauthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?${params.toString()}`;
         console.log("[AppleAuth] Opening OAuth URL in external browser:", oauthUrl);
 
-        await openOAuthUrl(oauthUrl);
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url: oauthUrl });
         // The external browser will complete Apple auth, redirect to
         // auth-mobile-callback.html, which forwards tokens via cushyinvoice:// scheme.
         // DeepLinkHandler picks up the deep link and establishes the session.

@@ -18,6 +18,8 @@ import { pipeline, env } from "@huggingface/transformers";
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
+const IS_NATIVE = !!(window as any).Capacitor?.isNativePlatform?.();
+
 interface LogoUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -126,6 +128,7 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
 
   const removeBackground = async () => {
     if (!previewUrl) return;
+    if (IS_NATIVE) return;
 
     setRemovingBg(true);
     try {
@@ -352,19 +355,21 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
                 )}
                 Apply Crop
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={removeBackground}
-                disabled={removingBg || processing}
-              >
-                {removingBg ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Eraser className="h-4 w-4 mr-2" />
-                )}
-                Remove Background
-              </Button>
+              {!IS_NATIVE && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={removeBackground}
+                  disabled={removingBg || processing}
+                >
+                  {removingBg ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Eraser className="h-4 w-4 mr-2" />
+                  )}
+                  Remove Background
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
