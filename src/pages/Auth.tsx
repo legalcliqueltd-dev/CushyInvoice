@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -10,6 +10,7 @@ import { AuthLayout } from "@/components/AuthLayout";
 import { Loader2, Mail, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { z } from "zod";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -22,12 +23,22 @@ const APP_DOMAIN = "https://cushyinvoice.com";
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+
+  // OTP state — shown after sign-up only
+  const [step, setStep] = useState<"auth" | "otp">("auth");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpValue, setOtpValue] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpPendingRef = useRef(false);
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -46,7 +57,9 @@ export default function Auth() {
             ensureProfileExists(session.user.id, session.user.email || "", session.user.user_metadata?.full_name);
           }, 0);
         }
-        navigate("/dashboard");
+        if (!otpPendingRef.current) {
+          navigate("/dashboard");
+        }
       }
     });
 
@@ -159,8 +172,14 @@ export default function Auth() {
           throw error;
         }
 
-        // Auto-confirm is enabled, so the user is signed in immediately.
-        // The onAuthStateChange listener handles redirect to dashboard.
+        // Block onAuthStateChange from navigating — we need OTP first
+        otpPendingRef.current = true;
+        setOtpEmail(validation.data.email);
+        setStep("otp");
+        setResendCooldown(60);
+
+        // Send OTP (user is now authenticated, JWT is available)
+        await supabase.functions.invoke("send-otp");
       }
     } catch (error: any) {
       if (import.meta.env.DEV) {
@@ -174,6 +193,58 @@ export default function Auth() {
 
 
 
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleVerifyOtp = async () => {
+    if (otpValue.length !== 6) return;
+    setOtpLoading(true);
+    setOtpError("");
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-otp", {
+        body: { code: otpValue },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        otpPendingRef.current = false;
+        navigate("/dashboard");
+      } else {
+        setOtpError(data?.error || "Invalid code. Please try again.");
+        setOtpValue("");
+      }
+    } catch (err: any) {
+      setOtpError(err.message || "Something went wrong.");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setOtpError("");
+    setOtpValue("");
+    try {
+      const { error } = await supabase.functions.invoke("send-otp");
+      if (error) throw error;
+      setResendCooldown(60);
+      toast({ title: "Code sent", description: "A new verification code has been sent to your email." });
+    } catch (err: any) {
+      setOtpError(err.message || "Failed to resend code.");
+    }
+  };
+
+  const handleCancelOtp = async () => {
+    otpPendingRef.current = false;
+    await supabase.auth.signOut();
+    setStep("auth");
+    setOtpValue("");
+    setOtpError("");
+    setOtpEmail("");
+  };
 
   const startManagedGoogleSignIn = async () => {
     const { error } = await lovable.auth.signInWithOAuth("google", {
@@ -349,6 +420,73 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  // OTP verification view — shown after sign-up
+  if (step === "otp") {
+    return (
+      <AuthLayout
+        title="Check your email"
+        subtitle={`We sent a 6-digit code to ${otpEmail}`}
+      >
+        <div className="space-y-6">
+          <div className="flex justify-center">
+            <InputOTP
+              maxLength={6}
+              value={otpValue}
+              onChange={(val) => {
+                setOtpValue(val);
+                setOtpError("");
+              }}
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
+
+          {otpError && (
+            <p className="text-sm text-destructive text-center">{otpError}</p>
+          )}
+
+          <Button
+            className="w-full h-11 font-medium"
+            onClick={handleVerifyOtp}
+            disabled={otpValue.length !== 6 || otpLoading}
+          >
+            {otpLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Verify
+            {!otpLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+          </Button>
+
+          <div className="text-center space-y-2">
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resendCooldown > 0}
+              className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}
+            </button>
+            <div>
+              <button
+                type="button"
+                onClick={handleCancelOtp}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="inline mr-1 h-3 w-3" />
+                Back to Sign Up
+              </button>
+            </div>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   // Forgot password view
   if (isForgotPassword) {
