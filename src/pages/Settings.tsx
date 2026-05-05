@@ -740,7 +740,7 @@ export default function Settings() {
                         Settings → Apple ID → Subscriptions → CushyInvoice
                       </p>
                     </>
-                  ) : subscription.subscribed && (subscription.provider === "stripe" || subscription.provider === "paystack") ? (
+                  ) : !isIOSNative && subscription.subscribed && (subscription.provider === "stripe" || subscription.provider === "paystack") ? (
                     <>
                       <div className="flex flex-wrap gap-2">
                         {subscription.provider === "paystack" ? (
