@@ -16,3 +16,6 @@ project(':capacitor-splash-screen').projectDir = new File('../node_modules/@capa
 
 include ':deldev-capacitor-google-auth'
 project(':deldev-capacitor-google-auth').projectDir = new File('../node_modules/@deldev/capacitor-google-auth/android')
+
+include ':revenuecat-purchases-capacitor'
+project(':revenuecat-purchases-capacitor').projectDir = new File('../node_modules/@revenuecat/purchases-capacitor/android')
