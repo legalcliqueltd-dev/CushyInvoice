@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
+import { formatMoney } from "@/utils/formatAmount";
 
 interface LineItem {
   id: string;
@@ -135,54 +136,56 @@ export function InvoicePreview({
             <p className="text-[10px] text-gray-400 uppercase font-semibold">Due Date</p>
             <p className="text-sm font-semibold mt-0.5">{format(dueDate, "MMM dd, yyyy")}</p>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-[10px] text-gray-400 uppercase font-semibold">Amount Due</p>
-            <p className="text-sm font-semibold mt-0.5">{sym}{total.toFixed(2)}</p>
+            <p className="text-sm font-semibold mt-0.5 break-all tabular-nums">{formatMoney(sym, total)}</p>
           </div>
         </div>
 
         {/* Items Table */}
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-white" style={{ backgroundColor: templateColor }}>
-              <th className="text-left py-2 px-3 font-semibold text-xs rounded-tl-lg">Description</th>
-              <th className="text-center py-2 px-3 font-semibold text-xs w-16">Qty</th>
-              <th className="text-right py-2 px-3 font-semibold text-xs w-24">Unit Price</th>
-              <th className="text-right py-2 px-3 font-semibold text-xs w-24 rounded-tr-lg">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lineItems.map((item, i) => (
-              <tr key={item.id} className={i % 2 === 1 ? "bg-gray-50" : ""}>
-                <td className="py-2 px-3 text-xs">{item.description || "—"}</td>
-                <td className="py-2 px-3 text-xs text-center">{Number(item.quantity)}</td>
-                <td className="py-2 px-3 text-xs text-right">{sym}{Number(item.unit_price).toFixed(2)}</td>
-                <td className="py-2 px-3 text-xs text-right font-medium">{sym}{Number(item.amount).toFixed(2)}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-white" style={{ backgroundColor: templateColor }}>
+                <th className="text-left py-2 px-3 font-semibold text-xs rounded-tl-lg">Description</th>
+                <th className="text-center py-2 px-3 font-semibold text-xs">Qty</th>
+                <th className="text-right py-2 px-3 font-semibold text-xs">Unit Price</th>
+                <th className="text-right py-2 px-3 font-semibold text-xs rounded-tr-lg">Amount</th>
               </tr>
-            ))}
-            {lineItems.length === 0 && (
-              <tr>
-                <td colSpan={4} className="py-4 text-center text-xs text-gray-400 italic">No items added</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {lineItems.map((item, i) => (
+                <tr key={item.id} className={i % 2 === 1 ? "bg-gray-50" : ""}>
+                  <td className="py-2 px-3 text-xs break-words">{item.description || "—"}</td>
+                  <td className="py-2 px-3 text-xs text-center tabular-nums whitespace-nowrap">{Number(item.quantity)}</td>
+                  <td className="py-2 px-3 text-xs text-right tabular-nums whitespace-nowrap">{formatMoney(sym, item.unit_price)}</td>
+                  <td className="py-2 px-3 text-xs text-right font-medium tabular-nums whitespace-nowrap">{formatMoney(sym, item.amount)}</td>
+                </tr>
+              ))}
+              {lineItems.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-4 text-center text-xs text-gray-400 italic">No items added</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Totals */}
         <div className="flex justify-end">
-          <div className="w-56 space-y-1 text-sm">
-            <div className="flex justify-between text-gray-500">
+          <div className="w-full sm:w-72 max-w-full space-y-1 text-sm">
+            <div className="flex justify-between gap-3 text-gray-500">
               <span>Subtotal</span>
-              <span>{sym}{subtotal.toFixed(2)}</span>
+              <span className="tabular-nums break-all text-right">{formatMoney(sym, subtotal)}</span>
             </div>
-            <div className="flex justify-between text-gray-500">
+            <div className="flex justify-between gap-3 text-gray-500">
               <span>Tax ({taxRate}%)</span>
-              <span>{sym}{tax.toFixed(2)}</span>
+              <span className="tabular-nums break-all text-right">{formatMoney(sym, tax)}</span>
             </div>
             <div className="my-1" style={{ borderTopWidth: 1, borderTopStyle: 'solid', borderTopColor: templateColor }} />
-            <div className="flex justify-between font-bold" style={{ color: templateColor }}>
+            <div className="flex justify-between gap-3 font-bold" style={{ color: templateColor }}>
               <span>Total</span>
-              <span>{sym}{total.toFixed(2)}</span>
+              <span className="tabular-nums break-all text-right">{formatMoney(sym, total)}</span>
             </div>
           </div>
         </div>

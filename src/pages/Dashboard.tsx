@@ -23,6 +23,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getStatusColor } from "@/utils/statusColors";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
 
 interface Invoice {
   id: string;
@@ -128,26 +131,12 @@ export default function Dashboard() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "paid":
-        return "bg-success text-white";
-      case "sent":
-        return "bg-info text-white";
-      case "overdue":
-        return "bg-destructive text-white";
-      case "draft":
-        return "bg-muted text-muted-foreground";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="space-y-6">
+          <LoadingState variant="stats" rows={4} />
+          <LoadingState variant="card" rows={3} />
         </div>
       </DashboardLayout>
     );
@@ -230,9 +219,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {statCards.map((stat) => (
             <Card key={stat.label} className="neo-card-subtle">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`h-10 w-10 rounded-lg ${stat.bgColor} flex items-center justify-center shrink-0`}>
+              <CardContent className="p-5 min-h-[88px] flex items-center">
+                <div className="flex items-center gap-3 w-full">
+                  <div className={`h-11 w-11 rounded-lg ${stat.bgColor} flex items-center justify-center shrink-0`}>
                     <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
                   </div>
                   <div className="min-w-0">
@@ -247,12 +236,17 @@ export default function Dashboard() {
 
         {/* Drafts callout */}
         {stats.draftInvoices > 0 && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50 border border-border">
-            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-            <p className="text-sm flex-1">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-accent-amber-soft border border-accent-amber/30">
+            <Clock className="h-4 w-4 text-accent-amber-foreground shrink-0" />
+            <p className="text-sm flex-1 text-accent-amber-foreground">
               You have <span className="font-semibold">{stats.draftInvoices} draft{stats.draftInvoices > 1 ? 's' : ''}</span> pending completion
             </p>
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => navigate("/invoices")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs text-accent-amber-foreground hover:bg-accent-amber/15"
+              onClick={() => navigate("/invoices")}
+            >
               View
             </Button>
           </div>
@@ -272,19 +266,18 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pt-0">
             {recentInvoices.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <FileText className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-1">No invoices yet</h3>
-                <p className="text-sm text-muted-foreground mb-4 max-w-xs">
-                  Create your first invoice to start tracking payments
-                </p>
-                <Button size="sm" onClick={() => navigate("/invoices/new")}>
-                  <Plus className="h-4 w-4 mr-1.5" />
-                  Create Invoice
-                </Button>
-              </div>
+              <EmptyState
+                icon={FileText}
+                title="No invoices yet"
+                description="Create your first invoice to start tracking payments"
+                variant="inline"
+                action={
+                  <Button size="sm" onClick={() => navigate("/invoices/new")}>
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Create Invoice
+                  </Button>
+                }
+              />
             ) : (
               <div className="divide-y divide-border">
                 {recentInvoices.map((invoice) => (
@@ -296,7 +289,7 @@ export default function Dashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm truncate">{invoice.clients.name}</span>
-                        <Badge className={`${getStatusColor(invoice.status)} text-[10px] px-1.5 py-0`}>
+                        <Badge className={`${getStatusColor(invoice.status)} text-xs px-1.5 py-0`}>
                           {invoice.status}
                         </Badge>
                       </div>

@@ -325,29 +325,29 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 neo-card-subtle h-auto gap-1 p-1.5">
-            <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <User className="h-3.5 w-3.5" />
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 neo-card-subtle h-auto gap-1 p-1.5">
+            <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 min-h-[48px] text-xs sm:text-sm">
+              <User className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               <span>Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="company" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Building2 className="h-3.5 w-3.5" />
+            <TabsTrigger value="company" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 min-h-[48px] text-xs sm:text-sm">
+              <Building2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               <span>Company</span>
             </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <CreditCard className="h-3.5 w-3.5" />
+            <TabsTrigger value="billing" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 min-h-[48px] text-xs sm:text-sm">
+              <CreditCard className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               <span>Billing</span>
             </TabsTrigger>
-            <TabsTrigger value="defaults" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <SlidersHorizontal className="h-3.5 w-3.5" />
+            <TabsTrigger value="defaults" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 min-h-[48px] text-xs sm:text-sm">
+              <SlidersHorizontal className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               <span>Defaults</span>
             </TabsTrigger>
-            <TabsTrigger value="appearance" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Palette className="h-3.5 w-3.5" />
+            <TabsTrigger value="appearance" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 min-h-[48px] text-xs sm:text-sm">
+              <Palette className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               <span>Theme</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Shield className="h-3.5 w-3.5" />
+            <TabsTrigger value="security" className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 min-h-[48px] text-xs sm:text-sm">
+              <Shield className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
               <span>Security</span>
             </TabsTrigger>
           </TabsList>
@@ -445,7 +445,7 @@ export default function Settings() {
                 </div>
               </CardHeader>
               <Separator />
-              <CardContent className="pt-6 space-y-2">
+              <CardContent className="pt-6 space-y-4">
                 <button
                   onClick={() => {
                     const securityTab = document.querySelector('[value="security"]') as HTMLButtonElement;
@@ -622,7 +622,7 @@ export default function Settings() {
                 </div>
               </CardHeader>
               <Separator />
-              <CardContent className="pt-6 space-y-6">
+              <CardContent className="pt-6 space-y-4">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
                     <div>
@@ -742,34 +742,36 @@ export default function Settings() {
                     </>
                   ) : !isIOSNative && subscription.subscribed && (subscription.provider === "stripe" || subscription.provider === "paystack") ? (
                     <>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         {subscription.provider === "paystack" ? (
-                          <Button 
+                          <Button
                             onClick={async () => {
                               try {
                                 await managePaystackSubscription("update-card");
                               } catch {}
                             }}
-                            className="flex-1 sm:flex-none"
+                            className="w-full sm:w-auto"
                           >
                             <CreditCard className="h-4 w-4 mr-2" />
                             Update Payment Method
                           </Button>
                         ) : (
-                          <Button 
-                            onClick={openCustomerPortal} 
-                            className="flex-1 sm:flex-none"
+                          <Button
+                            onClick={openCustomerPortal}
+                            className="w-full sm:w-auto"
                           >
                             <Crown className="h-4 w-4 mr-2" />
                             Manage Subscription
                           </Button>
                         )}
-                        <Button 
-                          onClick={checkSubscription} 
+                        <Button
+                          onClick={checkSubscription}
                           variant="outline"
-                          size="icon"
+                          className="w-full sm:w-auto"
+                          aria-label="Refresh subscription status"
                         >
-                          <RefreshCw className="h-4 w-4" />
+                          <RefreshCw className="h-4 w-4 sm:mr-0 mr-2" />
+                          <span className="sm:hidden">Refresh status</span>
                         </Button>
                       </div>
                       <Button
@@ -966,7 +968,7 @@ export default function Settings() {
                 </div>
               </CardHeader>
               <Separator />
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   {([
                     { value: "light" as const, icon: Sun, label: "Light" },
@@ -1050,9 +1052,13 @@ export default function Settings() {
                 </div>
 
                 <div className="flex justify-end pt-2">
-                  <Button onClick={handlePasswordChange} disabled={saving} className="neo-btn-subtle">
+                  <Button
+                    onClick={handlePasswordChange}
+                    disabled={saving}
+                    className="neo-btn-subtle disabled:cursor-not-allowed disabled:opacity-70"
+                  >
                     {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Update Password
+                    {saving ? "Updating..." : "Update Password"}
                   </Button>
                 </div>
               </CardContent>

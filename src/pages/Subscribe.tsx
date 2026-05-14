@@ -419,17 +419,10 @@ const Subscribe = () => {
                     <span className="text-4xl font-bold text-foreground">{pricing.price}</span>
                     <span className="text-muted-foreground text-lg">{pricing.period}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={loading !== null || (isIOSNative && !rc.ready)}
-                    aria-label={`Start 7-day free trial for ${plan.name}`}
-                    className="w-full rounded-full bg-success/90 py-2 px-4 text-center transition-all hover:bg-success active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    <span className="text-sm font-semibold text-white">
-                      {loading === plan.id ? "Processing..." : "7 days free"}
-                    </span>
-                  </button>
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-success w-fit">
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    7-day free trial included
+                  </div>
                   <ul className="space-y-3 flex-1">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-3">

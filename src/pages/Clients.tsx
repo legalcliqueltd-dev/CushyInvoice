@@ -21,8 +21,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
 import { z } from "zod";
 
 const clientSchema = z.object({
@@ -193,8 +195,8 @@ export default function Clients() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="space-y-6">
+          <LoadingState variant="table" rows={6} />
         </div>
       </DashboardLayout>
     );
@@ -353,19 +355,23 @@ export default function Clients() {
 
         {/* Table */}
         {filteredClients.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">
-                {searchQuery ? "No clients found" : "No clients yet"}
-              </p>
-              {!searchQuery && (
+          <EmptyState
+            icon={Users}
+            title={searchQuery ? "No clients found" : "No clients yet"}
+            description={
+              searchQuery
+                ? "Try a different search term or clear the filter."
+                : "Add your first client to start sending invoices."
+            }
+            action={
+              !searchQuery && (
                 <Button onClick={openNewDialog}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Your First Client
                 </Button>
-              )}
-            </CardContent>
-          </Card>
+              )
+            }
+          />
         ) : (
           <>
             <Card className="neo-card-subtle">
@@ -384,8 +390,8 @@ export default function Clients() {
                     <TableBody>
                       {paginatedClients.map((client) => (
                         <TableRow key={client.id}>
-                          <TableCell className="font-medium break-words min-w-0 max-w-[120px]">{client.name}</TableCell>
-                          <TableCell className="break-all min-w-0 max-w-[150px]">{client.email}</TableCell>
+                          <TableCell className="font-medium max-w-[180px] truncate" title={client.name}>{client.name}</TableCell>
+                          <TableCell className="max-w-[220px] truncate" title={client.email}>{client.email}</TableCell>
                           <TableCell className="hidden md:table-cell">
                             {client.phone || "-"}
                           </TableCell>

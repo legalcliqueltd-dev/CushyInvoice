@@ -23,7 +23,6 @@ import {
   ArrowLeft,
   Building2,
   FileText,
-  DollarSign,
   Pencil,
   Eye,
   ListChecks,
@@ -31,6 +30,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { currencies, getCurrencySymbol } from "@/lib/currencies";
+import { formatMoney } from "@/utils/formatAmount";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShareInvoiceDialog } from "@/components/ShareInvoiceDialog";
 import { generateInvoicePdf, downloadPdf, savePdfToDevice } from "@/lib/generateInvoicePdf";
@@ -328,35 +328,35 @@ export default function InvoiceDetail() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
-              <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
-              <p className="text-sm sm:text-2xl font-bold text-primary mt-1 break-all">
-                {getCurrencySymbol(invoice.currency)}{Number(invoice.total).toFixed(2)}
+            <CardContent className="px-4 py-3 sm:px-6 sm:py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
+              <p className="text-base sm:text-2xl font-bold text-primary mt-1 break-all tabular-nums">
+                {formatMoney(getCurrencySymbol(invoice.currency), invoice.total)}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
-              <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Paid</p>
-              <p className="text-sm sm:text-2xl font-bold text-emerald-600 mt-1 break-all">
-                {getCurrencySymbol(invoice.currency)}{totalPaid.toFixed(2)}
+            <CardContent className="px-4 py-3 sm:px-6 sm:py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Paid</p>
+              <p className="text-base sm:text-2xl font-bold text-accent-emerald mt-1 break-all tabular-nums">
+                {formatMoney(getCurrencySymbol(invoice.currency), totalPaid)}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
-              <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Due</p>
-              <p className="text-sm sm:text-2xl font-bold text-amber-600 mt-1 break-all">
-                {getCurrencySymbol(invoice.currency)}{amountDue.toFixed(2)}
+            <CardContent className="px-4 py-3 sm:px-6 sm:py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due</p>
+              <p className="text-base sm:text-2xl font-bold text-accent-amber mt-1 break-all tabular-nums">
+                {formatMoney(getCurrencySymbol(invoice.currency), amountDue)}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4 px-3 sm:px-6">
-              <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
-              <p className="text-sm sm:text-xl font-semibold mt-1">
+            <CardContent className="px-4 py-3 sm:px-6 sm:py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
+              <p className="text-base sm:text-xl font-semibold mt-1">
                 {(() => { try { return format(new Date(invoice.due_date), "MMM d"); } catch { return invoice.due_date; } })()}
               </p>
             </CardContent>
@@ -365,7 +365,7 @@ export default function InvoiceDetail() {
 
         {/* Tabs: Details / Preview */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-xs">
+          <TabsList className="grid w-full grid-cols-2 sm:max-w-sm">
             <TabsTrigger value="details" className="gap-2">
               <ListChecks className="h-4 w-4" />
               Details
@@ -497,7 +497,7 @@ export default function InvoiceDetail() {
                     <div className="flex items-center justify-between gap-2">
                       <CardTitle className="text-lg shrink-0">Items</CardTitle>
                       <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
-                        <SelectTrigger className="w-[110px] h-8 text-xs">
+                        <SelectTrigger className="w-auto min-w-[110px] max-w-[160px] h-9 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -523,21 +523,21 @@ export default function InvoiceDetail() {
                         <TableHeader>
                           <TableRow className="bg-muted/50">
                             <TableHead className="font-semibold text-xs">Description</TableHead>
-                            <TableHead className="text-right font-semibold text-xs w-12">Qty</TableHead>
-                            <TableHead className="text-right font-semibold text-xs w-20">Price</TableHead>
-                            <TableHead className="text-right font-semibold text-xs w-20">Amount</TableHead>
+                            <TableHead className="text-right font-semibold text-xs">Qty</TableHead>
+                            <TableHead className="text-right font-semibold text-xs">Price</TableHead>
+                            <TableHead className="text-right font-semibold text-xs">Amount</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {invoice.invoice_items.map((item) => (
                             <TableRow key={item.id}>
-                              <TableCell className="font-medium text-xs break-words">{item.description}</TableCell>
-                              <TableCell className="text-right text-xs text-muted-foreground">{Number(item.quantity)}</TableCell>
-                              <TableCell className="text-right text-xs text-muted-foreground">
-                                {getCurrencySymbol(displayCurrency)}{Number(item.unit_price).toFixed(2)}
+                              <TableCell className="font-medium text-xs break-words min-w-[120px]">{item.description}</TableCell>
+                              <TableCell className="text-right text-xs text-muted-foreground tabular-nums whitespace-nowrap">{Number(item.quantity)}</TableCell>
+                              <TableCell className="text-right text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                                {formatMoney(getCurrencySymbol(displayCurrency), item.unit_price)}
                               </TableCell>
-                              <TableCell className="text-right text-xs font-medium">
-                                {getCurrencySymbol(displayCurrency)}{Number(item.amount).toFixed(2)}
+                              <TableCell className="text-right text-xs font-medium tabular-nums whitespace-nowrap">
+                                {formatMoney(getCurrencySymbol(displayCurrency), item.amount)}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -546,18 +546,18 @@ export default function InvoiceDetail() {
                     </div>
 
                     <div className="mt-4 space-y-2 text-sm">
-                      <div className="flex justify-between py-1">
+                      <div className="flex justify-between gap-3 py-1">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span className="text-right">{getCurrencySymbol(displayCurrency)}{Number(invoice.subtotal).toFixed(2)}</span>
+                        <span className="text-right tabular-nums break-all">{formatMoney(getCurrencySymbol(displayCurrency), invoice.subtotal)}</span>
                       </div>
-                      <div className="flex justify-between py-1">
+                      <div className="flex justify-between gap-3 py-1">
                         <span className="text-muted-foreground">Tax ({Number(invoice.tax_rate)}%)</span>
-                        <span className="text-right">{getCurrencySymbol(displayCurrency)}{Number(invoice.tax_amount).toFixed(2)}</span>
+                        <span className="text-right tabular-nums break-all">{formatMoney(getCurrencySymbol(displayCurrency), invoice.tax_amount)}</span>
                       </div>
                       <Separator className="my-2" />
-                      <div className="flex justify-between py-1 text-base font-bold">
+                      <div className="flex justify-between gap-3 py-1 text-base font-bold">
                         <span>Total</span>
-                        <span className="text-primary text-right">{getCurrencySymbol(displayCurrency)}{Number(invoice.total).toFixed(2)}</span>
+                        <span className="text-primary text-right tabular-nums break-all">{formatMoney(getCurrencySymbol(displayCurrency), invoice.total)}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -625,8 +625,8 @@ export default function InvoiceDetail() {
                         {invoice.payments.map((payment) => (
                           <div key={payment.id} className="flex justify-between items-center gap-2">
                             <div className="min-w-0">
-                              <p className="text-sm font-medium break-all">
-                                {getCurrencySymbol(displayCurrency)}{Number(payment.amount).toFixed(2)}
+                              <p className="text-sm font-medium break-all tabular-nums">
+                                {formatMoney(getCurrencySymbol(displayCurrency), payment.amount)}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {format(new Date(payment.payment_date), "MMM d, yyyy")}
@@ -642,21 +642,15 @@ export default function InvoiceDetail() {
                   </Card>
                 )}
 
-                {/* Record Payment */}
+                {/* Amount Due summary */}
                 {invoice.status !== "paid" && amountDue > 0 && (
                   <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                     <CardContent className="pt-6">
-                      <div className="text-center space-y-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Amount Due</p>
-                          <p className="text-xl sm:text-2xl font-bold text-primary break-all">
-                            {getCurrencySymbol(displayCurrency)}{amountDue.toFixed(2)}
-                          </p>
-                        </div>
-                        <Button variant="outline" className="w-full">
-                          <DollarSign className="h-4 w-4 mr-2" />
-                          Record Payment
-                        </Button>
+                      <div className="text-center space-y-1">
+                        <p className="text-sm text-muted-foreground">Amount Due</p>
+                        <p className="text-xl sm:text-2xl font-bold text-primary break-all tabular-nums">
+                          {formatMoney(getCurrencySymbol(displayCurrency), amountDue)}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>

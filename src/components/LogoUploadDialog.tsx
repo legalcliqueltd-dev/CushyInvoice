@@ -12,11 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Crop as CropIcon, Eraser, Upload, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { pipeline, env } from "@huggingface/transformers";
-
-// Configure transformers.js
-env.allowLocalModels = false;
-env.useBrowserCache = true;
 
 const IS_NATIVE = !!(window as any).Capacitor?.isNativePlatform?.();
 
@@ -136,6 +131,10 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
         title: "Processing",
         description: "Loading AI model for background removal. This may take a moment...",
       });
+
+      const { pipeline, env } = await import("@huggingface/transformers");
+      env.allowLocalModels = false;
+      env.useBrowserCache = true;
 
       const segmenter = await pipeline(
         "image-segmentation",

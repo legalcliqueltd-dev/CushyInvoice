@@ -9,6 +9,8 @@ import { AddTemplateDialog } from "@/components/AddTemplateDialog";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { TemplatePreviewCard } from "@/components/TemplatePreviewCard";
 import { Loader2, FileText, Trash2, Plus, Sparkles } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,7 +101,10 @@ export default function Templates() {
 
         {/* Default Templates */}
         <section>
-          <h2 className="text-lg font-semibold mb-4">Default Templates</h2>
+          <div className="mb-4 flex items-center gap-2 flex-wrap">
+            <h2 className="text-lg font-semibold">Default Templates</h2>
+            <Badge variant="secondary" className="text-xs">Built-in · read-only</Badge>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {defaultTemplates.map((template) => (
               <TemplatePreviewCard
@@ -116,9 +121,7 @@ export default function Templates() {
         <section>
           <h2 className="text-lg font-semibold mb-4">Your Custom Templates</h2>
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
+            <LoadingState variant="card" rows={2} />
           ) : templates.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {templates.map((template) => (
@@ -133,7 +136,8 @@ export default function Templates() {
                     <Button
                       variant="destructive"
                       size="icon"
-                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Delete template"
+                      className="h-9 w-9 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         setDeleteId(template.id);
@@ -146,18 +150,12 @@ export default function Templates() {
               ))}
             </div>
           ) : (
-            <Card className="border-dashed">
-              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold mb-1">No custom templates yet</h3>
-                <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                  Create branded templates to make your invoices stand out and look professional
-                </p>
-                <AddTemplateDialog onTemplateAdded={fetchTemplates} />
-              </div>
-            </Card>
+            <EmptyState
+              icon={Sparkles}
+              title="No custom templates yet"
+              description="Create branded templates to make your invoices stand out and look professional."
+              action={<AddTemplateDialog onTemplateAdded={fetchTemplates} />}
+            />
           )}
         </section>
 

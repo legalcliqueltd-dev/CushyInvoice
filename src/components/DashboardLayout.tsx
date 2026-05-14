@@ -305,7 +305,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               className={`mobile-bottom-nav-item ${isActiveRoute(item.to) ? "active" : ""}`}
             >
               <item.icon className="h-5 w-5" />
-              <span className="text-[10px]">{item.label}</span>
+              <span className="text-[11px] leading-tight">{item.label}</span>
             </button>
           ))}
           <button
@@ -313,7 +313,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             className={`mobile-bottom-nav-item ${isActiveRoute("/settings") ? "active" : ""}`}
           >
             <Settings className="h-5 w-5" />
-            <span className="text-[10px]">Settings</span>
+            <span className="text-[11px] leading-tight">Settings</span>
           </button>
         </div>
       </nav>

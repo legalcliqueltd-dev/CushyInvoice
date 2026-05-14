@@ -725,7 +725,7 @@ export default function InvoiceNew() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-xs">
+          <TabsList className="grid w-full grid-cols-2 sm:max-w-sm">
             <TabsTrigger value="edit" className="gap-2">
               <Edit3 className="h-4 w-4" />
               Edit
@@ -810,15 +810,16 @@ export default function InvoiceNew() {
                     )}
                     {companyInfo.company_logo ? "Change" : "Upload"}
                   </Button>
-                  <div className="flex items-center gap-1">
-                    <Label htmlFor="logoBgColor" className="text-xs text-muted-foreground sr-only">BG</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="logoBgColor" className="text-xs text-muted-foreground">BG Color</Label>
                     <input
                       id="logoBgColor"
                       type="color"
                       value={logoBgColor}
                       onChange={(e) => setLogoBgColor(e.target.value)}
-                      className="w-7 h-7 rounded-md border border-border cursor-pointer p-0.5"
+                      className="w-10 h-10 rounded-md border border-border cursor-pointer p-0.5"
                       title="Logo background color"
+                      aria-label="Logo background color"
                     />
                   </div>
                 </div>
@@ -1092,10 +1093,11 @@ export default function InvoiceNew() {
             {lineItems.map((item, index) => (
               <div key={item.id} className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">Item {index + 1}</span>
+                  <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Item {index + 1}</span>
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label={`Remove item ${index + 1}`}
                     onClick={() => removeLineItem(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />

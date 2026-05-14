@@ -65,6 +65,39 @@ export default {
           foreground: "hsl(var(--gold-foreground))",
           light: "hsl(var(--gold-light))",
         },
+        "accent-blue": {
+          DEFAULT: "hsl(var(--accent-blue))",
+          soft: "hsl(var(--accent-blue-soft))",
+          foreground: "hsl(var(--accent-blue-foreground))",
+        },
+        "accent-purple": {
+          DEFAULT: "hsl(var(--accent-purple))",
+          soft: "hsl(var(--accent-purple-soft))",
+          foreground: "hsl(var(--accent-purple-foreground))",
+        },
+        "accent-emerald": {
+          DEFAULT: "hsl(var(--accent-emerald))",
+          soft: "hsl(var(--accent-emerald-soft))",
+          foreground: "hsl(var(--accent-emerald-foreground))",
+        },
+        "accent-orange": {
+          DEFAULT: "hsl(var(--accent-orange))",
+          soft: "hsl(var(--accent-orange-soft))",
+          foreground: "hsl(var(--accent-orange-foreground))",
+        },
+        "accent-pink": {
+          DEFAULT: "hsl(var(--accent-pink))",
+          soft: "hsl(var(--accent-pink-soft))",
+          foreground: "hsl(var(--accent-pink-foreground))",
+        },
+        "accent-amber": {
+          DEFAULT: "hsl(var(--accent-amber))",
+          soft: "hsl(var(--accent-amber-soft))",
+          foreground: "hsl(var(--accent-amber-foreground))",
+        },
+      },
+      fontSize: {
+        caption: ["0.625rem", { lineHeight: "0.875rem" }],
       },
       borderRadius: {
         lg: "var(--radius)",

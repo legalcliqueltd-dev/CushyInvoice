@@ -6,7 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { AddRecurringInvoiceDialog } from "@/components/AddRecurringInvoiceDialog";
-import { Loader2, Calendar, RefreshCw, Trash2, Pause, Play, Zap } from "lucide-react";
+import { Loader2, Calendar, RefreshCw, Trash2, Pause, Play, Zap, Repeat } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -142,8 +144,8 @@ export default function RecurringInvoices() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="space-y-6">
+          <LoadingState variant="card" rows={3} />
         </div>
       </DashboardLayout>
     );

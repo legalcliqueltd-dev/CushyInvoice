@@ -154,11 +154,36 @@ All colors MUST be HSL.
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
     --info: 199 89% 48%;
-    
+
     /* Premium/Gold color */
     --gold: 45 93% 47%;
     --gold-foreground: 45 93% 20%;
     --gold-light: 45 93% 90%;
+
+    /* Accent palette — used for feature cards, testimonials, stat badges, illustrative tints */
+    --accent-blue: 217 91% 60%;
+    --accent-blue-soft: 217 91% 95%;
+    --accent-blue-foreground: 217 91% 25%;
+
+    --accent-purple: 270 91% 65%;
+    --accent-purple-soft: 270 91% 95%;
+    --accent-purple-foreground: 270 91% 30%;
+
+    --accent-emerald: 160 84% 39%;
+    --accent-emerald-soft: 160 84% 94%;
+    --accent-emerald-foreground: 160 84% 20%;
+
+    --accent-orange: 24 95% 53%;
+    --accent-orange-soft: 24 95% 95%;
+    --accent-orange-foreground: 24 95% 28%;
+
+    --accent-pink: 330 81% 60%;
+    --accent-pink-soft: 330 81% 95%;
+    --accent-pink-foreground: 330 81% 28%;
+
+    --accent-amber: 38 92% 50%;
+    --accent-amber-soft: 38 92% 94%;
+    --accent-amber-foreground: 38 92% 28%;
   }
 
   .dark {
@@ -202,11 +227,36 @@ All colors MUST be HSL.
     --success: 142 76% 40%;
     --warning: 38 92% 55%;
     --info: 199 89% 52%;
-    
+
     /* Premium/Gold color - dark mode */
     --gold: 45 93% 55%;
     --gold-foreground: 45 93% 95%;
     --gold-light: 45 60% 20%;
+
+    /* Accent palette — dark mode */
+    --accent-blue: 217 91% 70%;
+    --accent-blue-soft: 217 50% 20%;
+    --accent-blue-foreground: 217 91% 90%;
+
+    --accent-purple: 270 91% 75%;
+    --accent-purple-soft: 270 40% 22%;
+    --accent-purple-foreground: 270 91% 92%;
+
+    --accent-emerald: 160 84% 50%;
+    --accent-emerald-soft: 160 50% 18%;
+    --accent-emerald-foreground: 160 84% 88%;
+
+    --accent-orange: 24 95% 60%;
+    --accent-orange-soft: 24 50% 22%;
+    --accent-orange-foreground: 24 95% 92%;
+
+    --accent-pink: 330 81% 70%;
+    --accent-pink-soft: 330 45% 22%;
+    --accent-pink-foreground: 330 81% 92%;
+
+    --accent-amber: 38 92% 60%;
+    --accent-amber-soft: 38 50% 22%;
+    --accent-amber-foreground: 38 92% 90%;
   }
 }
 
@@ -407,6 +457,9 @@ All colors MUST be HSL.
   .auth-gradient {
     background: linear-gradient(135deg, hsl(217, 91%, 55%) 0%, hsl(217, 91%, 40%) 50%, hsl(220, 70%, 25%) 100%);
   }
+  .dark .auth-gradient {
+    background: linear-gradient(135deg, hsl(220, 50%, 18%) 0%, hsl(217, 60%, 14%) 50%, hsl(220, 30%, 8%) 100%);
+  }
 
   /* Feature card styling */
   .feature-card {
@@ -428,25 +481,53 @@ All colors MUST be HSL.
     box-shadow: 0px 0px 0px hsl(var(--foreground));
   }
 
-  /* Mobile: reduce neo-brutal borders/shadows */
+  /* Mobile: reduce neo-brutal borders/shadows + softer press transforms */
   @media (max-width: 640px) {
     .neo-brutal-btn {
       border-width: 2px;
       box-shadow: 3px 3px 0px hsl(var(--foreground));
     }
+    .neo-brutal-btn:hover {
+      transform: translate(1px, 1px);
+      box-shadow: 2px 2px 0px hsl(var(--foreground));
+    }
+    .neo-brutal-btn:active {
+      transform: translate(2px, 2px) scale(1) !important;
+      box-shadow: 1px 1px 0px hsl(var(--foreground));
+    }
     .neo-card {
       border-width: 1.5px;
+      box-shadow: 3px 3px 0px hsl(var(--foreground) / 0.1);
+    }
+    .neo-card:hover {
+      transform: none;
       box-shadow: 3px 3px 0px hsl(var(--foreground) / 0.1);
     }
     .neo-card-subtle {
       box-shadow: 2px 2px 0px hsl(var(--foreground) / 0.06);
     }
+    .neo-card-subtle:hover:not([role="dialog"]) {
+      transform: none;
+      box-shadow: 2px 2px 0px hsl(var(--foreground) / 0.06);
+    }
     .neo-stat-card {
+      box-shadow: 2px 2px 0px hsl(var(--foreground) / 0.04);
+    }
+    .neo-stat-card:hover {
+      transform: none;
       box-shadow: 2px 2px 0px hsl(var(--foreground) / 0.04);
     }
     .neo-btn-subtle {
       border-width: 1.5px;
       box-shadow: 2px 2px 0px hsl(var(--foreground));
+    }
+    .neo-btn-subtle:hover {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px hsl(var(--foreground));
+    }
+    .neo-btn-subtle:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px hsl(var(--foreground));
     }
   }
 

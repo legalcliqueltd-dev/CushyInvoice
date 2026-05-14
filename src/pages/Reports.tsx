@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { LoadingState } from "@/components/LoadingState";
 
 interface ReportData {
   totalPaid: number;
@@ -130,8 +131,8 @@ export default function Reports() {
             <CardTitle>Filter by Date Range</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-4 items-end">
-              <div className="flex-1 min-w-[200px]">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 sm:items-end">
+              <div className="flex-1 sm:min-w-[200px]">
                 <label className="text-sm font-medium mb-2 block">From Date</label>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -158,7 +159,7 @@ export default function Reports() {
                 </Popover>
               </div>
 
-              <div className="flex-1 min-w-[200px]">
+              <div className="flex-1 sm:min-w-[200px]">
                 <label className="text-sm font-medium mb-2 block">To Date</label>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -187,6 +188,7 @@ export default function Reports() {
 
               <Button
                 variant="outline"
+                className="w-full sm:w-auto whitespace-nowrap"
                 onClick={() => {
                   setDateFrom(undefined);
                   setDateTo(undefined);
@@ -200,18 +202,16 @@ export default function Reports() {
 
         {/* Report Stats */}
         {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
+          <LoadingState variant="stats" rows={2} className="md:grid-cols-2" />
         ) : (
           <>
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="neo-stat-card border-l-success">
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-2 pt-5 sm:pt-6">
                   <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-success">
+                <CardContent className="pb-5 sm:pb-6">
+                  <div className="text-2xl sm:text-3xl font-bold text-success">
                     ${reportData.totalPaid.toFixed(2)}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -221,11 +221,11 @@ export default function Reports() {
               </Card>
 
               <Card className="neo-stat-card border-l-destructive">
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-2 pt-5 sm:pt-6">
                   <CardTitle className="text-sm font-medium">Total Unpaid</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-destructive">
+                <CardContent className="pb-5 sm:pb-6">
+                  <div className="text-2xl sm:text-3xl font-bold text-destructive">
                     ${reportData.totalUnpaid.toFixed(2)}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">

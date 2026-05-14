@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
 import { Loader2, Receipt, DollarSign, Trash2 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -102,8 +104,8 @@ export default function Expenses() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="space-y-6">
+          <LoadingState variant="card" rows={3} />
         </div>
       </DashboardLayout>
     );
@@ -164,26 +166,24 @@ export default function Expenses() {
         )}
 
         {expenses.length === 0 ? (
-          <Card className="p-12 text-center neo-card-subtle">
-            <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Expenses Yet</h3>
-            <p className="text-muted-foreground mb-6">
-              Start tracking your business expenses to better manage your finances
-            </p>
-            <AddExpenseDialog onExpenseAdded={fetchExpenses} />
-          </Card>
+          <EmptyState
+            icon={Receipt}
+            title="No expenses yet"
+            description="Start tracking your business expenses to better manage your finances."
+            action={<AddExpenseDialog onExpenseAdded={fetchExpenses} />}
+          />
         ) : (
           <Card className="neo-card-subtle">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Recent Expenses</h2>
               <div className="space-y-4">
                 {expenses.map((expense) => (
-                    <div
+                  <div
                     key={expense.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors gap-2"
+                    className="group flex items-center justify-between p-4 border rounded-lg transition-colors gap-2 hover:border-primary/40"
                   >
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
-                      <Receipt className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex items-center gap-4 min-w-0 flex-1 rounded-md group-hover:bg-accent/40 -m-1 p-1 transition-colors">
+                      <Receipt className="h-5 w-5 text-muted-foreground shrink-0" />
                       <div className="min-w-0">
                         <p className="font-medium truncate">{expense.description || expense.category}</p>
                         <p className="text-sm text-muted-foreground truncate">
@@ -198,6 +198,7 @@ export default function Expenses() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Delete expense"
                         onClick={() => setDeleteId(expense.id)}
                       >
                         <Trash2 className="h-4 w-4" />

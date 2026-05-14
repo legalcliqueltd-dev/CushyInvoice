@@ -437,14 +437,15 @@ export default function Auth() {
                 setOtpValue(val);
                 setOtpError("");
               }}
+              containerClassName="gap-1 sm:gap-2"
             >
               <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
+                <InputOTPSlot index={0} className="h-11 w-9 sm:h-12 sm:w-12 text-base" />
+                <InputOTPSlot index={1} className="h-11 w-9 sm:h-12 sm:w-12 text-base" />
+                <InputOTPSlot index={2} className="h-11 w-9 sm:h-12 sm:w-12 text-base" />
+                <InputOTPSlot index={3} className="h-11 w-9 sm:h-12 sm:w-12 text-base" />
+                <InputOTPSlot index={4} className="h-11 w-9 sm:h-12 sm:w-12 text-base" />
+                <InputOTPSlot index={5} className="h-11 w-9 sm:h-12 sm:w-12 text-base" />
               </InputOTPGroup>
             </InputOTP>
           </div>

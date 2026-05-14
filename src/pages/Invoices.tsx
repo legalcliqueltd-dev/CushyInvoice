@@ -15,8 +15,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
-import { Eye, Plus, Search } from "lucide-react";
+import { Eye, Plus, Search, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getStatusColor } from "@/utils/statusColors";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
 
 interface Invoice {
   id: string;
@@ -80,21 +83,6 @@ export default function Invoices() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "paid":
-        return "bg-success text-white";
-      case "sent":
-        return "bg-info text-white";
-      case "overdue":
-        return "bg-destructive text-white";
-      case "draft":
-        return "bg-muted text-muted-foreground";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
   // Pagination
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -103,8 +91,8 @@ export default function Invoices() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="space-y-6">
+          <LoadingState variant="table" rows={6} />
         </div>
       </DashboardLayout>
     );
@@ -127,35 +115,75 @@ export default function Invoices() {
         {/* Search */}
         <Card className="neo-card-subtle">
           <CardContent className="pt-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative group focus-within:[&_svg]:text-primary">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors pointer-events-none" />
               <Input
                 placeholder="Search invoices by number, client, or status..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="pl-9 focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
           </CardContent>
         </Card>
 
         {filteredInvoices.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">
-                {searchQuery ? "No invoices found" : "No invoices yet"}
-              </p>
-              {!searchQuery && (
+          <EmptyState
+            icon={FileText}
+            title={searchQuery ? "No invoices found" : "No invoices yet"}
+            description={
+              searchQuery
+                ? "Try a different search term or clear the filter."
+                : "Create your first invoice to start tracking payments."
+            }
+            action={
+              !searchQuery && (
                 <Button onClick={() => navigate("/invoices/new")}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Your First Invoice
                 </Button>
-              )}
-            </CardContent>
-          </Card>
+              )
+            }
+          />
         ) : (
           <>
-            <Card className="neo-card-subtle">
+            {/* Mobile card list (below md) */}
+            <div className="space-y-2 md:hidden">
+              {paginatedInvoices.map((invoice) => (
+                <Card
+                  key={invoice.id}
+                  className="neo-card-subtle cursor-pointer"
+                  onClick={() => navigate(`/invoices/${invoice.id}`)}
+                >
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-semibold">
+                          {invoice.invoice_number}
+                        </span>
+                        <Badge className={getStatusColor(invoice.status)}>
+                          {invoice.status}
+                        </Badge>
+                      </div>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {invoice.clients.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Due {new Date(invoice.due_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-base font-semibold">
+                        ${Number(invoice.total).toFixed(2)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop / tablet table (md and up) */}
+            <Card className="neo-card-subtle hidden md:block">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>
@@ -163,8 +191,8 @@ export default function Invoices() {
                       <TableRow>
                         <TableHead>Invoice #</TableHead>
                         <TableHead>Client</TableHead>
-                        <TableHead className="hidden md:table-cell">Issue Date</TableHead>
-                        <TableHead className="hidden md:table-cell">Due Date</TableHead>
+                        <TableHead>Issue Date</TableHead>
+                        <TableHead>Due Date</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -173,14 +201,16 @@ export default function Invoices() {
                     <TableBody>
                       {paginatedInvoices.map((invoice) => (
                         <TableRow key={invoice.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${invoice.id}`)}>
-                          <TableCell className="font-medium break-all min-w-0">
+                          <TableCell className="font-medium">
                             {invoice.invoice_number}
                           </TableCell>
-                          <TableCell className="break-words min-w-0 max-w-[120px]">{invoice.clients.name}</TableCell>
-                          <TableCell className="hidden md:table-cell">
+                          <TableCell className="max-w-[200px] truncate" title={invoice.clients.name}>
+                            {invoice.clients.name}
+                          </TableCell>
+                          <TableCell>
                             {new Date(invoice.issue_date).toLocaleDateString()}
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
+                          <TableCell>
                             {new Date(invoice.due_date).toLocaleDateString()}
                           </TableCell>
                           <TableCell>
