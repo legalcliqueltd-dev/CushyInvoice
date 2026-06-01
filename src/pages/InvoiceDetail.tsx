@@ -423,7 +423,7 @@ export default function InvoiceDetail() {
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Left Column - Invoice Details */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-6 min-w-0">
                 {/* From/To Section */}
                 <Card>
                   <CardContent className="pt-6">
@@ -492,12 +492,12 @@ export default function InvoiceDetail() {
                 </Card>
 
                 {/* Line Items */}
-                <Card>
+                <Card className="overflow-hidden">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-2">
                       <CardTitle className="text-lg shrink-0">Items</CardTitle>
                       <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
-                        <SelectTrigger className="w-auto min-w-[110px] max-w-[160px] h-9 text-xs">
+                        <SelectTrigger className="w-auto min-w-[120px] max-w-[200px] h-9 text-xs whitespace-nowrap">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -547,17 +547,17 @@ export default function InvoiceDetail() {
 
                     <div className="mt-4 space-y-2 text-sm">
                       <div className="flex justify-between gap-3 py-1">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span className="text-right tabular-nums break-all">{formatMoney(getCurrencySymbol(displayCurrency), invoice.subtotal)}</span>
+                        <span className="text-muted-foreground shrink-0">Subtotal</span>
+                        <span className="text-right tabular-nums break-all min-w-0">{formatMoney(getCurrencySymbol(displayCurrency), invoice.subtotal)}</span>
                       </div>
                       <div className="flex justify-between gap-3 py-1">
-                        <span className="text-muted-foreground">Tax ({Number(invoice.tax_rate)}%)</span>
-                        <span className="text-right tabular-nums break-all">{formatMoney(getCurrencySymbol(displayCurrency), invoice.tax_amount)}</span>
+                        <span className="text-muted-foreground shrink-0">Tax ({Number(invoice.tax_rate)}%)</span>
+                        <span className="text-right tabular-nums break-all min-w-0">{formatMoney(getCurrencySymbol(displayCurrency), invoice.tax_amount)}</span>
                       </div>
                       <Separator className="my-2" />
                       <div className="flex justify-between gap-3 py-1 text-base font-bold">
-                        <span>Total</span>
-                        <span className="text-primary text-right tabular-nums break-all">{formatMoney(getCurrencySymbol(displayCurrency), invoice.total)}</span>
+                        <span className="shrink-0">Total</span>
+                        <span className="text-primary text-right tabular-nums break-all min-w-0">{formatMoney(getCurrencySymbol(displayCurrency), invoice.total)}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -579,7 +579,7 @@ export default function InvoiceDetail() {
               </div>
 
               {/* Right Column - Sidebar */}
-              <div className="space-y-6">
+              <div className="space-y-6 min-w-0">
                 {/* Invoice Details */}
                 <Card>
                   <CardHeader className="pb-3">

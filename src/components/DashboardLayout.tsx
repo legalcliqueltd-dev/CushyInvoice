@@ -215,7 +215,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 pb-20 lg:pb-4 border-t border-border safe-bottom">
+          <div className="p-4 pb-28 lg:pb-4 border-t border-border safe-bottom">
             <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-muted/50 rounded-xl">
               <Avatar className="h-10 w-10 border-2 border-primary/20">
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">

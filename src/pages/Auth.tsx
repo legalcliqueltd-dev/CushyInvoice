@@ -20,6 +20,21 @@ const authSchema = z.object({
 
 const APP_DOMAIN = "https://cushyinvoice.com";
 
+/**
+ * Sign in with Apple expects the SHA-256 hash of the nonce to be sent to Apple
+ * (it gets embedded in the identity token), while Supabase expects the original
+ * raw nonce — it hashes that itself and compares it to the token's nonce claim.
+ * Sending the same raw value to both causes a nonce mismatch and the sign-in
+ * fails with an error, so we hash here before handing the nonce to Apple.
+ */
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -374,49 +389,74 @@ export default function Auth() {
 
   const handleAppleSignIn = async () => {
     setLoading(true);
-    const isCapacitor = !!(window as any).Capacitor;
+    const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.();
 
     if (isCapacitor) {
-      // Native: Manually construct the Lovable OAuth broker URL and open it
-      // in an external browser via @capacitor/browser. The lovable SDK's
-      // signInWithOAuth() navigates the webview to /~oauth/initiate which
-      // causes a 404 because that path is only handled by Lovable's proxy.
-      // Instead, we build the full URL with the published domain and open externally.
       try {
-        const state = [...crypto.getRandomValues(new Uint8Array(16))]
+        const { AppleSignIn, SignInScope } = await import("@capawesome/capacitor-apple-sign-in");
+
+        const rawNonce = [...crypto.getRandomValues(new Uint8Array(16))]
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
+        const hashedNonce = await sha256Hex(rawNonce);
 
-        const params = new URLSearchParams({
-          provider: "apple",
-          redirect_uri: `https://cushyinvoice.lovable.app/auth-mobile-callback.html`,
-          state,
+        const result = await AppleSignIn.signIn({
+          scopes: [SignInScope.Email, SignInScope.FullName],
+          nonce: hashedNonce,
         });
 
-        // Use .lovable.app domain for OAuth broker — /~oauth/ only works on Lovable's proxy, not custom domains
-        const oauthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?${params.toString()}`;
-        console.log("[AppleAuth] Opening OAuth URL in external browser:", oauthUrl);
+        const identityToken = result?.idToken;
+        if (!identityToken) throw new Error("No identity token returned from Apple.");
 
-        const { Browser } = await import("@capacitor/browser");
-        await Browser.open({ url: oauthUrl });
-        // The external browser will complete Apple auth, redirect to
-        // auth-mobile-callback.html, which forwards tokens via cushyinvoice:// scheme.
-        // DeepLinkHandler picks up the deep link and establishes the session.
+        const fullName =
+          [result.givenName, result.familyName]
+            .filter(Boolean)
+            .join(" ")
+            .trim() || undefined;
+
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: "apple",
+          token: identityToken,
+          nonce: rawNonce,
+        });
+        if (error) throw error;
+
+        if (fullName) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase
+              .from("profiles")
+              .update({ full_name: fullName })
+              .eq("id", user.id);
+          }
+        }
+
+        navigate("/dashboard");
       } catch (error: any) {
-        toast({ title: "Apple Sign-In Error", description: error.message || "An unexpected error occurred.", variant: "destructive" });
-      } finally {
+        if (error?.code === "1001" || /cancel/i.test(error?.message ?? "")) {
+          setLoading(false);
+          return;
+        }
+        toast({
+          title: "Apple Sign-In Error",
+          description: error?.message || "Could not sign in with Apple.",
+          variant: "destructive",
+        });
         setLoading(false);
       }
       return;
     }
 
-    // Web: manually redirect to .lovable.app OAuth broker (custom domains don't proxy /~oauth/)
     try {
       const appleOAuthUrl = `https://cushyinvoice.lovable.app/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(`https://cushyinvoice.lovable.app/auth`)}`;
       window.location.href = appleOAuthUrl;
       return;
     } catch (error: any) {
-      toast({ title: "Apple Sign-In Error", description: error.message || "An unexpected error occurred.", variant: "destructive" });
+      toast({
+        title: "Apple Sign-In Error",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };

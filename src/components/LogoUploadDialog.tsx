@@ -50,10 +50,7 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const acceptFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Error",
@@ -76,6 +73,87 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     setStep("edit");
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    acceptFile(file);
+    // Reset so user can pick the same file again
+    e.target.value = "";
+  };
+
+  const dataUrlToFile = (dataUrl: string, ext: string): File => {
+    const [header, base64] = dataUrl.split(",");
+    const mime = header.match(/data:(.*?);base64/)?.[1] || `image/${ext}`;
+    const bytes = atob(base64);
+    const arr = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    return new File([new Blob([arr], { type: mime })], `logo.${ext}`, { type: mime });
+  };
+
+  const handleNativePick = async (source: "camera" | "library") => {
+    if (!IS_NATIVE) {
+      fileInputRef.current?.click();
+      return;
+    }
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
+
+      const permName = source === "camera" ? "camera" : "photos";
+      const status = await Camera.checkPermissions();
+      const current = (status as any)[permName] as string | undefined;
+      if (current !== "granted" && current !== "limited") {
+        const req = await Camera.requestPermissions({ permissions: [permName as any] });
+        const granted = (req as any)[permName];
+        if (granted !== "granted" && granted !== "limited") {
+          toast({
+            title: source === "camera" ? "Camera access needed" : "Photo access needed",
+            description:
+              "Open iOS Settings → CushyInvoice and enable access to use this option.",
+          });
+          return;
+        }
+      }
+
+      const result = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: source === "camera" ? CameraSource.Camera : CameraSource.Photos,
+        correctOrientation: true,
+        width: 2048,
+      });
+      const dataUrl = result.dataUrl;
+      if (!dataUrl) return;
+      const ext = result.format || "jpeg";
+      acceptFile(dataUrlToFile(dataUrl, ext));
+    } catch (err: any) {
+      const rawMsg = err?.message || "";
+      const msg = rawMsg.toLowerCase();
+
+      // User backed out of the camera / picker — not an error.
+      if (msg.includes("cancel") || msg.includes("denied access") || msg.includes("user denied") || msg.includes("dismissed")) {
+        return;
+      }
+
+      // No usable camera (e.g. unavailable in the review/sandbox environment).
+      // The plugin surfaces this as "Camera not available while running in Simulator",
+      // which is confusing for users — guide them to the photo library instead.
+      if (source === "camera" && (msg.includes("not available") || msg.includes("simulator"))) {
+        toast({
+          title: "Camera unavailable",
+          description: "No camera is available on this device. Please use \"Photo Library\" to choose an image instead.",
+        });
+        return;
+      }
+
+      toast({
+        title: source === "camera" ? "Could not open camera" : "Could not open photo library",
+        description: rawMsg || "Please try again or pick from your library.",
+        variant: "destructive",
+      });
+    }
   };
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -296,26 +374,52 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
         </DialogHeader>
 
         {step === "select" && (
-          <div className="flex flex-col items-center justify-center py-8">
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 cursor-pointer hover:border-primary/50 transition-colors text-center"
-            >
-              <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
-              <p className="text-sm text-muted-foreground">
-                Click to select an image
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PNG, JPG up to 5MB
-              </p>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
+          <div className="flex flex-col items-center justify-center py-6 space-y-4">
+            {IS_NATIVE ? (
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="h-24 flex-col gap-2"
+                  onClick={() => handleNativePick("camera")}
+                >
+                  <Upload className="h-6 w-6" />
+                  <span>Take Photo</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-24 flex-col gap-2"
+                  onClick={() => handleNativePick("library")}
+                >
+                  <Upload className="h-6 w-6" />
+                  <span>Photo Library</span>
+                </Button>
+                <p className="col-span-full text-xs text-center text-muted-foreground">
+                  PNG, JPG up to 5MB
+                </p>
+              </div>
+            ) : (
+              <>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 cursor-pointer hover:border-primary/50 transition-colors text-center"
+                >
+                  <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-sm text-muted-foreground">
+                    Click to select an image
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    PNG, JPG up to 5MB
+                  </p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </>
+            )}
           </div>
         )}
 
@@ -372,7 +476,7 @@ export function LogoUploadDialog({ open, onOpenChange, onUpload }: LogoUploadDia
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => (IS_NATIVE ? handleNativePick("library") : fileInputRef.current?.click())}
                 disabled={processing || removingBg}
               >
                 <Upload className="h-4 w-4 mr-2" />

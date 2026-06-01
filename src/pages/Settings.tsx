@@ -459,16 +459,38 @@ export default function Settings() {
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                 </button>
-                <button
-                  onClick={() => setDeleteAccountDialogOpen(true)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg border border-destructive/30 hover:bg-destructive/5 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                    <span className="text-sm font-medium text-destructive">Delete Account</span>
+              </CardContent>
+            </Card>
+
+            {/* Danger Zone — Delete Account */}
+            <Card className="neo-card-subtle border-destructive/40">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <Trash2 className="h-5 w-5 text-destructive" />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-destructive/60 group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                  <div>
+                    <CardTitle className="text-lg text-destructive">Delete Account</CardTitle>
+                    <CardDescription>
+                      Permanently delete your account and all associated data
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-6 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  This action cannot be undone. All your invoices, clients, products,
+                  and billing history will be permanently erased.
+                </p>
+                <Button
+                  variant="destructive"
+                  className="w-full sm:w-auto"
+                  onClick={() => setDeleteAccountDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Account
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

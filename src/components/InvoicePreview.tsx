@@ -46,6 +46,16 @@ interface InvoicePreviewProps {
   templateColor?: string;
 }
 
+const STATUS_STYLES: Record<
+  string,
+  { bg: string; fg: string; dot: string; label: string }
+> = {
+  paid: { bg: "#dcfce7", fg: "#15803d", dot: "#22c55e", label: "Paid" },
+  sent: { bg: "#dbeafe", fg: "#1d4ed8", dot: "#3b82f6", label: "Sent" },
+  overdue: { bg: "#fee2e2", fg: "#b91c1c", dot: "#ef4444", label: "Overdue" },
+  draft: { bg: "#f3f4f6", fg: "#4b5563", dot: "#9ca3af", label: "Draft" },
+};
+
 export function InvoicePreview({
   companyInfo,
   client,
@@ -64,156 +74,352 @@ export function InvoicePreview({
   const tax = subtotal * (Number(taxRate) / 100);
   const total = subtotal + tax;
   const sym = getCurrencySymbol(currency);
+  const statusStyle =
+    STATUS_STYLES[status.toLowerCase()] ?? STATUS_STYLES.draft;
+  const contactBits = [companyInfo.email, companyInfo.phone].filter(Boolean);
 
   return (
-    <div className="bg-white text-gray-900 shadow-lg rounded-lg overflow-hidden max-w-[210mm] mx-auto" style={{ fontFamily: "Helvetica, Arial, sans-serif" }}>
-      {/* Header */}
-      <div className="text-white px-8 py-6 flex items-center justify-between" style={{ backgroundColor: templateColor }}>
-        <div className="flex items-center gap-4">
+    <div
+      className="bg-white text-gray-900 shadow-[0_2px_24px_-4px_rgba(15,23,42,0.08)] rounded-2xl overflow-hidden max-w-[210mm] mx-auto"
+      style={{ fontFamily: "Helvetica, Arial, sans-serif" }}
+    >
+      {/* Accent strip */}
+      <div className="h-1.5 w-full" style={{ backgroundColor: templateColor }} />
+
+      {/* Company header */}
+      <div className="px-5 sm:px-8 pt-7 pb-5">
+        <div className="flex items-start gap-3 sm:gap-4">
           {companyInfo.company_logo && (
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm ring-1 ring-black/5"
               style={{ backgroundColor: logoBgColor }}
             >
               <img
                 src={companyInfo.company_logo}
                 alt="Logo"
-                className="w-full h-full object-contain p-0.5"
+                className="w-full h-full object-contain p-1.5"
               />
             </div>
           )}
-          <h1 className="text-xl font-bold">
-            {companyInfo.company_name || "INVOICE"}
-          </h1>
-        </div>
-        <div className="text-right text-sm">
-          <p className="font-medium">Invoice #{invoiceNumber}</p>
-          <p className="uppercase text-xs mt-1 opacity-80">{status}</p>
-        </div>
-      </div>
-
-      <div className="px-8 py-6 space-y-6">
-        {/* From / To */}
-        <div className="grid grid-cols-2 gap-8">
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">From</p>
-            <p className="font-semibold text-sm">{companyInfo.company_name || "Your Company"}</p>
-            {companyInfo.address && <p className="text-xs text-gray-500">{companyInfo.address}</p>}
-            {companyInfo.email && <p className="text-xs text-gray-500">{companyInfo.email}</p>}
-            {companyInfo.phone && <p className="text-xs text-gray-500">{companyInfo.phone}</p>}
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Bill To</p>
-            {client ? (
-              <>
-                <p className="font-semibold text-sm">{client.name}</p>
-                <p className="text-xs text-gray-500">{client.email}</p>
-                {client.phone && <p className="text-xs text-gray-500">{client.phone}</p>}
-                {client.address && (
-                  <>
-                    <p className="text-xs text-gray-500">{client.address}</p>
-                    {client.city && (
-                      <p className="text-xs text-gray-500">
-                        {client.city}{client.state && `, ${client.state}`} {client.zip_code}
-                      </p>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-900 break-words leading-tight">
+              {companyInfo.company_name || "Your Company"}
+            </h1>
+            {contactBits.length > 0 && (
+              <p className="mt-1 text-xs text-gray-500 break-words leading-relaxed">
+                {contactBits.map((bit, i) => (
+                  <span key={i}>
+                    {i > 0 && (
+                      <span className="mx-1.5 text-gray-300">·</span>
                     )}
-                  </>
-                )}
-              </>
-            ) : (
-              <p className="text-xs text-gray-400 italic">No client selected</p>
+                    <span className="break-all">{bit}</span>
+                  </span>
+                ))}
+              </p>
+            )}
+            {companyInfo.address && (
+              <p className="mt-0.5 text-xs text-gray-500 break-words leading-relaxed">
+                {companyInfo.address}
+              </p>
             )}
           </div>
         </div>
-
-        {/* Details Bar */}
-        <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-3 gap-4">
-          <div>
-            <p className="text-[10px] text-gray-400 uppercase font-semibold">Issue Date</p>
-            <p className="text-sm font-semibold mt-0.5">{format(issueDate, "MMM dd, yyyy")}</p>
-          </div>
-          <div>
-            <p className="text-[10px] text-gray-400 uppercase font-semibold">Due Date</p>
-            <p className="text-sm font-semibold mt-0.5">{format(dueDate, "MMM dd, yyyy")}</p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] text-gray-400 uppercase font-semibold">Amount Due</p>
-            <p className="text-sm font-semibold mt-0.5 break-all tabular-nums">{formatMoney(sym, total)}</p>
-          </div>
-        </div>
-
-        {/* Items Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-white" style={{ backgroundColor: templateColor }}>
-                <th className="text-left py-2 px-3 font-semibold text-xs rounded-tl-lg">Description</th>
-                <th className="text-center py-2 px-3 font-semibold text-xs">Qty</th>
-                <th className="text-right py-2 px-3 font-semibold text-xs">Unit Price</th>
-                <th className="text-right py-2 px-3 font-semibold text-xs rounded-tr-lg">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lineItems.map((item, i) => (
-                <tr key={item.id} className={i % 2 === 1 ? "bg-gray-50" : ""}>
-                  <td className="py-2 px-3 text-xs break-words">{item.description || "—"}</td>
-                  <td className="py-2 px-3 text-xs text-center tabular-nums whitespace-nowrap">{Number(item.quantity)}</td>
-                  <td className="py-2 px-3 text-xs text-right tabular-nums whitespace-nowrap">{formatMoney(sym, item.unit_price)}</td>
-                  <td className="py-2 px-3 text-xs text-right font-medium tabular-nums whitespace-nowrap">{formatMoney(sym, item.amount)}</td>
-                </tr>
-              ))}
-              {lineItems.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-4 text-center text-xs text-gray-400 italic">No items added</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Totals */}
-        <div className="flex justify-end">
-          <div className="w-full sm:w-72 max-w-full space-y-1 text-sm">
-            <div className="flex justify-between gap-3 text-gray-500">
-              <span>Subtotal</span>
-              <span className="tabular-nums break-all text-right">{formatMoney(sym, subtotal)}</span>
-            </div>
-            <div className="flex justify-between gap-3 text-gray-500">
-              <span>Tax ({taxRate}%)</span>
-              <span className="tabular-nums break-all text-right">{formatMoney(sym, tax)}</span>
-            </div>
-            <div className="my-1" style={{ borderTopWidth: 1, borderTopStyle: 'solid', borderTopColor: templateColor }} />
-            <div className="flex justify-between gap-3 font-bold" style={{ color: templateColor }}>
-              <span>Total</span>
-              <span className="tabular-nums break-all text-right">{formatMoney(sym, total)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Notes */}
-        {notes && (
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Notes</p>
-            <p className="text-xs text-gray-600 whitespace-pre-wrap">{notes}</p>
-          </div>
-        )}
-
-        {/* Bank Details */}
-        {(companyInfo.bank_name || companyInfo.bank_account_number || companyInfo.bank_routing_code) && (
-          <div className="border-t border-gray-100 pt-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Payment Details</p>
-            <div className="text-xs text-gray-600 space-y-0.5">
-              {companyInfo.bank_name && <p><span className="font-medium">Bank:</span> {companyInfo.bank_name}</p>}
-              {companyInfo.bank_account_number && <p><span className="font-medium">Account:</span> {companyInfo.bank_account_number}</p>}
-              {companyInfo.bank_routing_code && <p><span className="font-medium">Routing/Sort Code:</span> {companyInfo.bank_routing_code}</p>}
-            </div>
-          </div>
-        )}
       </div>
 
+      <div
+        className="mx-5 sm:mx-8 h-px"
+        style={{ backgroundColor: `${templateColor}1f` }}
+      />
+
+      {/* Invoice meta band */}
+      <div className="px-5 sm:px-8 py-5 flex items-center justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <p
+            className="text-[10px] font-extrabold uppercase tracking-[0.22em]"
+            style={{ color: templateColor }}
+          >
+            Invoice
+          </p>
+          <p className="mt-0.5 text-base font-mono font-medium text-gray-900 break-all">
+            {invoiceNumber}
+          </p>
+        </div>
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider"
+          style={{ backgroundColor: statusStyle.bg, color: statusStyle.fg }}
+        >
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: statusStyle.dot }}
+          />
+          {statusStyle.label}
+        </span>
+      </div>
+
+      {/* Bill To + dates */}
+      <div className="px-5 sm:px-8 pb-6">
+        <div className="rounded-2xl bg-gray-50/70 ring-1 ring-gray-100 p-4 sm:p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+            <div className="min-w-0 sm:col-span-1">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.18em] mb-1.5">
+                Billed To
+              </p>
+              {client ? (
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-sm text-gray-900 break-words">
+                    {client.name}
+                  </p>
+                  {client.email && (
+                    <p className="text-xs text-gray-500 break-all">
+                      {client.email}
+                    </p>
+                  )}
+                  {client.phone && (
+                    <p className="text-xs text-gray-500 break-all">
+                      {client.phone}
+                    </p>
+                  )}
+                  {client.address && (
+                    <p className="text-xs text-gray-500 break-words">
+                      {client.address}
+                    </p>
+                  )}
+                  {(client.city || client.state || client.zip_code) && (
+                    <p className="text-xs text-gray-500 break-words">
+                      {[client.city, client.state, client.zip_code]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 italic">
+                  No client selected
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:col-span-2 sm:gap-5 content-start">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.18em] mb-1.5">
+                  Issued
+                </p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {format(issueDate, "MMM dd, yyyy")}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.18em] mb-1.5">
+                  Due
+                </p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {format(dueDate, "MMM dd, yyyy")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Items */}
+      <div className="px-5 sm:px-8 pb-2">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.18em] mb-3">
+          Items
+        </p>
+
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-2">
+          {lineItems.length === 0 ? (
+            <p className="text-center text-xs text-gray-400 italic py-6 rounded-xl bg-gray-50/70 ring-1 ring-gray-100">
+              No items added
+            </p>
+          ) : (
+            lineItems.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-xl ring-1 ring-gray-100 bg-white px-4 py-3 flex justify-between gap-3 hover:ring-gray-200 transition-shadow"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900 break-words">
+                    {item.description || "—"}
+                  </p>
+                  <p className="text-xs text-gray-500 tabular-nums mt-1">
+                    <span className="font-medium text-gray-700">
+                      {Number(item.quantity)}
+                    </span>
+                    <span className="mx-1.5 text-gray-300">×</span>
+                    <span>{formatMoney(sym, item.unit_price)}</span>
+                  </p>
+                </div>
+                <p className="text-sm font-bold tabular-nums whitespace-nowrap self-center text-gray-900">
+                  {formatMoney(sym, item.amount)}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block">
+          <div className="rounded-xl ring-1 ring-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50/70 border-b border-gray-100">
+                  <th className="text-left py-3 px-4 font-bold text-[10px] uppercase tracking-[0.15em] text-gray-500">
+                    Description
+                  </th>
+                  <th className="text-right py-3 px-4 font-bold text-[10px] uppercase tracking-[0.15em] text-gray-500 w-16">
+                    Qty
+                  </th>
+                  <th className="text-right py-3 px-4 font-bold text-[10px] uppercase tracking-[0.15em] text-gray-500">
+                    Unit Price
+                  </th>
+                  <th className="text-right py-3 px-4 font-bold text-[10px] uppercase tracking-[0.15em] text-gray-500">
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {lineItems.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="py-6 text-center text-xs text-gray-400 italic"
+                    >
+                      No items added
+                    </td>
+                  </tr>
+                ) : (
+                  lineItems.map((item, i) => (
+                    <tr
+                      key={item.id}
+                      className={i !== 0 ? "border-t border-gray-100" : ""}
+                    >
+                      <td className="py-3 px-4 text-sm text-gray-900 break-words font-medium">
+                        {item.description || "—"}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-right text-gray-600 tabular-nums whitespace-nowrap">
+                        {Number(item.quantity)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-right text-gray-600 tabular-nums whitespace-nowrap">
+                        {formatMoney(sym, item.unit_price)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-right font-semibold text-gray-900 tabular-nums whitespace-nowrap">
+                        {formatMoney(sym, item.amount)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Totals — emphasized card */}
+      <div className="px-5 sm:px-8 pt-4 pb-2">
+        <div className="ml-auto sm:max-w-sm rounded-2xl bg-gray-50/70 ring-1 ring-gray-100 p-4 sm:p-5 space-y-2.5 text-sm">
+          <div className="flex justify-between items-baseline gap-3">
+            <span className="text-gray-500 shrink-0">Subtotal</span>
+            <span className="tabular-nums text-right text-gray-900 font-medium min-w-0 break-all">
+              {formatMoney(sym, subtotal)}
+            </span>
+          </div>
+          <div className="flex justify-between items-baseline gap-3">
+            <span className="text-gray-500 shrink-0">Tax ({taxRate}%)</span>
+            <span className="tabular-nums text-right text-gray-900 font-medium min-w-0 break-all">
+              {formatMoney(sym, tax)}
+            </span>
+          </div>
+          <div
+            className="h-px w-full"
+            style={{ backgroundColor: `${templateColor}33` }}
+          />
+          <div className="flex justify-between items-end gap-3 pt-1">
+            <div className="shrink-0">
+              <p
+                className="text-[10px] font-extrabold uppercase tracking-[0.22em]"
+                style={{ color: templateColor }}
+              >
+                Total
+              </p>
+              <p className="text-[10px] text-gray-400 mt-0.5 tracking-wide">
+                {currency.toUpperCase()}
+              </p>
+            </div>
+            <span
+              className="text-2xl sm:text-3xl font-extrabold tabular-nums text-right min-w-0 break-all leading-none tracking-tight"
+              style={{ color: templateColor }}
+            >
+              {formatMoney(sym, total)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Notes */}
+      {notes && (
+        <div className="px-5 sm:px-8 pt-4">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.18em] mb-2">
+            Notes
+          </p>
+          <div
+            className="text-sm text-gray-600 italic whitespace-pre-wrap rounded-r-md border-l-2 pl-3 py-1"
+            style={{ borderColor: templateColor }}
+          >
+            {notes}
+          </div>
+        </div>
+      )}
+
+      {/* Payment Details */}
+      {(companyInfo.bank_name ||
+        companyInfo.bank_account_number ||
+        companyInfo.bank_routing_code) && (
+        <div className="px-5 sm:px-8 pt-5">
+          <div className="rounded-2xl bg-gray-50/70 ring-1 ring-gray-100 p-4 sm:p-5">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.18em] mb-3">
+              Payment Details
+            </p>
+            <div className="space-y-1.5 text-xs">
+              {companyInfo.bank_name && (
+                <div className="flex gap-3">
+                  <span className="text-gray-500 w-20 shrink-0">Bank</span>
+                  <span className="font-medium text-gray-900 break-words min-w-0">
+                    {companyInfo.bank_name}
+                  </span>
+                </div>
+              )}
+              {companyInfo.bank_account_number && (
+                <div className="flex gap-3">
+                  <span className="text-gray-500 w-20 shrink-0">Account</span>
+                  <span className="font-mono font-medium text-gray-900 break-all min-w-0">
+                    {companyInfo.bank_account_number}
+                  </span>
+                </div>
+              )}
+              {companyInfo.bank_routing_code && (
+                <div className="flex gap-3">
+                  <span className="text-gray-500 w-20 shrink-0">Routing</span>
+                  <span className="font-mono font-medium text-gray-900 break-all min-w-0">
+                    {companyInfo.bank_routing_code}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
-      <div className="px-8 py-4 border-t border-gray-100 text-center">
-        <p className="text-[10px] text-gray-400">Thank you for your business!</p>
+      <div className="px-5 sm:px-8 mt-6 pt-5 pb-6 border-t border-gray-100">
+        <p className="text-center text-[11px] text-gray-400 tracking-wide">
+          Thank you for your business
+          <span
+            className="mx-1.5 inline-block h-1 w-1 rounded-full align-middle"
+            style={{ backgroundColor: templateColor }}
+          />
+          {companyInfo.company_name || "CushyInvoice"}
+        </p>
       </div>
     </div>
   );
