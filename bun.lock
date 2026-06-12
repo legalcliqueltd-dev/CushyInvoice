@@ -8,11 +8,13 @@
         "@capacitor/android": "^8.0.2",
         "@capacitor/app": "^8.0.1",
         "@capacitor/browser": "^8.0.0",
+        "@capacitor/camera": "^8.2.0",
         "@capacitor/cli": "^8.0.2",
         "@capacitor/core": "^8.0.2",
         "@capacitor/filesystem": "^8.1.0",
         "@capacitor/ios": "^8.0.2",
         "@capacitor/splash-screen": "^8.0.0",
+        "@capawesome/capacitor-apple-sign-in": "^0.1.0",
         "@deldev/capacitor-google-auth": "^1.0.2",
         "@hookform/resolvers": "^3.10.0",
         "@huggingface/transformers": "^3.8.0",
@@ -112,6 +114,8 @@
 
     "@capacitor/browser": ["@capacitor/browser@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-xey7maszGABKuStvXDV4vXN+EzIyz0o7zlyzw4JKG6o/1GzqeqHqVuE+8Ux+Hks3DZji4LoriWZVgVF6mR6RGg=="],
 
+    "@capacitor/camera": ["@capacitor/camera@8.2.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/camera/-/camera-8.2.0.tgz", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-hYfrT6xpL936qoEkIpJzSnb0fQCaTkOux1cXzGBfH8QLOGqr6gSLiWZlZz/fqMPmMKJMNRBqlTQkj5fuMhVZog=="],
+
     "@capacitor/cli": ["@capacitor/cli@8.0.2", "", { "dependencies": { "@ionic/cli-framework-output": "^2.2.8", "@ionic/utils-subprocess": "^3.0.1", "@ionic/utils-terminal": "^2.3.5", "commander": "^12.1.0", "debug": "^4.4.0", "env-paths": "^2.2.0", "fs-extra": "^11.2.0", "kleur": "^4.1.5", "native-run": "^2.0.3", "open": "^8.4.0", "plist": "^3.1.0", "prompts": "^2.4.2", "rimraf": "^6.0.1", "semver": "^7.6.3", "tar": "^7.5.3", "tslib": "^2.8.1", "xml2js": "^0.6.2" }, "bin": { "cap": "bin/capacitor", "capacitor": "bin/capacitor" } }, "sha512-/8qLYxhytMyUKTHK8i6YU+DMD3AuFiQgSuJCyMltcg9MN3W9En7zqQZSo/WN4eC7qif/oyZACzm7OkAZKani7g=="],
 
     "@capacitor/core": ["@capacitor/core@8.0.2", "", { "dependencies": { "tslib": "^2.1.0" } }, "sha512-EXZfxkL6GFJS2cb7TIBR7RiHA5iz6ufDcl1VmUpI2pga3lJ5Ck2+iqbx7N+osL3XYem9ad4XCidJEMm64DX6UQ=="],
@@ -123,6 +127,8 @@
     "@capacitor/splash-screen": ["@capacitor/splash-screen@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-zkFdUSd6C6gd3s3bIEgtO3DVjfwpaX5mmWU9er8xYTg47zr2toEkGtfyE6CPhhErG09fl4rCqrK5DfnGrXLh9w=="],
 
     "@capacitor/synapse": ["@capacitor/synapse@1.0.4", "", {}, "sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw=="],
+
+    "@capawesome/capacitor-apple-sign-in": ["@capawesome/capacitor-apple-sign-in@0.1.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capawesome/capacitor-apple-sign-in/-/capacitor-apple-sign-in-0.1.0.tgz", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-/iSFHj2ZEJa1TYfEkgtAhwLIqMB/sr1ntr/HfXNz3fdssmh/j00mWgDK7sFXUSIj5G8ArpVBzaK2hJKFBWoDUQ=="],
 
     "@deldev/capacitor-google-auth": ["@deldev/capacitor-google-auth@1.0.2", "", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-uFEuXpCfRccy5e2HVWSMnFEh4Sda2lXEgRee/sIC8BakihTTPxYBwcJ1NFwDYEGtQWBlHAPMSNg7wsYv6mIcDw=="],
 
