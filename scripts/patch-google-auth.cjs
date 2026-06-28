@@ -90,3 +90,9 @@ const appGradle = path.join(
   process.cwd(), "node_modules", "@capacitor", "app", "android", "build.gradle"
 );
 patchGradleFile(appGradle, "@capacitor/app");
+
+// Patch @capawesome/capacitor-apple-sign-in
+const appleSignInGradle = path.join(
+  process.cwd(), "node_modules", "@capawesome", "capacitor-apple-sign-in", "android", "build.gradle"
+);
+patchGradleFile(appleSignInGradle, "@capawesome/capacitor-apple-sign-in");

@@ -8,11 +8,17 @@ project(':capacitor-app').projectDir = new File('../node_modules/@capacitor/app/
 include ':capacitor-browser'
 project(':capacitor-browser').projectDir = new File('../node_modules/@capacitor/browser/android')
 
+include ':capacitor-camera'
+project(':capacitor-camera').projectDir = new File('../node_modules/@capacitor/camera/android')
+
 include ':capacitor-filesystem'
 project(':capacitor-filesystem').projectDir = new File('../node_modules/@capacitor/filesystem/android')
 
 include ':capacitor-splash-screen'
 project(':capacitor-splash-screen').projectDir = new File('../node_modules/@capacitor/splash-screen/android')
+
+include ':capawesome-capacitor-apple-sign-in'
+project(':capawesome-capacitor-apple-sign-in').projectDir = new File('../node_modules/@capawesome/capacitor-apple-sign-in/android')
 
 include ':deldev-capacitor-google-auth'
 project(':deldev-capacitor-google-auth').projectDir = new File('../node_modules/@deldev/capacitor-google-auth/android')
