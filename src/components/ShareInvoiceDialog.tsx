@@ -136,23 +136,33 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
   };
 
   const handleSendEmail = async () => {
+    const email = recipientEmail.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Enter a valid email",
+        description: "Add the email address you want to send this invoice to.",
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading('email');
     try {
       const blob = await generateInvoicePdf(invoice, company);
-      
+
       // Convert blob to base64
       const reader = new FileReader();
       reader.readAsDataURL(blob);
-      
+
       reader.onloadend = async () => {
         const base64data = reader.result as string;
         const base64Pdf = base64data.split(',')[1];
-        
+
         const { error } = await supabase.functions.invoke("send-invoice-email", {
           body: {
             invoiceId: invoice.id,
             pdfBase64: base64Pdf,
-            recipientEmail,
+            recipientEmail: email,
           },
         });
 
@@ -160,7 +170,7 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
 
         toast({
           title: "Email Sent",
-          description: `Invoice PDF has been sent to ${recipientEmail}`,
+          description: `Invoice PDF has been sent to ${email}`,
         });
         setOpen(false);
       };
@@ -290,7 +300,11 @@ export function ShareInvoiceDialog({ invoice, company, locked = false }: ShareIn
             )}
             <div className="text-left">
               <div className="font-medium">Send via Email</div>
-              <div className="text-xs text-muted-foreground">Send PDF to {invoice.clients.email}</div>
+              <div className="text-xs text-muted-foreground">
+                {recipientEmail.trim()
+                  ? `Send PDF to ${recipientEmail.trim()}`
+                  : "Enter an email address above"}
+              </div>
             </div>
           </Button>
 
