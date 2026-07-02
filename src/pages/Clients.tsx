@@ -29,7 +29,7 @@ import { z } from "zod";
 
 const clientSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
-  email: z.string().email("Invalid email").max(255),
+  email: z.union([z.string().email("Invalid email").max(255), z.literal("")]).optional(),
   phone: z.string().max(20).optional(),
   address: z.string().max(200).optional(),
   city: z.string().max(100).optional(),
@@ -117,10 +117,13 @@ export default function Clients() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Email is optional; store an empty string when not provided.
+      const payload = { ...validation.data, email: validation.data.email || "" };
+
       if (editingClient) {
         const { error } = await supabase
           .from("clients")
-          .update(validation.data)
+          .update(payload)
           .eq("id", editingClient.id);
 
         if (error) throw error;
@@ -128,10 +131,10 @@ export default function Clients() {
       } else {
         const { error } = await supabase
           .from("clients")
-          .insert([{ 
-            name: validation.data.name,
-            email: validation.data.email,
-            phone: validation.data.phone,
+          .insert([{
+            name: payload.name,
+            email: payload.email,
+            phone: payload.phone,
             address: validation.data.address,
             city: validation.data.city,
             state: validation.data.state,
@@ -240,7 +243,7 @@ export default function Clients() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -248,7 +251,6 @@ export default function Clients() {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      required
                     />
                   </div>
                 </div>
@@ -391,7 +393,7 @@ export default function Clients() {
                       {paginatedClients.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell className="font-medium max-w-[180px] truncate" title={client.name}>{client.name}</TableCell>
-                          <TableCell className="max-w-[220px] truncate" title={client.email}>{client.email}</TableCell>
+                          <TableCell className="max-w-[220px] truncate" title={client.email || "-"}>{client.email || "-"}</TableCell>
                           <TableCell className="hidden md:table-cell">
                             {client.phone || "-"}
                           </TableCell>

@@ -84,7 +84,7 @@ interface CompanyInfo {
 
 const clientSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
-  email: z.string().email("Invalid email").max(255),
+  email: z.union([z.string().email("Invalid email").max(255), z.literal("")]).optional(),
   phone: z.string().max(20).optional(),
   address: z.string().max(200).optional(),
 });
@@ -412,7 +412,7 @@ export default function InvoiceNew() {
         .from("clients")
         .insert([{
           name: validation.data.name,
-          email: validation.data.email,
+          email: validation.data.email || "",
           phone: validation.data.phone,
           address: validation.data.address,
           user_id: user.id,
@@ -923,7 +923,7 @@ export default function InvoiceNew() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Email *</Label>
+                        <Label>Email</Label>
                         <Input
                           type="email"
                           value={newClientData.email}

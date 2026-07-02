@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { currencies } from "@/lib/currencies";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Loader2, Crown, RefreshCw, Trash2, Sun, Moon, Monitor, Landmark, User, Building2, CreditCard, SlidersHorizontal, Palette, Shield, Lock, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -889,17 +891,40 @@ export default function Settings() {
 
                   <div className="space-y-2">
                     <Label htmlFor="default_currency">Default Currency</Label>
-                    <Input
-                      id="default_currency"
+                    <Select
                       value={profile.default_currency}
-                      onChange={(e) =>
-                        setProfile({ ...profile, default_currency: e.target.value })
+                      onValueChange={(value) =>
+                        setProfile({ ...profile, default_currency: value })
                       }
-                      placeholder="USD"
-                      maxLength={3}
-                    />
+                    >
+                      <SelectTrigger id="default_currency">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                          Global
+                        </div>
+                        {currencies
+                          .filter((c) => c.region === "global")
+                          .map((curr) => (
+                            <SelectItem key={curr.code} value={curr.code}>
+                              {curr.code} — {curr.name} ({curr.symbol})
+                            </SelectItem>
+                          ))}
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-1">
+                          African
+                        </div>
+                        {currencies
+                          .filter((c) => c.region === "africa")
+                          .map((curr) => (
+                            <SelectItem key={curr.code} value={curr.code}>
+                              {curr.code} — {curr.name} ({curr.symbol})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <p className="text-xs text-muted-foreground">
-                      3-letter code (e.g., USD, EUR, GBP)
+                      Used as the default currency for new invoices
                     </p>
                   </div>
                 </div>
