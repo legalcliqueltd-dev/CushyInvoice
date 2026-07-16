@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { Receipt, FileText, Users, TrendingUp, Zap, Twitter, Linkedin, Facebook, Instagram, MessageCircle, ArrowRight, Star, Loader2 } from "lucide-react";
 import heroInvoice from "@/assets/hero-invoice.png";
+import { GetAppButtons } from "@/components/GetAppButtons";
 
 const features = [
   {
@@ -161,18 +162,16 @@ const Index = () => {
             <path d="M52 6 L60 12 L52 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+          <div className="flex flex-col items-center gap-6 pt-2">
             <GradientButton onClick={() => navigate("/auth")} className="text-lg px-10 py-5 w-full sm:w-auto">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </GradientButton>
-            <button
-              onClick={() => window.open("https://wa.me/2348129797793", "_blank")}
-              className="neo-brutal-btn rounded-xl px-8 py-4 text-base font-bold bg-emerald-400 text-foreground inline-flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px]"
-            >
-              <MessageCircle className="w-5 h-5" />
-              WhatsApp Support
-            </button>
+
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-sm font-bold text-muted-foreground">or take it with you —</p>
+              <GetAppButtons />
+            </div>
           </div>
         </div>
       </section>
@@ -270,6 +269,17 @@ const Index = () => {
               </div>
               <span className="font-black">CushyInvoice</span>
             </div>
+
+            <GetAppButtons size="sm" />
+
+            <button
+              onClick={() => window.open("https://wa.me/2348129797793", "_blank")}
+              className="neo-brutal-btn rounded-xl px-5 py-2.5 text-sm font-bold bg-emerald-400 text-foreground inline-flex items-center justify-center gap-2 min-h-[44px]"
+            >
+              <MessageCircle className="w-4 h-4" />
+              WhatsApp Support
+            </button>
+
             <div className="flex items-center gap-3">
               {[
                 { icon: Twitter, href: "https://twitter.com", label: "Twitter" },

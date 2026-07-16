@@ -24,7 +24,10 @@ import {
   Sun,
   Moon,
   Monitor,
+  Smartphone,
 } from "lucide-react";
+import { GetAppButtons } from "@/components/GetAppButtons";
+import { isNativeApp } from "@/lib/appStores";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTheme } from "@/hooks/useTheme";
@@ -213,6 +216,22 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </NavLink>
             ))}
           </nav>
+
+          {/* Get the app — hidden when already running natively */}
+          {!isNativeApp() && (
+            <div className="px-4 pb-3">
+              <div className="rounded-xl border-[1.5px] border-foreground/10 bg-muted/40 p-3 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-primary" />
+                  <p className="text-xs font-bold">Get the app</p>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Invoice from anywhere. Free on iOS and Android.
+                </p>
+                <GetAppButtons size="sm" orientation="col" />
+              </div>
+            </div>
+          )}
 
           {/* User Section */}
           <div className="p-4 pb-28 lg:pb-4 border-t border-border safe-bottom">
